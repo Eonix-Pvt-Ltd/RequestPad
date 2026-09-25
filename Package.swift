@@ -23,7 +23,9 @@ let package = Package(
         .target(name: "RPCore", resources: [.process("Resources")], swiftSettings: strictSettings),
         .target(
             name: "RPData", dependencies: ["RPCore"], resources: [.process("Resources")], swiftSettings: strictSettings),
-        .target(name: "RPServices", dependencies: ["RPCore", "RPData"], swiftSettings: strictSettings),
+        .target(
+            name: "RPServices", dependencies: ["RPCore", "RPData"], resources: [.process("Resources")],
+            swiftSettings: strictSettings),
         .target(name: "RPStore", dependencies: ["RPCore"], swiftSettings: strictSettings),
         .target(name: "RPUI", dependencies: ["RPCore"], swiftSettings: strictSettings),
         .testTarget(
