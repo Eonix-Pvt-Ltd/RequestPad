@@ -1,9 +1,106 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Make sure your device has free storage space, then restart RequestPad. If this keeps happening, contact support." : {},
-    "RequestPad can't create the “%@” folder." : {},
-    "RequestPad can't open its data folder." : {}
+    "“%@” already exists." : {
+
+    },
+    "“%@” can't be used as a name." : {
+
+    },
+    "“%@” couldn't be read." : {
+
+    },
+    "“%@” couldn't be saved." : {
+
+    },
+    "“%@” was changed outside RequestPad." : {
+
+    },
+    "Authentication failed, so the secret stays hidden." : {
+
+    },
+    "Choose a different name." : {
+
+    },
+    "Choose an empty folder or a folder containing bruno.json." : {
+
+    },
+    "Choose Grant Access and select the folder again." : {
+
+    },
+    "Choose whether to keep your version or use the file on disk." : {
+
+    },
+    "Make sure your device has free storage space, then restart RequestPad. If this keeps happening, contact support." : {
+
+    },
+    "Remove the collection from RequestPad, then open the folder from its new location." : {
+
+    },
+    "RequestPad can't create the “%@” folder." : {
+
+    },
+    "RequestPad can't open its data folder." : {
+
+    },
+    "RequestPad can't open its database." : {
+
+    },
+    "RequestPad couldn't store the %@." : {
+
+    },
+    "RequestPad doesn't have permission to open “%@”." : {
+
+    },
+    "RequestPad needs permission to open this folder again." : {
+
+    },
+    "The %@ no longer exists." : {
+
+    },
+    "The collection has more than %lld files." : {
+
+    },
+    "The file is larger than %@." : {
+
+    },
+    "The file isn't a RequestPad export." : {
+
+    },
+    "The folder can't be found. It may have been moved or deleted." : {
+
+    },
+    "The folder doesn't contain a bruno.json file." : {
+
+    },
+    "The folder isn't empty and isn't a Bruno collection." : {
+
+    },
+    "The Keychain couldn't %@ the secret (error %d)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The Keychain couldn't %1$@ the secret (error %2$d)."
+          }
+        }
+      }
+    },
+    "The secret isn't stored on this device." : {
+
+    },
+    "This export was made by a newer RequestPad (format %lld)." : {
+
+    },
+    "Try again. If the problem continues, contact support from Settings." : {
+
+    },
+    "Update RequestPad, then import the file again." : {
+
+    },
+    "Your changes couldn't be saved." : {
+
+    }
   },
   "version" : "1.0"
 }
