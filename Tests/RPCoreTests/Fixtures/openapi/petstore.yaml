@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: Swagger Petstore
+  version: 1.0.0
+  description: >
+    A sample API that uses a petstore as an example
+    to demonstrate features of the OpenAPI specification.
+servers:
+  - url: https://petstore.example.com/v1
+    description: Production
+  - url: http://localhost:8080/v1
+tags:
+  - name: pets
+    description: Everything about pets
+security:
+  - bearerAuth: []
+paths:
+  /pets:
+    get:
+      summary: List all pets
+      operationId: listPets
+      tags: [pets]
+      parameters:
+        - name: limit
+          in: query
+          description: How many items to return at one time (max 100)
+          required: false
+          schema:
+            type: integer
+            format: int32
+            example: 20
+        - $ref: '#/components/parameters/TraceHeader'
+      responses:
+        '200':
+          description: A paged array of pets
+    post:
+      summary: Create a pet
+      operationId: createPets
+      tags:
+        - pets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPet'
+      responses:
+        '201':
+          description: Null response
+  /pets/{petId}:
+    parameters:
+      - name: petId
+        in: path
+        required: true
+        description: The id of the pet to retrieve
+        schema:
+          type: string
+    get:
+      summary: Info for a specific pet
+      operationId: showPetById
+      tags:
+        - pets
+      responses:
+        '200':
+          description: Expected response to a valid request
+    delete:
+      operationId: deletePet
+      security: []
+      responses:
+        '204':
+          description: Deleted
+  /store/inventory:
+    get:
+      operationId: getInventory
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: OK
+  /users/login:
+    post:
+      summary: Log in
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username: {type: string, example: ann}
+                password: {type: string, format: password}
+      responses:
+        '200':
+          description: OK
+  /uploads:
+    post:
+      operationId: uploadFile
+      tags: [files]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                note:
+                  type: string
+      responses:
+        '200':
+          description: OK
+components:
+  parameters:
+    TraceHeader:
+      name: X-Trace-Id
+      in: header
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    Pet:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        tag:
+          type: string
+        owner:
+          $ref: '#/components/schemas/Owner'
+    NewPet:
+      allOf:
+        - $ref: '#/components/schemas/Pet'
+        - type: object
+          properties:
+            vaccinated:
+              type: boolean
+              default: false
+    Owner:
+      type: object
+      properties:
+        name:
+          type: string
+        pets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Pet'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
