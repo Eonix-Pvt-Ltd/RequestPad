@@ -25,8 +25,10 @@ No placeholders are used. The human supplied only the domain `requestpad.eonix.l
 Context: B2 places the project at `App/RequestPad.xcodeproj`; the supplied project is at the root with sources in
 `RequestPad/`, `RequestPadTests/`, `RequestPadUITests/`. B1 forbids moving or re-creating it.
 Decision: keep the project and its folders where they are. The B2 `App/` subfolders (`Shared/`, `iOS/`, `macOS/`,
-`Intents/`, `Resources/`, `Config/`) are created as groups inside the existing `RequestPad/` app folder;
-`UITests/` = existing `RequestPadUITests/`. Approved by the human.
+`Intents/`, `Resources/`) are created inside the existing folder-synchronized `RequestPad/` app folder;
+`UITests/` = existing `RequestPadUITests/`. Approved by the human. Amended in Phase 1: `Config/` lives at the repo
+root as a normal (non-synchronized) group, because files inside the synchronized `RequestPad/` folder are
+auto-added to the app target and xcconfigs must not be.
 Consequences: paths in scripts/CI reference `RequestPad.xcodeproj` at the root.
 
 ### ADR-0002 — Identifiers
@@ -34,7 +36,7 @@ Decision (approved by the human): bundle ID `lk.eonix.RequestPad` (case preserve
 this one may already be registered). Lowercase prefix for everything else: IAP product IDs
 `lk.eonix.requestpad.pro.monthly|yearly|lifetime`, subscription group "Pro", Keychain service = bundle ID,
 logging subsystem = bundle ID, OAuth redirect `requestpad://oauth/callback`.
-Consequences: the B4 table's `com.YOURTEAM.requestpad.*` maps to `lk.eonix.requestpad.*`.
+Consequences: every product identifier in the brief's B4 table uses the `lk.eonix.requestpad.` prefix.
 
 ### ADR-0003 — Package workspace
 Decision: a single local Swift package `RequestPadKit` at the repo root (`Package.swift`, `Sources/RP*`, `Tests/RP*Tests`)
@@ -79,8 +81,11 @@ the NSExceptionDomains dictionary." B1/B8 forbid `NSAllowsArbitraryLoads`.
 Decision: `NSAllowsLocalNetworking = YES` (unqualified hosts incl. `localhost`, `.local`) + `NSExceptionDomains` with
 `NSExceptionAllowsInsecureHTTPLoads` for `127.0.0.0/8`, `::1`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`,
 `169.254.0.0/16`, `fe80::/10`, `fc00::/7`. Plain HTTP to public hosts is blocked and explained in-app (F01.8).
-Consequences: known product limitation, stated in metadata FAQ. Exact CIDR key syntax: **Unverified: NSExceptionDomains
-CIDR entries** — verify with a live request test in Phase 3.
+Consequences: known product limitation, stated in the support FAQ. CIDR key syntax verified 2026-09-25 against the
+`NSExceptionDomains` documentation ("In iOS 17, iPadOS 17, and macOS 14, you can use … a classless inter-domain
+routing (CIDR) range"). Note from the same page: an IP exception does not apply when a host is reached by a DNS name
+that resolves to that IP, so `http://myserver.lan` style names are only allowed when unqualified or `.local`.
+Runtime behavior is verified by a live request test in Phase 3.
 
 ### ADR-0011 — No web views; "Preview" = images only
 B7/B10.7 disallow web views. HTML responses show in Raw with syntax highlighting; Preview supports images only.
@@ -119,3 +124,54 @@ gate. The agent stops at each gate for approval (user's global CLAUDE.md).
 Cryptography used: OS TLS via URLSession; Keychain; SHA-256 (CryptoKit `SHA256`) for PKCE code challenge only;
 `SecRandomCopyBytes` for PKCE verifier/state. No other cryptography, no `swift-crypto`, no encryption of data at rest
 by the app. Therefore `ITSAppUsesNonExemptEncryption = NO` (authentication-only use, exempt), matching Part A A12.
+
+### ADR-0019 — Accessibility audit exemptions (macOS framework elements)
+Context: `performAccessibilityAudit()` on macOS 27 reports (a) "Element has no description" for the unlabeled
+`Group` SwiftUI creates around each window's content and each `NavigationSplitView` column, and for the system
+Touch Bar element; (b) contrast failures inside the translucent sidebar, whose result depends on whatever windows
+are behind it (verified from the failure recording: a Finder window showed through the sidebar material).
+Decision: `RequestPadUITests/AccessibilityAudit.swift` exempts exactly those framework-owned elements (containers
+matched by frame, only for `sufficientElementDescription`) and contrast issues inside the macOS sidebar column
+only. Contrast remains fully audited on iOS/iPadOS and in the macOS detail area, and is checked manually on macOS
+(HUMAN_HANDOFF H3). Tests may add per-element `VerifiedExemption`s only with evidence recorded in SDLC_LOG.
+Real findings fixed in Phase 1 instead of exempted: a dimmed empty-state title/icon combination (replaced by
+`RPUI.EmptyStateView`) and an over-narrow sidebar.
+
+### ADR-0020 — Placeholder check does not match `{{`
+The brief asks `lint.sh` to fail on any `{{`. RequestPad's variable syntax is `{{name}}`, which appears legitimately
+in code, fixtures and docs. `lint.sh` therefore matches only the brief's four named URL/email placeholders, its
+team-prefix placeholder and the `.invalid` fallback domain (exact patterns in `scripts/lint.sh`).
+
+### ADR-0021 — How package tests run under xcodebuild
+A project cannot list a local package's test targets in its scheme when the package sits at the project root (Xcode
+reports "isn't a member of the specified test plan or scheme"), and `xcodebuild` in the root directory picks the
+project over `Package.swift`. Decision: commit `.swiftpm/xcode/package.xcworkspace` (a one-file workspace pointing at
+the package) and run package suites with `-workspace .swiftpm/xcode/package.xcworkspace -scheme
+RequestPadKit-Package`, which yields xccov coverage per module. App suites run via `-project RequestPad.xcodeproj
+-scheme RequestPad`.
+
+### ADR-0022 — CI security scanning without third-party dependencies
+There are no third-party dependencies, so there is nothing for a dependency scanner to audit; `Package.resolved`
+does not exist. If a dependency is added, CI must add `osv-scanner` on `Package.resolved` in the same change.
+Secret scanning: gitleaks 8.30.1 binary, SHA-256 verified, full history. SAST: Clang static analyzer
+(`xcodebuild analyze`) plus Swift 6 strict concurrency, warnings-as-errors, ASan and TSan runs. Semgrep's Swift
+support is limited and adds a third-party tool for little signal; not adopted. GitHub Actions are pinned to commit
+SHAs.
+
+### ADR-0023 — Test bundles run with ad hoc signing on CI
+CI runners have no signing certificates. `CI=true scripts/test.sh` overrides macOS signing to ad hoc (`-`) for test
+runs only; archives always use automatic signing with team `835LNLUPAJ`.
+
+### Unverified: StoreKit configuration file format
+No `.storekit` template ships inside Xcode 27, so `RequestPad/Resources/Products.storekit` was written from the known
+version 4 JSON format. It parses as JSON; Xcode's StoreKit editor and the Phase 5 StoreKit tests are the
+verification. Re-verify in Phase 5.
+
+### Unverified: required-reason codes in PrivacyInfo.xcprivacy
+`CA92.1` (UserDefaults, app-only data), `C617.1` (file timestamps inside the app container) and `3B52.1` (file
+timestamps of files/folders the user granted access to — folder collections). Apple's page renders client-side and
+could not be read by the agent. Re-verify in Phase 7 with the archive privacy report.
+
+### Unverified: `com.apple.security.files.bookmarks.app-scope`
+Included per B7 for app-scoped security bookmarks on macOS. Confirm in Phase 3 that bookmark creation/resolution
+works in the sandboxed build, and in Phase 7 with the archived entitlements (`codesign -d --entitlements`).

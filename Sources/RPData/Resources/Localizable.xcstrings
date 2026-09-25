@@ -1,0 +1,9 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Make sure your device has free storage space, then restart RequestPad. If this keeps happening, contact support." : {},
+    "RequestPad can't create the “%@” folder." : {},
+    "RequestPad can't open its data folder." : {}
+  },
+  "version" : "1.0"
+}

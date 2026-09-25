@@ -1,41 +1,40 @@
-//
-//  RequestPadUITests.swift
-//  RequestPadUITests
-//
-//  Created by Yasas Alwis on 2026-09-25.
-//
-
 import XCTest
 
 final class RequestPadUITests: XCTestCase {
-
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-
-        // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
-
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
-
+    /// Smoke test: the app launches and shows its root navigation (Phase 1 exit).
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testLaunchShowsRootNavigation() throws {
         let app = XCUIApplication()
         app.launch()
+        let emptySidebar = app.descendants(matching: .any)["root.sidebar.empty"]
+        let emptyDetail = app.descendants(matching: .any)["root.detail.empty"]
+        XCTAssertTrue(
+            emptySidebar.waitForExistence(timeout: 10) || emptyDetail.waitForExistence(timeout: 1),
+            "Root navigation did not appear")
+    }
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // XCUIAutomation Documentation
-        // https://developer.apple.com/documentation/xcuiautomation
+    /// Accessibility audit of the launch screen (B8). Later phases extend this to every screen.
+    @MainActor
+    func testLaunchScreenPassesAccessibilityAudit() throws {
+        let app = XCUIApplication()
+        app.launch()
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+        var verified: [AccessibilityAudit.VerifiedExemption] = []
+        #if os(iOS)
+            verified.append(
+                .init(
+                    auditType: .textClipped, identifier: "root.sidebar.empty",
+                    evidence: "SDLC_LOG Phase 1: wraps without clipping at accessibility-extra-extra-extra-large"))
+        #endif
+        try AccessibilityAudit.run(on: app, verified: verified)
     }
 
     @MainActor
     func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
         measure(metrics: [XCTApplicationLaunchMetric()]) {
             XCUIApplication().launch()
         }

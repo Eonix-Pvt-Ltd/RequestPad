@@ -1,0 +1,21 @@
+// Project-wide settings shared by every first-party target (Debug and Release).
+// Target-specific settings live in RequestPad-App.xcconfig. Signing identity/team stay in the project file.
+
+MARKETING_VERSION = 1.0.0
+CURRENT_PROJECT_VERSION = 1
+
+SDKROOT = auto
+SUPPORTED_PLATFORMS = iphoneos iphonesimulator macosx
+SUPPORTS_MACCATALYST = NO
+TARGETED_DEVICE_FAMILY = 1,2
+IPHONEOS_DEPLOYMENT_TARGET = 17.0
+MACOSX_DEPLOYMENT_TARGET = 14.0
+
+// Universal binary on macOS (B10.17).
+ARCHS[sdk=macosx*] = $(ARCHS_STANDARD)
+
+SWIFT_VERSION = 6.0
+SWIFT_STRICT_CONCURRENCY = complete
+SWIFT_TREAT_WARNINGS_AS_ERRORS = YES
+GCC_TREAT_WARNINGS_AS_ERRORS = YES
+CLANG_ANALYZER_SECURITY_INSECUREAPI_STRCPY = YES

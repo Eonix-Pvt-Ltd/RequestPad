@@ -1,0 +1,12 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Client Error" : {},
+    "Informational" : {},
+    "Non-standard" : {},
+    "Redirect" : {},
+    "Server Error" : {},
+    "Success" : {}
+  },
+  "version" : "1.0"
+}

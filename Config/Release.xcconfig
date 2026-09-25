@@ -1,0 +1,4 @@
+#include "Base.xcconfig"
+
+VALIDATE_PRODUCT = YES
+SWIFT_COMPILATION_MODE = wholemodule
