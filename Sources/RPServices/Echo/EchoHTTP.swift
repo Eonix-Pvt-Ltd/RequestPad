@@ -169,6 +169,27 @@ public enum EchoRouter {
             }
             return EchoResponse(
                 status: 200, headers: [contentType("application/octet-stream")], body: generatedBytes(count))
+        case (_, "redirect") where segments.count == 2:
+            guard let remaining = Int(segments[1]), (0...20).contains(remaining) else {
+                return json(400, #"{"error":"Use /redirect/{count} with a count from 0 to 20."}"#)
+            }
+            guard remaining > 0 else {
+                return EchoResponse(status: 200, headers: [contentType("application/json")], body: echoBody(request))
+            }
+            return EchoResponse(
+                status: 302, headers: [EchoHeader(name: "Location", value: "/redirect/\(remaining - 1)")])
+        case (_, "redirect-to") where segments.count == 1:
+            // Only loopback targets, so Local Echo can never be used as an open redirector.
+            let target =
+                QueryParameters.parse(fromURL: "?" + (request.query ?? "")).first { $0.name == "url" }?.value ?? ""
+            guard let url = URL(string: target), let host = url.host(percentEncoded: false),
+                LocalAddress.isLoopback(host: host),
+                url.scheme == "http"
+            else {
+                return json(
+                    400, #"{"error":"Use /redirect-to?url= with an http://127.0.0.1 or http://localhost URL."}"#)
+            }
+            return EchoResponse(status: 307, headers: [EchoHeader(name: "Location", value: url.absoluteString)])
         case (_, "image.png") where segments.count == 1:
             return EchoResponse(status: 200, headers: [contentType("image/png")], body: samplePNG)
         case (_, "cookies") where segments.count == 2 && segments[1] == "set":

@@ -18,6 +18,12 @@ public struct ResolvedRequest: Hashable, Sendable {
         public var name: String
         public var content: Content
         public var contentType: String?
+
+        public init(name: String, content: Content, contentType: String? = nil) {
+            self.name = name
+            self.content = content
+            self.contentType = contentType
+        }
     }
 
     public var method: HTTPMethod
@@ -36,6 +42,22 @@ public struct ResolvedRequest: Hashable, Sendable {
     public enum AuthIssue: Hashable, Sendable {
         case unsupportedMode(String)
         case oauth2TokenRequired
+    }
+
+    public init(
+        method: HTTPMethod, url: URL, headers: [(name: String, value: String)] = [], body: Body = .none,
+        settings: RequestSettings = RequestSettings(), unresolvedVariables: [String] = [],
+        containsSecrets: Bool = false,
+        authIssue: AuthIssue? = nil
+    ) {
+        self.method = method
+        self.url = url
+        self.headers = headers
+        self.body = body
+        self.settings = settings
+        self.unresolvedVariables = unresolvedVariables
+        self.containsSecrets = containsSecrets
+        self.authIssue = authIssue
     }
 
     public static func == (lhs: ResolvedRequest, rhs: ResolvedRequest) -> Bool {

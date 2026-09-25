@@ -114,6 +114,19 @@ struct EchoRouterTests {
             ])
     }
 
+    @Test func redirects() {
+        let chain = EchoRouter.respond(to: request("GET", "/redirect/3"))
+        #expect(chain.status == 302)
+        #expect(chain.headers.first { $0.name == "Location" }?.value == "/redirect/2")
+        #expect(EchoRouter.respond(to: request("GET", "/redirect/0")).status == 200)
+        #expect(EchoRouter.respond(to: request("GET", "/redirect/21")).status == 400)
+        let to = EchoRouter.respond(to: request("GET", "/redirect-to?url=http%3A%2F%2Flocalhost%3A9%2Fx"))
+        #expect(to.status == 307)
+        #expect(to.headers.first { $0.name == "Location" }?.value == "http://localhost:9/x")
+        #expect(EchoRouter.respond(to: request("GET", "/redirect-to?url=https%3A%2F%2Fexample.com")).status == 400)
+        #expect(EchoRouter.respond(to: request("GET", "/redirect-to")).status == 400)
+    }
+
     @Test func oauthTokenEndpoint() throws {
         let form = [EchoHeader(name: "Content-Type", value: "application/x-www-form-urlencoded")]
         let ok = EchoRouter.respond(
