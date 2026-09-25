@@ -31,6 +31,19 @@ public struct HTTPMethod: RawRepresentable, Hashable, Sendable, Codable, CustomS
         }
     }
 
+    /// Accepts any printable ASCII method without spaces (up to ``maximumLength``). Bruno allows methods that are
+    /// not RFC 9110 tokens (e.g. `CUSTOM@METHOD`); such requests open and round-trip, and ``isValidForSending``
+    /// reports that the network layer will refuse them.
+    public init?(lenientBruValue value: String) {
+        guard !value.isEmpty, value.utf8.count <= Self.maximumLength,
+            value.unicodeScalars.allSatisfy({ (0x21...0x7E).contains($0.value) })
+        else { return nil }
+        self.rawValue = value
+    }
+
+    /// Whether the method is an RFC 9110 token that can be sent on the wire.
+    public var isValidForSending: Bool { Self.isValidToken(rawValue) }
+
     private init(uncheckedToken: String) {
         rawValue = uncheckedToken
     }
@@ -49,8 +62,8 @@ public struct HTTPMethod: RawRepresentable, Hashable, Sendable, Codable, CustomS
         }
     }
 
-    /// RFC 9110 §5.6.2: `token = 1*tchar`.
-    public static func isValidToken(_ value: String) -> Bool {
+    /// RFC 9110 §5.6.2: `token = 1*tchar`, limited to `maximumLength` bytes (method names by default).
+    public static func isValidToken(_ value: String, maximumLength: Int = HTTPMethod.maximumLength) -> Bool {
         guard !value.isEmpty, value.utf8.count <= maximumLength else { return false }
         return value.unicodeScalars.allSatisfy(isTokenCharacter)
     }

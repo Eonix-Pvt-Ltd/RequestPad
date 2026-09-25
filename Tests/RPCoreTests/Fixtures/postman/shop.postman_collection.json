@@ -1,0 +1,75 @@
+{
+  "info": {
+    "_postman_id": "0f8c7b54-0000-4000-8000-000000000000",
+    "name": "Shop API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{token}}", "type": "string" } ] },
+  "variable": [ { "key": "baseUrl", "value": "https://shop.example.com" }, { "key": "retries", "value": 3 }, { "key": "", "value": "x" } ],
+  "event": [ { "listen": "prerequest", "script": { "exec": ["console.log('collection')"] } } ],
+  "item": [
+    {
+      "name": "Catalog",
+      "auth": { "type": "apikey", "apikey": [ { "key": "key", "value": "X-Key" }, { "key": "value", "value": "{{apiKey}}" }, { "key": "in", "value": "header" } ] },
+      "item": [
+        {
+          "name": "List products",
+          "event": [ { "listen": "test", "script": { "exec": ["pm.test('ok', () => {})"] } } ],
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Accept", "value": "application/json" }, { "key": "X-Debug", "value": "1", "disabled": true } ],
+            "url": { "raw": "{{baseUrl}}/products?page=1&size=20", "host": ["{{baseUrl}}"], "path": ["products"],
+              "query": [ { "key": "page", "value": "1" }, { "key": "size", "value": "20" }, { "key": "sort", "value": "name", "disabled": true } ] }
+          }
+        },
+        {
+          "name": "Nested",
+          "item": [
+            { "name": "Product by id", "request": { "method": "GET", "auth": { "type": "noauth" },
+              "url": { "raw": "{{baseUrl}}/products/:id", "variable": [ { "key": "id", "value": "42" } ] } } }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Create order",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"sku\": \"A-1\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/orders",
+        "description": "Places an order."
+      }
+    },
+    {
+      "name": "Upload",
+      "request": {
+        "method": "POST",
+        "auth": { "type": "basic", "basic": [ { "key": "username", "value": "ann" }, { "key": "password", "value": "{{pw}}" } ] },
+        "body": { "mode": "formdata", "formdata": [
+          { "key": "note", "value": "hello", "type": "text" },
+          { "key": "file", "type": "file", "src": "/Users/ann/a.png", "contentType": "image/png" },
+          { "key": "off", "value": "x", "type": "text", "disabled": true }
+        ] },
+        "url": "{{baseUrl}}/upload"
+      }
+    },
+    {
+      "name": "Login",
+      "request": { "method": "POST",
+        "body": { "mode": "urlencoded", "urlencoded": [ { "key": "user", "value": "ann" }, { "key": "remember", "value": true } ] },
+        "url": { "protocol": "https", "host": ["auth", "example", "com"], "path": ["login"] } }
+    },
+    {
+      "name": "GraphQL",
+      "request": { "method": "POST",
+        "auth": { "type": "oauth2", "oauth2": [ { "key": "grant_type", "value": "client_credentials" }, { "key": "accessTokenUrl", "value": "https://auth.example.com/token" }, { "key": "clientId", "value": "{{cid}}" }, { "key": "clientSecret", "value": "{{cs}}" }, { "key": "client_authentication", "value": "body" } ] },
+        "body": { "mode": "graphql", "graphql": { "query": "{ products { id } }", "variables": "{\"n\":1}" } },
+        "url": "{{baseUrl}}/graphql" }
+    },
+    { "name": "Digest", "request": { "method": "GET", "auth": { "type": "digest", "digest": [] }, "url": "{{baseUrl}}/d" } },
+    { "name": "Bare", "request": "{{baseUrl}}/bare?x=1" },
+    { "name": "File body", "request": { "method": "PUT", "body": { "mode": "file", "file": { "src": "a.bin" } }, "url": "{{baseUrl}}/f" } },
+    { "name": "Raw text", "request": { "method": "POST", "body": { "mode": "raw", "raw": "hello" }, "url": "{{baseUrl}}/t" } }
+  ]
+}

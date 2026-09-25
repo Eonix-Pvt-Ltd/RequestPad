@@ -1,0 +1,17 @@
+meta {
+  name: Login form
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/login
+  body: formUrlEncoded
+  auth: none
+}
+
+body:form-urlencoded {
+  username: {{user}}
+  password: {{password}}
+  "remember me": on
+}

@@ -175,3 +175,44 @@ could not be read by the agent. Re-verify in Phase 7 with the archive privacy re
 ### Unverified: `com.apple.security.files.bookmarks.app-scope`
 Included per B7 for app-scoped security bookmarks on macOS. Confirm in Phase 3 that bookmark creation/resolution
 works in the sandboxed build, and in Phase 7 with the archived entitlements (`codesign -d --entitlements`).
+
+### ADR-0024 — OpenAPI path templates become Bruno path parameters
+PRD P02.1 originally said `{{param}}`. Bruno represents path parameters as `:param` in the URL plus a
+`params:path` block, and RequestPad's resolver substitutes them. Importing `{petId}` as `:petId` keeps imported
+collections identical to what Bruno writes, so they round-trip through `.bru` files unchanged. PRD updated.
+
+### ADR-0025 — Lenient HTTP methods from `.bru` files
+Bruno accepts methods that are not RFC 9110 tokens (its own fixture uses `CUSTOM@METHOD`). RequestPad opens and
+round-trips them (`HTTPMethod(lenientBruValue:)`); `isValidForSending` is false and the services layer refuses to
+send such a request with a clear error. User-typed methods remain strictly validated.
+
+### ADR-0026 — Defaults for missing `.bru` keys
+A method block without `body:` decodes as body mode `none`; without `auth:` as auth mode `none` (Bruno's grammar
+package sets no default; `none` is the conservative choice — nothing is sent that the file doesn't state). Keys
+absent in the original file are not added on save while their value is the default (`seq: 1`, `type: http`,
+`auth: none`, `body: none`), so unchanged files stay byte-identical.
+
+### ADR-0027 — YAML expansion limit ("billion laughs")
+The alias count cap (100) alone does not stop exponential expansion: 63 aliases in nested flow sequences expand to
+≈43 million nodes (found by the Phase 2 test suite). The parser also counts nodes with each alias weighted by its
+expanded size and rejects documents above 1,000,000 nodes, in ~2 ms for the attack document.
+
+### ADR-0028 — Bruno test fixtures
+`Tests/RPCoreTests/Fixtures/bru/bruno/*.bru` are copied from `usebruno/bruno` (`packages/bruno-lang/v2/tests`,
+MIT License, notice in `LICENSE-bruno.md` alongside). They are test resources only and are not shipped in the app.
+
+### ADR-0029 — Package String Catalogs
+RPCore/RPData user-facing strings use `String(localized:bundle: .module)` with English source text as keys. V1 is
+English-only (PRD); keys absent from a package's `Localizable.xcstrings` fall back to the source text. Catalogs are
+synced from the compiler-extracted strings in Xcode before any localization is added.
+
+### ADR-0030 — No deep recursion on untrusted input
+Found in Phase 2 by running the suite under AddressSanitizer: parsing a 256-level JSON document recursively
+overflowed a 512 KB stack (the size of Swift concurrency threads, where the app parses response bodies), and even
+in Debug a 128-level document overflowed a 128 KB stack. A hostile server response could have crashed the app.
+Decision: the JSON parser, JSON serializer, semantic equality, JSONPath recursive descent and the YAML flow-collection
+scanner are iterative (explicit heap stacks, frames mutated in place so appends stay O(1)). YAML block nesting
+remains recursive (depth ≤ 64) but `YAMLParser.parse` runs on a dedicated 8 MB-stack thread (`LargeStack`), which is
+acceptable because YAML is only parsed for user-initiated imports. `DeepNestingTests` parses, serializes, queries
+and compares maximum-depth JSON, YAML and GraphQL documents on a 512 KB-stack thread; the whole suite passes under
+ASan and TSan. Cost: 10 MB JSON parse 0.60 s → 0.77 s (Debug), within budget.

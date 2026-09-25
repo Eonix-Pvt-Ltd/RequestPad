@@ -1,0 +1,82 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Inventory", "version": "2.0" },
+  "servers": [
+    { "url": "https://{region}.inventory.example.com/{basePath}", "description": "Regional",
+      "variables": { "region": { "default": "eu", "enum": ["eu", "us"] }, "basePath": { "default": "v2" } } },
+    { "url": "http://localhost:3000/" }
+  ],
+  "security": [ { "oauth": ["inventory:read"] } ],
+  "paths": {
+    "/items": {
+      "get": {
+        "operationId": "listItems",
+        "tags": ["Items/Admin"],
+        "parameters": [
+          { "name": "q", "in": "query", "required": true, "schema": { "type": "string", "default": "all" } },
+          { "name": "X-Tenant", "in": "header", "schema": { "type": "string", "enum": ["acme", "globex"] } },
+          { "name": "session", "in": "cookie", "schema": { "type": "string" } }
+        ]
+      },
+      "post": {
+        "summary": "Create item",
+        "tags": ["Items/Admin"],
+        "security": [],
+        "requestBody": {
+          "content": {
+            "application/vnd.api+json": {
+              "examples": { "basic": { "$ref": "#/components/examples/ItemExample" } }
+            }
+          }
+        }
+      }
+    },
+    "/items/{itemId}/parts/{partId}": {
+      "put": {
+        "summary": "Replace part",
+        "parameters": [
+          { "name": "itemId", "in": "path", "required": true, "example": 7 },
+          { "name": "partId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Part" } } } }
+      }
+    },
+    "/reports": {
+      "post": {
+        "security": [ { "basic": [] } ],
+        "requestBody": { "content": { "text/csv": { "example": "a,b\n1,2" } } }
+      }
+    },
+    "/xml": {
+      "post": { "requestBody": { "content": { "application/xml": { "example": "<item id=\"1\"/>" } } } }
+    },
+    "/binary": {
+      "post": { "requestBody": { "content": { "application/octet-stream": {} } } }
+    }
+  },
+  "components": {
+    "examples": { "ItemExample": { "value": { "name": "Bolt", "qty": 10 } } },
+    "schemas": {
+      "Part": {
+        "type": "object",
+        "properties": {
+          "id": { "type": ["string", "null"], "format": "uuid" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "price": { "type": "number" },
+          "active": { "type": "boolean" },
+          "kind": { "oneOf": [ { "const": "screw" }, { "const": "nail" } ] },
+          "parent": { "$ref": "#/components/schemas/Part" },
+          "weird~key/name": { "$ref": "#/components/schemas/Weird~1Name" }
+        }
+      },
+      "Weird/Name": { "type": "integer", "example": 3 }
+    },
+    "securitySchemes": {
+      "oauth": { "type": "oauth2", "flows": {
+        "authorizationCode": { "authorizationUrl": "https://auth.example.com/authorize", "tokenUrl": "https://auth.example.com/token" }
+      } },
+      "basic": { "type": "http", "scheme": "basic" }
+    }
+  }
+}

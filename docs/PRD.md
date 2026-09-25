@@ -199,7 +199,8 @@ git and share with Bruno users.*
 
 ### P02 — OpenAPI 3.x import (Pro)
 - **P02.1** Imports OpenAPI 3.0.x and 3.1.x in JSON or YAML (≤ 10 MB) → a collection with a folder per tag,
-  one request per operation, path params as `{{param}}`, query/header params, and example request bodies (from
+  one request per operation, path params as Bruno path parameters (`/pets/:petId` + a path-params row; ADR-0024),
+  query/header params, and example request bodies (from
   `example`, `examples`, or synthesized from schema, depth-limited to 8); `servers[0].url` becomes the `baseUrl`
   variable; security schemes map to Bearer/Basic/API key/OAuth2 auth.
 - **P02.2** Local `$ref`s (`#/components/...`) resolve; external refs and cycles are reported, not followed.

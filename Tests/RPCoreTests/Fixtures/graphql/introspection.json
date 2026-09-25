@@ -1,0 +1,358 @@
+{
+ "data": {
+  "__schema": {
+   "queryType": {
+    "name": "Query"
+   },
+   "mutationType": {
+    "name": "Mutation"
+   },
+   "subscriptionType": null,
+   "types": [
+    {
+     "kind": "OBJECT",
+     "name": "Query",
+     "description": null,
+     "fields": [
+      {
+       "name": "user",
+       "description": null,
+       "args": [
+        {
+         "name": "id",
+         "description": null,
+         "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+           "kind": "SCALAR",
+           "name": "ID",
+           "ofType": null
+          }
+         }
+        }
+       ],
+       "type": {
+        "kind": "OBJECT",
+        "name": "User",
+        "ofType": null
+       },
+       "isDeprecated": false
+      },
+      {
+       "name": "users",
+       "description": null,
+       "args": [
+        {
+         "name": "first",
+         "description": null,
+         "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+         }
+        },
+        {
+         "name": "role",
+         "description": null,
+         "type": {
+          "kind": "ENUM",
+          "name": "Role",
+          "ofType": null
+         }
+        },
+        {
+         "name": "active",
+         "description": null,
+         "type": {
+          "kind": "SCALAR",
+          "name": "Boolean",
+          "ofType": null
+         }
+        }
+       ],
+       "type": {
+        "kind": "NON_NULL",
+        "name": null,
+        "ofType": {
+         "kind": "LIST",
+         "name": null,
+         "ofType": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+           "kind": "OBJECT",
+           "name": "User",
+           "ofType": null
+          }
+         }
+        }
+       },
+       "isDeprecated": false
+      },
+      {
+       "name": "node",
+       "description": null,
+       "args": [
+        {
+         "name": "id",
+         "description": null,
+         "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+           "kind": "SCALAR",
+           "name": "ID",
+           "ofType": null
+          }
+         }
+        }
+       ],
+       "type": {
+        "kind": "INTERFACE",
+        "name": "Node",
+        "ofType": null
+       },
+       "isDeprecated": false
+      }
+     ],
+     "inputFields": null,
+     "enumValues": null,
+     "possibleTypes": null
+    },
+    {
+     "kind": "OBJECT",
+     "name": "Mutation",
+     "description": null,
+     "fields": [
+      {
+       "name": "createUser",
+       "description": null,
+       "args": [
+        {
+         "name": "input",
+         "description": null,
+         "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+           "kind": "INPUT_OBJECT",
+           "name": "NewUser",
+           "ofType": null
+          }
+         }
+        }
+       ],
+       "type": {
+        "kind": "OBJECT",
+        "name": "User",
+        "ofType": null
+       },
+       "isDeprecated": false
+      }
+     ],
+     "inputFields": null,
+     "enumValues": null,
+     "possibleTypes": null
+    },
+    {
+     "kind": "OBJECT",
+     "name": "User",
+     "description": "A person",
+     "fields": [
+      {
+       "name": "id",
+       "description": null,
+       "args": [],
+       "type": {
+        "kind": "NON_NULL",
+        "name": null,
+        "ofType": {
+         "kind": "SCALAR",
+         "name": "ID",
+         "ofType": null
+        }
+       },
+       "isDeprecated": false
+      },
+      {
+       "name": "name",
+       "description": null,
+       "args": [],
+       "type": {
+        "kind": "SCALAR",
+        "name": "String",
+        "ofType": null
+       },
+       "isDeprecated": false
+      },
+      {
+       "name": "friends",
+       "description": null,
+       "args": [
+        {
+         "name": "first",
+         "description": null,
+         "type": {
+          "kind": "SCALAR",
+          "name": "Int",
+          "ofType": null
+         }
+        }
+       ],
+       "type": {
+        "kind": "LIST",
+        "name": null,
+        "ofType": {
+         "kind": "OBJECT",
+         "name": "User",
+         "ofType": null
+        }
+       },
+       "isDeprecated": false
+      },
+      {
+       "name": "role",
+       "description": null,
+       "args": [],
+       "type": {
+        "kind": "ENUM",
+        "name": "Role",
+        "ofType": null
+       },
+       "isDeprecated": false
+      },
+      {
+       "name": "legacyName",
+       "description": null,
+       "args": [],
+       "type": {
+        "kind": "SCALAR",
+        "name": "String",
+        "ofType": null
+       },
+       "isDeprecated": true
+      }
+     ],
+     "inputFields": null,
+     "enumValues": null,
+     "possibleTypes": null
+    },
+    {
+     "kind": "INTERFACE",
+     "name": "Node",
+     "description": null,
+     "fields": [
+      {
+       "name": "id",
+       "description": null,
+       "args": [],
+       "type": {
+        "kind": "NON_NULL",
+        "name": null,
+        "ofType": {
+         "kind": "SCALAR",
+         "name": "ID",
+         "ofType": null
+        }
+       },
+       "isDeprecated": false
+      }
+     ],
+     "inputFields": null,
+     "enumValues": null,
+     "possibleTypes": [
+      {
+       "kind": "OBJECT",
+       "name": "User"
+      }
+     ]
+    },
+    {
+     "kind": "ENUM",
+     "name": "Role",
+     "description": null,
+     "fields": null,
+     "inputFields": null,
+     "enumValues": [
+      {
+       "name": "ADMIN"
+      },
+      {
+       "name": "DEV"
+      }
+     ],
+     "possibleTypes": null
+    },
+    {
+     "kind": "INPUT_OBJECT",
+     "name": "NewUser",
+     "description": null,
+     "fields": null,
+     "inputFields": [
+      {
+       "name": "name",
+       "description": null,
+       "type": {
+        "kind": "NON_NULL",
+        "name": null,
+        "ofType": {
+         "kind": "SCALAR",
+         "name": "String",
+         "ofType": null
+        }
+       }
+      }
+     ],
+     "enumValues": null,
+     "possibleTypes": null
+    },
+    {
+     "kind": "SCALAR",
+     "name": "ID",
+     "fields": null,
+     "inputFields": null,
+     "enumValues": null,
+     "possibleTypes": null
+    },
+    {
+     "kind": "SCALAR",
+     "name": "String",
+     "fields": null,
+     "inputFields": null,
+     "enumValues": null,
+     "possibleTypes": null
+    },
+    {
+     "kind": "SCALAR",
+     "name": "Int",
+     "fields": null,
+     "inputFields": null,
+     "enumValues": null,
+     "possibleTypes": null
+    },
+    {
+     "kind": "SCALAR",
+     "name": "Boolean",
+     "fields": null,
+     "inputFields": null,
+     "enumValues": null,
+     "possibleTypes": null
+    },
+    {
+     "kind": "OBJECT",
+     "name": "__Schema",
+     "fields": [],
+     "inputFields": null,
+     "enumValues": null,
+     "possibleTypes": null
+    },
+    {
+     "kind": "SOMETHING_NEW",
+     "name": "Future",
+     "fields": null
+    }
+   ]
+  }
+ }
+}
