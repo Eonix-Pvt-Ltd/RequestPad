@@ -72,19 +72,28 @@ public indirect enum JSONValue: Hashable, Sendable {
     /// Compares values the way users expect: numbers by numeric value (`1 == 1.0`), everything else structurally,
     /// object members regardless of order.
     public func isSemanticallyEqual(to other: JSONValue) -> Bool {
-        switch (self, other) {
-        case (.number, .number):
-            return decimalValue == other.decimalValue
-        case (.array(let lhs), .array(let rhs)):
-            return lhs.count == rhs.count && zip(lhs, rhs).allSatisfy { $0.isSemanticallyEqual(to: $1) }
-        case (.object(let lhs), .object(let rhs)):
-            let left = Dictionary(lhs.map { ($0.key, $0.value) }, uniquingKeysWith: { _, last in last })
-            let right = Dictionary(rhs.map { ($0.key, $0.value) }, uniquingKeysWith: { _, last in last })
-            guard left.count == right.count else { return false }
-            return left.allSatisfy { key, value in right[key].map { value.isSemanticallyEqual(to: $0) } ?? false }
-        default:
-            return self == other
+        // Iterative (explicit work list) so deep documents can't overflow the thread stack.
+        var work: [(JSONValue, JSONValue)] = [(self, other)]
+        while let (lhs, rhs) = work.popLast() {
+            switch (lhs, rhs) {
+            case (.number, .number):
+                guard lhs.decimalValue == rhs.decimalValue else { return false }
+            case (.array(let left), .array(let right)):
+                guard left.count == right.count else { return false }
+                work.append(contentsOf: zip(left, right))
+            case (.object(let left), .object(let right)):
+                let leftMembers = Dictionary(left.map { ($0.key, $0.value) }, uniquingKeysWith: { _, last in last })
+                let rightMembers = Dictionary(right.map { ($0.key, $0.value) }, uniquingKeysWith: { _, last in last })
+                guard leftMembers.count == rightMembers.count else { return false }
+                for (key, value) in leftMembers {
+                    guard let counterpart = rightMembers[key] else { return false }
+                    work.append((value, counterpart))
+                }
+            default:
+                guard lhs == rhs else { return false }
+            }
         }
+        return true
     }
 }
 

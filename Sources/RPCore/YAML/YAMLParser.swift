@@ -24,8 +24,18 @@ public struct YAMLParser: Sendable {
 
     public func parse(_ text: String) throws(CoreError) -> JSONValue {
         guard text.utf8.count <= maximumBytes else { throw .inputTooLarge(limitBytes: maximumBytes) }
-        var reader = YAMLReader(text: text, maximumDepth: maximumDepth)
-        return try reader.parseDocument()
+        let depth = maximumDepth
+        // Block nesting is parsed recursively; run on a large-stack thread (ADR-0030).
+        let result = LargeStack.run { () -> Result<JSONValue, CoreError> in
+            var reader = YAMLReader(text: text, maximumDepth: depth)
+            do throws(CoreError) {
+                return .success(try reader.parseDocument())
+            } catch {
+                return .failure(error)
+            }
+        }
+        guard let result else { throw .unsupportedDocument(reason: "The YAML parser didn't finish.") }
+        return try result.get()
     }
 }
 
@@ -142,25 +152,25 @@ private struct YAMLReader {
 
     // MARK: Nodes
 
+    /// `depth` is the number of collections enclosing this node; ``YAMLParser/maximumDepth`` limits it.
     mutating func parseNode(minimumIndent: Int, depth: Int) throws(CoreError) -> JSONValue {
-        guard depth <= maximumDepth else { throw .nestingTooDeep(limit: maximumDepth) }
         skipBlankLines()
         guard index < lines.count, !isDocumentEnd(lines[index]) else { return .null }
         let line = lines[index]
         guard line.indent >= minimumIndent else { return .null }
         if line.content.hasPrefix("\t") { throw error("Tabs can't be used for indentation", line: line) }
         if isSequenceEntry(line.content) {
-            return try parseSequence(indent: line.indent, depth: depth + 1)
+            return try parseSequence(indent: line.indent, depth: depth)
         }
         if line.content.hasPrefix("? ") || line.content == "?" {
             throw error("Complex mapping keys (?) are not supported", line: line)
         }
         if try mappingKey(in: line) != nil {
-            return try parseMapping(indent: line.indent, depth: depth + 1)
+            return try parseMapping(indent: line.indent, depth: depth)
         }
         // A scalar or flow node on its own line.
         let content = stripComment(line.content)
-        return try parseInlineValue(content, line: line, parentIndent: line.indent - 1, depth: depth + 1)
+        return try parseInlineValue(content, line: line, parentIndent: line.indent - 1, depth: depth)
     }
 
     func isSequenceEntry(_ content: String) -> Bool {
@@ -168,7 +178,7 @@ private struct YAMLReader {
     }
 
     mutating func parseSequence(indent: Int, depth: Int) throws(CoreError) -> JSONValue {
-        guard depth <= maximumDepth else { throw .nestingTooDeep(limit: maximumDepth) }
+        guard depth + 1 <= maximumDepth else { throw .nestingTooDeep(limit: maximumDepth) }
         try countNodes(1, line: index < lines.count ? lines[index] : nil)
         var items: [JSONValue] = []
         while true {
@@ -251,7 +261,7 @@ private struct YAMLReader {
     }
 
     mutating func parseMapping(indent: Int, depth: Int) throws(CoreError) -> JSONValue {
-        guard depth <= maximumDepth else { throw .nestingTooDeep(limit: maximumDepth) }
+        guard depth + 1 <= maximumDepth else { throw .nestingTooDeep(limit: maximumDepth) }
         try countNodes(1, line: index < lines.count ? lines[index] : nil)
         var members: [JSONMember] = []
         var merged: [JSONMember] = []
@@ -795,88 +805,131 @@ private struct FlowScanner {
         while let character = current, character == " " || character == "\t" { index += 1 }
     }
 
+    /// A flow collection being built. Kept on the heap (not recursion) so deep nesting can't overflow the stack;
+    /// mutated in place (`stack[top]`) so appends never copy the collection.
+    private struct Frame {
+        var isMapping: Bool
+        var anchor: String?
+        var start: Int
+        var items: [JSONValue] = []
+        var members: [JSONMember] = []
+        var key = ""
+    }
+
     mutating func parseValue(depth: Int, reader: inout YAMLReader) throws(CoreError) -> JSONValue {
-        guard depth <= maximumDepth else { throw .nestingTooDeep(limit: maximumDepth) }
-        skipSpaces()
-        if current == "&" {
-            index += 1
-            var name = String.UnicodeScalarView()
-            while let next = current, !" \t,]}".unicodeScalars.contains(next) {
-                name.append(next)
-                index += 1
-            }
-            guard !name.isEmpty else { throw error("An anchor needs a name") }
-            let start = reader.expandedNodes
-            let value = try parseValue(depth: depth, reader: &reader)
-            reader.defineAnchor(String(name), value: value, sizeSince: start)
-            return value
-        }
-        guard let character = current else { throw error("Unexpected end of a flow collection") }
-        if character != "*" { try reader.countNodes(1, line: line) }
-        switch character {
-        case "[":
-            index += 1
-            var items: [JSONValue] = []
-            while true {
+        var stack: [Frame] = []
+        var pendingNull = false
+        while true {
+            var value: JSONValue
+            if pendingNull {
+                pendingNull = false
+                value = .null
+            } else {
                 skipSpaces()
-                if current == "]" {
+                var anchor: String?
+                var start = reader.expandedNodes
+                if current == "&" {
                     index += 1
-                    return .array(items)
+                    var name = String.UnicodeScalarView()
+                    while let next = current, !" \t,]}".unicodeScalars.contains(next) {
+                        name.append(next)
+                        index += 1
+                    }
+                    guard !name.isEmpty else { throw error("An anchor needs a name") }
+                    anchor = String(name)
+                    start = reader.expandedNodes
+                    skipSpaces()
                 }
-                items.append(try parseValue(depth: depth + 1, reader: &reader))
-                skipSpaces()
-                if current == "," {
-                    index += 1
-                } else if current == "]" {
-                    index += 1
-                    return .array(items)
-                } else {
-                    throw error("Expected “,” or “]”")
-                }
-            }
-        case "{":
-            index += 1
-            var members: [JSONMember] = []
-            while true {
-                skipSpaces()
-                if current == "}" {
-                    index += 1
-                    return .object(members)
-                }
-                let keyValue = try parseScalar(isKey: true, reader: &reader)
-                let key: String
-                switch keyValue {
-                case .string(let text): key = text
-                case .number(let text): key = text
-                case .bool(let flag): key = flag ? "true" : "false"
-                case .null: key = "null"
-                default: throw error("Flow mapping keys must be scalars")
-                }
-                skipSpaces()
-                var value = JSONValue.null
-                if current == ":" {
+                guard let character = current else { throw error("Unexpected end of a flow collection") }
+                if character == "[" || character == "{" {
+                    guard depth + stack.count + 1 <= maximumDepth else { throw .nestingTooDeep(limit: maximumDepth) }
+                    try reader.countNodes(1, line: line)
                     index += 1
                     skipSpaces()
-                    if current != "," && current != "}" { value = try parseValue(depth: depth + 1, reader: &reader) }
-                }
-                if let existing = members.firstIndex(where: { $0.key == key }) {
-                    members[existing].value = value
+                    if character == "[" {
+                        if current == "]" {
+                            index += 1
+                            value = .array([])
+                        } else {
+                            stack.append(Frame(isMapping: false, anchor: anchor, start: start))
+                            continue
+                        }
+                    } else {
+                        if current == "}" {
+                            index += 1
+                            value = .object([])
+                        } else {
+                            let (key, hasValue) = try parseMappingKey(reader: &reader)
+                            stack.append(Frame(isMapping: true, anchor: anchor, start: start, key: key))
+                            pendingNull = !hasValue
+                            continue
+                        }
+                    }
                 } else {
-                    members.append(JSONMember(key, value))
+                    if character != "*" { try reader.countNodes(1, line: line) }
+                    value = try parseScalar(isKey: false, reader: &reader)
                 }
+                if let anchor { reader.defineAnchor(anchor, value: value, sizeSince: start) }
+            }
+            // Attach to the enclosing collection; close collections that end here.
+            attach: while true {
+                guard let top = stack.indices.last else { return value }
                 skipSpaces()
-                if current == "," {
+                if stack[top].isMapping {
+                    let key = stack[top].key
+                    if let existing = stack[top].members.firstIndex(where: { $0.key == key }) {
+                        stack[top].members[existing].value = value
+                    } else {
+                        stack[top].members.append(JSONMember(key, value))
+                    }
+                    if current == "," {
+                        index += 1
+                        skipSpaces()
+                        if current != "}" {
+                            let (nextKey, hasValue) = try parseMappingKey(reader: &reader)
+                            stack[top].key = nextKey
+                            pendingNull = !hasValue
+                            break attach
+                        }
+                    }
+                    guard current == "}" else { throw error("Expected “,” or “}”") }
                     index += 1
-                } else if current == "}" {
-                    index += 1
-                    return .object(members)
+                    let frame = stack.removeLast()
+                    value = .object(frame.members)
+                    if let anchor = frame.anchor { reader.defineAnchor(anchor, value: value, sizeSince: frame.start) }
                 } else {
-                    throw error("Expected “,” or “}”")
+                    stack[top].items.append(value)
+                    if current == "," {
+                        index += 1
+                        skipSpaces()
+                        if current != "]" { break attach }
+                    }
+                    guard current == "]" else { throw error("Expected “,” or “]”") }
+                    index += 1
+                    let frame = stack.removeLast()
+                    value = .array(frame.items)
+                    if let anchor = frame.anchor { reader.defineAnchor(anchor, value: value, sizeSince: frame.start) }
                 }
             }
-        default:
-            return try parseScalar(isKey: false, reader: &reader)
         }
+    }
+
+    /// Reads a flow mapping key and its `:`. `hasValue` is false for `{key}` and `{key: , …}`.
+    mutating func parseMappingKey(reader: inout YAMLReader) throws(CoreError) -> (String, hasValue: Bool) {
+        let keyValue = try parseScalar(isKey: true, reader: &reader)
+        let key: String
+        switch keyValue {
+        case .string(let text): key = text
+        case .number(let text): key = text
+        case .bool(let flag): key = flag ? "true" : "false"
+        case .null: key = "null"
+        default: throw error("Flow mapping keys must be scalars")
+        }
+        skipSpaces()
+        guard current == ":" else { return (key, false) }
+        index += 1
+        skipSpaces()
+        return (key, current != "," && current != "}")
     }
 
     mutating func parseScalar(isKey: Bool, reader: inout YAMLReader) throws(CoreError) -> JSONValue {

@@ -100,3 +100,51 @@ CI status: run 36098984682 on `phase-1-scaffold` — **not executed**. Both jobs
 "The job was not started because recent account payments have failed or your spending limit needs to be
 increased." Phase 1 exit criterion "CI green" is therefore **not met**. Human decision (2026-09-25): merge to `main`
 on local evidence; billing to be fixed later (HUMAN_HANDOFF H5). CI must be re-run and green before Phase 9.
+
+## Phase 2 — Core domain (2026-09-25)
+
+Deliverables (RPCore, no UI):
+- Models: requests, bodies (JSON/text/XML/form/multipart/GraphQL), auth (bearer/basic/API key/OAuth 2.0), variables
+  with Keychain secret references, environments, extractors, assertions, folders, collections, history.
+- JSON: order- and literal-preserving value type, strict parser with line/column errors and limits, serializer,
+  JSONPath (RFC 9535 subset), semantic equality — all iterative (ADR-0030).
+- Variables: `{{var}}` interpolation with Bruno precedence, nesting/cycle/size limits, masking, dynamic values;
+  request resolution (header layering, auth inheritance, path params, bodies, default Content-Type, default scheme),
+  query-string ↔ table sync, local-address classification matching the ATS exceptions.
+- Bruno `.bru`: block-level lossless document model; request, folder/collection and environment codecs with
+  minimal-diff writing; `bruno.json`. All 16 request fixtures (Bruno's own + RequestPad's, incl. CRLF) re-encode
+  byte-for-byte when unchanged.
+- cURL: shell lexer, parser (browser/Postman/docs styles, notices), exporter (empty-header `;` syntax).
+- YAML subset parser; OpenAPI 3.0/3.1 (JSON/YAML) and Postman v2.0/2.1 importers.
+- Response evaluation (extractors, assertions), RFC 6265 cookie jar, response body decoding/classification.
+- GraphQL lexer, syntax validator, introspection schema, completion engine. OAuth 2.0/PKCE helpers (RFC 7636 vector).
+
+Defects found by the Phase 2 tests and fixed:
+- cURL export dropped empty-valued headers (`-H 'X: '` removes a header in curl) — property test, fixed with `X;`.
+- YAML "billion laughs" stayed under the alias cap but expanded to ~43 M nodes — expanded-node limit (ADR-0027).
+- Stack overflow on deeply nested JSON/YAML under ASan and on small stacks — iterative parsers + large-stack YAML
+  (ADR-0030); an interim iterative version was 20× slower (buffer copies) and was fixed before merge.
+- `.bru` re-encoding added `seq: 1` and normalized unknown enum spellings — minimal-diff writing (ADR-0026).
+- OpenAPI self-referencing schemas nested one level too deep; server `Optional<RequestAuth>.none` ambiguity.
+
+Verification (local; Xcode 27.0, macOS 27.0, iPhone 18 Pro / iPad Pro 11-inch (M5) simulators, iOS 27.0):
+```
+scripts/lint.sh                                             → Lint passed.
+Package suite (xcodebuild, RequestPadKit-Package)           → macOS: passed 221, failed 0 · iOS sim: passed 221, failed 0
+  (214 Swift Testing tests in 35 suites + 7 XCTest performance tests)
+swift test --sanitize=address                               → 214 passed, 0 failed, no sanitizer reports (perf tests skipped)
+swift test --sanitize=thread                                → 214 passed, 0 failed, no sanitizer reports (perf tests skipped)
+xcodebuild … -enableAddressSanitizer YES / -enableThreadSanitizer YES (macOS) → exit 0 / exit 0
+App tests: iPhone passed 6/0 · iPad passed 6/0 · macOS app unit tests (RequestPadTests) exit 0
+Coverage (xccov, package-macos): RPCore 95.82% (6287/6561) · RPStore 100% (11/11)
+xcodebuild analyze (macOS, iOS)                             → ANALYZE SUCCEEDED ×2
+Release builds (macOS, iOS, CODE_SIGNING_ALLOWED=NO)        → Build Succeeded ×2, 0 warnings
+Performance (Debug): 10 MB JSON 0.77 s · 2,000-path YAML 0.22 s · OpenAPI import 0.26 s · 1,000 .bru round trips 0.34 s
+```
+
+Not run in this phase, with reason:
+- macOS **UI** tests (`RequestPadUITests` on macOS): a RequestPad instance launched from the user's Xcode session was
+  paused in the debugger (pid 33954, parent Xcode pid 9373), so XCUITest could not launch/terminate the app. App
+  code is unchanged since Phase 1, where these tests passed. To re-run: stop the debug session in Xcode, then
+  `scripts/test.sh --platform macos`.
+- CI: still blocked by GitHub billing (HUMAN_HANDOFF H5).

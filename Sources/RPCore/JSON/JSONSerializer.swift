@@ -9,38 +9,69 @@ public enum JSONSerializer {
 
     public static func string(from value: JSONValue, style: Style = .pretty) -> String {
         var output = ""
-        write(value, style: style, indent: 0, into: &output)
+        write(value, style: style, into: &output)
         return output
     }
 
-    private static func write(_ value: JSONValue, style: Style, indent: Int, into output: inout String) {
-        switch value {
-        case .null: output += "null"
-        case .bool(let flag): output += flag ? "true" : "false"
-        case .number(let literal): output += literal
-        case .string(let text): writeString(text, into: &output)
-        case .array(let elements):
-            guard !elements.isEmpty else { output += "[]"; return }
-            output += "["
-            for (offset, element) in elements.enumerated() {
-                if offset > 0 { output += "," }
-                newline(style: style, indent: indent + 1, into: &output)
-                write(element, style: style, indent: indent + 1, into: &output)
+    private enum Frame {
+        case array([JSONValue], next: Int)
+        case object([JSONMember], next: Int)
+    }
+
+    /// Iterative writer (explicit stack) so deeply nested values can't overflow the thread stack.
+    private static func write(_ root: JSONValue, style: Style, into output: inout String) {
+        var stack: [Frame] = []
+        var pending: JSONValue? = root
+        while true {
+            if let value = pending {
+                pending = nil
+                switch value {
+                case .null: output += "null"
+                case .bool(let flag): output += flag ? "true" : "false"
+                case .number(let literal): output += literal
+                case .string(let text): writeString(text, into: &output)
+                case .array(let elements):
+                    if elements.isEmpty {
+                        output += "[]"
+                    } else {
+                        output += "["
+                        stack.append(.array(elements, next: 0))
+                    }
+                case .object(let members):
+                    if members.isEmpty {
+                        output += "{}"
+                    } else {
+                        output += "{"
+                        stack.append(.object(members, next: 0))
+                    }
+                }
             }
-            newline(style: style, indent: indent, into: &output)
-            output += "]"
-        case .object(let members):
-            guard !members.isEmpty else { output += "{}"; return }
-            output += "{"
-            for (offset, member) in members.enumerated() {
-                if offset > 0 { output += "," }
-                newline(style: style, indent: indent + 1, into: &output)
-                writeString(member.key, into: &output)
-                output += style == .pretty ? ": " : ":"
-                write(member.value, style: style, indent: indent + 1, into: &output)
+            guard let frame = stack.popLast() else { return }
+            let depth = stack.count + 1
+            switch frame {
+            case .array(let elements, let next):
+                if next < elements.count {
+                    if next > 0 { output += "," }
+                    newline(style: style, indent: depth, into: &output)
+                    stack.append(.array(elements, next: next + 1))
+                    pending = elements[next]
+                } else {
+                    newline(style: style, indent: depth - 1, into: &output)
+                    output += "]"
+                }
+            case .object(let members, let next):
+                if next < members.count {
+                    if next > 0 { output += "," }
+                    newline(style: style, indent: depth, into: &output)
+                    writeString(members[next].key, into: &output)
+                    output += style == .pretty ? ": " : ":"
+                    stack.append(.object(members, next: next + 1))
+                    pending = members[next].value
+                } else {
+                    newline(style: style, indent: depth - 1, into: &output)
+                    output += "}"
+                }
             }
-            newline(style: style, indent: indent, into: &output)
-            output += "}"
         }
     }
 

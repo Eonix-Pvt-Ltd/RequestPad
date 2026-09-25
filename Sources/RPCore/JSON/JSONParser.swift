@@ -65,17 +65,91 @@ private struct Cursor {
         }
     }
 
-    mutating func parseValue(depth: Int) throws(CoreError) -> JSONValue {
-        guard let byte = current else { throw error("Unexpected end of input") }
-        switch byte {
-        case UInt8(ascii: "{"): return try parseObject(depth: depth + 1)
-        case UInt8(ascii: "["): return try parseArray(depth: depth + 1)
-        case UInt8(ascii: "\""): return .string(try parseString())
-        case UInt8(ascii: "t"): try expectLiteral("true"); return .bool(true)
-        case UInt8(ascii: "f"): try expectLiteral("false"); return .bool(false)
-        case UInt8(ascii: "n"): try expectLiteral("null"); return .null
-        case UInt8(ascii: "-"), UInt8(ascii: "0")...UInt8(ascii: "9"): return .number(try parseNumber())
-        default: throw error("Unexpected character")
+    /// A container being built. The parser keeps these on the heap instead of recursing, so nesting depth
+    /// never consumes thread stack (hostile input can't overflow the 512 KB stacks of concurrency threads).
+    /// Frames are mutated in place (`stack[top]`) so appends never copy the collection.
+    private struct Frame {
+        var isObject: Bool
+        var elements: [JSONValue] = []
+        var members: [JSONMember] = []
+        var key = ""
+    }
+
+    mutating func parseValue(depth _: Int) throws(CoreError) -> JSONValue {
+        var stack: [Frame] = []
+        while true {
+            // 1. Read one value, or open a container and continue with its first element.
+            skipWhitespace()
+            guard let byte = current else { throw error("Unexpected end of input") }
+            var value: JSONValue
+            switch byte {
+            case UInt8(ascii: "{"):
+                guard stack.count < maximumDepth else { throw .nestingTooDeep(limit: maximumDepth) }
+                index += 1
+                skipWhitespace()
+                if current == UInt8(ascii: "}") {
+                    index += 1
+                    value = .object([])
+                } else {
+                    stack.append(Frame(isObject: true, key: try parseKey()))
+                    continue
+                }
+            case UInt8(ascii: "["):
+                guard stack.count < maximumDepth else { throw .nestingTooDeep(limit: maximumDepth) }
+                index += 1
+                skipWhitespace()
+                if current == UInt8(ascii: "]") {
+                    index += 1
+                    value = .array([])
+                } else {
+                    stack.append(Frame(isObject: false))
+                    continue
+                }
+            case UInt8(ascii: "\""): value = .string(try parseString())
+            case UInt8(ascii: "t"):
+                try expectLiteral("true")
+                value = .bool(true)
+            case UInt8(ascii: "f"):
+                try expectLiteral("false")
+                value = .bool(false)
+            case UInt8(ascii: "n"):
+                try expectLiteral("null")
+                value = .null
+            case UInt8(ascii: "-"), UInt8(ascii: "0")...UInt8(ascii: "9"): value = .number(try parseNumber())
+            default: throw error("Unexpected character")
+            }
+            // 2. Attach the value to its parent; close parents that end here.
+            attach: while true {
+                guard let top = stack.indices.last else { return value }
+                skipWhitespace()
+                if stack[top].isObject {
+                    stack[top].members.append(JSONMember(stack[top].key, value))
+                    switch current {
+                    case UInt8(ascii: ","):
+                        index += 1
+                        skipWhitespace()
+                        stack[top].key = try parseKey()
+                        break attach
+                    case UInt8(ascii: "}"):
+                        index += 1
+                        value = .object(stack.removeLast().members)
+                    case nil: throw error("Unexpected end of input; expected '}'")
+                    default: throw error("Expected ',' or '}'")
+                    }
+                } else {
+                    stack[top].elements.append(value)
+                    switch current {
+                    case UInt8(ascii: ","):
+                        index += 1
+                        break attach
+                    case UInt8(ascii: "]"):
+                        index += 1
+                        value = .array(stack.removeLast().elements)
+                    case nil: throw error("Unexpected end of input; expected ']'")
+                    default: throw error("Expected ',' or ']'")
+                    }
+                }
+            }
         }
     }
 
@@ -90,54 +164,14 @@ private struct Cursor {
         index += count
     }
 
-    mutating func parseObject(depth: Int) throws(CoreError) -> JSONValue {
-        guard depth <= maximumDepth else { throw .nestingTooDeep(limit: maximumDepth) }
-        index += 1
-        var members: [JSONMember] = []
+    /// Reads `"key":` and positions the cursor at the value.
+    mutating func parseKey() throws(CoreError) -> String {
+        guard current == UInt8(ascii: "\"") else { throw error("Expected a string key") }
+        let key = try parseString()
         skipWhitespace()
-        if current == UInt8(ascii: "}") {
-            index += 1
-            return .object(members)
-        }
-        while true {
-            skipWhitespace()
-            guard current == UInt8(ascii: "\"") else { throw error("Expected a string key") }
-            let key = try parseString()
-            skipWhitespace()
-            guard current == UInt8(ascii: ":") else { throw error("Expected ':' after key") }
-            index += 1
-            skipWhitespace()
-            members.append(JSONMember(key, try parseValue(depth: depth)))
-            skipWhitespace()
-            switch current {
-            case UInt8(ascii: ","): index += 1
-            case UInt8(ascii: "}"): index += 1; return .object(members)
-            case nil: throw error("Unexpected end of input; expected '}'")
-            default: throw error("Expected ',' or '}'")
-            }
-        }
-    }
-
-    mutating func parseArray(depth: Int) throws(CoreError) -> JSONValue {
-        guard depth <= maximumDepth else { throw .nestingTooDeep(limit: maximumDepth) }
+        guard current == UInt8(ascii: ":") else { throw error("Expected ':' after key") }
         index += 1
-        var elements: [JSONValue] = []
-        skipWhitespace()
-        if current == UInt8(ascii: "]") {
-            index += 1
-            return .array(elements)
-        }
-        while true {
-            skipWhitespace()
-            elements.append(try parseValue(depth: depth))
-            skipWhitespace()
-            switch current {
-            case UInt8(ascii: ","): index += 1
-            case UInt8(ascii: "]"): index += 1; return .array(elements)
-            case nil: throw error("Unexpected end of input; expected ']'")
-            default: throw error("Expected ',' or ']'")
-            }
-        }
+        return key
     }
 
     mutating func parseNumber() throws(CoreError) -> String {

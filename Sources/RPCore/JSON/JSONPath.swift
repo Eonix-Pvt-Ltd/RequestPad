@@ -139,25 +139,25 @@ public struct JSONPath: Hashable, Sendable, CustomStringConvertible {
         }
     }
 
-    /// Visits `match` and all its descendants depth-first; stops when `visit` returns false.
-    @discardableResult
-    private static func descendantsAndSelf(of match: Match, visit: (Match) -> Bool) -> Bool {
-        guard visit(match) else { return false }
-        switch match.value {
-        case .object(let members):
-            for member in members {
-                let child = Match(location: match.location + [.key(member.key)], value: member.value)
-                guard descendantsAndSelf(of: child, visit: visit) else { return false }
+    /// Visits `match` and all its descendants depth-first in document order; stops when `visit` returns false.
+    /// Iterative (explicit stack) so deep documents can't overflow the thread stack.
+    private static func descendantsAndSelf(of match: Match, visit: (Match) -> Bool) {
+        var stack = [match]
+        while let current = stack.popLast() {
+            guard visit(current) else { return }
+            switch current.value {
+            case .object(let members):
+                for member in members.reversed() {
+                    stack.append(Match(location: current.location + [.key(member.key)], value: member.value))
+                }
+            case .array(let elements):
+                for (index, element) in elements.enumerated().reversed() {
+                    stack.append(Match(location: current.location + [.index(index)], value: element))
+                }
+            default:
+                break
             }
-        case .array(let elements):
-            for (index, element) in elements.enumerated() {
-                let child = Match(location: match.location + [.index(index)], value: element)
-                guard descendantsAndSelf(of: child, visit: visit) else { return false }
-            }
-        default:
-            break
         }
-        return true
     }
 
     /// Formats a location as a normalized path (`$['a'][0]` style uses dot form when possible: `$.a[0]`).
