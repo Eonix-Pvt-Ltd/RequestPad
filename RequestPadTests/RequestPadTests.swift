@@ -25,8 +25,12 @@ enum TestApp {
             secrets: InMemorySecretStore(),
             preferences: Preferences(defaults: defaults), folderAccess: PathBookmarks(),
             authenticator: FakeAuthenticator(),
-            httpClient: client, transport: FakeTransport([]), isUITesting: true)
-        return AppModel(environment: environment, entitlements: EntitlementState(isPro: isPro))
+            httpClient: client, transport: FakeTransport([]), isUITesting: true,
+            storeClient: FakeStoreClient(
+                entitlements: isPro
+                    ? [TransactionSnapshot(id: 1, productID: ProductID.lifetime.rawValue, purchaseDate: Date())] : []))
+        let store = EntitlementManager(client: environment.storeClient, state: EntitlementState(isPro: isPro))
+        return AppModel(environment: environment, store: store)
     }
 
     /// Waits for the editor's send task to finish.

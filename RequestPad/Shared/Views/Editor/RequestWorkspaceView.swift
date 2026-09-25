@@ -299,7 +299,7 @@ private struct EnvironmentPickerSheet: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
             }
         }
-        .frame(minWidth: 320, minHeight: 280)
+        .sheetFrame(minWidth: 320, minHeight: 280)
     }
 
     private func row(name: String, isActive: Bool) -> some View {

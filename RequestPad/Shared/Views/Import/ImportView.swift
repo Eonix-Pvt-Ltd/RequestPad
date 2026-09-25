@@ -85,7 +85,8 @@ struct ImportView: View {
                 load(result)
             }
         }
-        .frame(minWidth: 480, minHeight: 480)
+        .sheetFrame(minWidth: 480, minHeight: 480)
+        .presentsPaywall(app, level: 1)
     }
 
     private var allowedTypes: [UTType] {

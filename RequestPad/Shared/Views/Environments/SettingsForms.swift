@@ -97,7 +97,8 @@ struct CollectionSettingsView: View {
                 useCookieJar = state?.summary.useCookieJar ?? true
             }
         }
-        .frame(minWidth: 520, minHeight: 560)
+        .sheetFrame(minWidth: 520, minHeight: 560)
+        .presentsPaywall(app, level: 1)
     }
 
     private func storageName(_ storage: CollectionStorage) -> String {
@@ -141,6 +142,7 @@ struct FolderSettingsView: View {
             }
             .onAppear { settings = folder?.settings ?? FolderSettings() }
         }
-        .frame(minWidth: 520, minHeight: 560)
+        .sheetFrame(minWidth: 520, minHeight: 560)
+        .presentsPaywall(app, level: 1)
     }
 }

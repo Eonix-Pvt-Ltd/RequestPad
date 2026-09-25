@@ -19,6 +19,11 @@ struct SettingsView: View {
     @State private var isImportPickerPresented = false
     @State private var diagnostics: String?
     @State private var isWorking = false
+    @State private var isPaywallPresented = false
+    @State private var restoreResult: EntitlementManager.RestoreResult?
+    #if os(iOS)
+        @State private var isRedeemingCode = false
+    #endif
 
     var body: some View {
         @Bindable var app = app
@@ -52,9 +57,25 @@ struct SettingsView: View {
             }
             echoSection
             Section {
-                LabeledContent("Status", value: app.gate.isPro ? String(localized: "Pro") : String(localized: "Free"))
-                Button("See Pro Features") { app.requestedProFeature = .unlimitedCollections }
-                    .accessibilityIdentifier("settings.pro")
+                LabeledContent("Status", value: PaywallCopy.statusLine(for: app.store.source))
+                    .accessibilityIdentifier("settings.proStatus")
+                if !app.store.source.isPro {
+                    Button("See Pro Features") { isPaywallPresented = true }
+                        .accessibilityIdentifier("settings.pro")
+                }
+                Button(app.store.isRestoring ? "Restoring…" : "Restore Purchases") {
+                    Task { restoreResult = await app.store.restore() }
+                }
+                .disabled(app.store.isRestoring)
+                .accessibilityIdentifier("settings.restore")
+                ManageSubscriptionButton(source: app.store.source)
+                #if os(iOS)
+                    Button("Redeem Offer Code") { isRedeemingCode = true }
+                        .offerCodeRedemption(isPresented: $isRedeemingCode) { _ in
+                            Task { await app.store.refreshEntitlements() }
+                        }
+                        .accessibilityIdentifier("settings.redeem")
+                #endif
             } header: {
                 SectionHeader("RequestPad Pro")
             }
@@ -107,6 +128,14 @@ struct SettingsView: View {
             } catch {
                 app.present(DataError.fileReadFailed(name: url.lastPathComponent, reason: error.localizedDescription))
             }
+        }
+        .sheet(isPresented: $isPaywallPresented) {
+            PaywallView(app: app, feature: nil)
+        }
+        .alert(
+            item: Binding(get: { restoreResult.map(RestoreAlert.init) }, set: { if $0 == nil { restoreResult = nil } })
+        ) { alert in
+            Alert(title: Text(alert.title), message: Text(alert.message))
         }
         .sheet(isPresented: Binding(get: { diagnostics != nil }, set: { if !$0 { diagnostics = nil } })) {
             DiagnosticsSheet(text: diagnostics ?? "")
@@ -230,7 +259,7 @@ private struct DiagnosticsSheet: View {
                 }
             }
         }
-        .frame(minWidth: 560, minHeight: 480)
+        .sheetFrame(minWidth: 560, minHeight: 480)
     }
 }
 

@@ -85,7 +85,7 @@ struct EnvironmentsView: View {
                 Text("Its secret values are removed from the Keychain.")
             }
         }
-        .frame(minWidth: 520, minHeight: 520)
+        .sheetFrame(minWidth: 520, minHeight: 520)
     }
 }
 

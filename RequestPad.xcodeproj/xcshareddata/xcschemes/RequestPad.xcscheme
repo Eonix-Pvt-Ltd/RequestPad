@@ -72,7 +72,7 @@
             </BuildableReference>
       </BuildableProductRunnable>
       <StoreKitConfigurationFileReference
-         identifier = "../../RequestPad/Resources/Products.storekit">
+         identifier = "../../RequestPadTests/StoreKit/Products.storekit">
       </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction

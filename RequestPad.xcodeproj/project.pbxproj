@@ -46,7 +46,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
-				Resources/Products.storekit,
 			);
 			target = 499DA891306631AF00C05F96 /* RequestPad */;
 		};
@@ -479,6 +478,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 835LNLUPAJ;
 				GENERATE_INFOPLIST_FILE = YES;
+				OTHER_SWIFT_FLAGS = "$(inherited) -Xcc -Wno-deprecated-declarations";
 				PRODUCT_BUNDLE_IDENTIFIER = lk.eonix.RequestPadTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -496,6 +496,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 835LNLUPAJ;
 				GENERATE_INFOPLIST_FILE = YES;
+				OTHER_SWIFT_FLAGS = "$(inherited) -Xcc -Wno-deprecated-declarations";
 				PRODUCT_BUNDLE_IDENTIFIER = lk.eonix.RequestPadTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
