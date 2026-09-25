@@ -49,8 +49,8 @@ public struct HTTPMethod: RawRepresentable, Hashable, Sendable, Codable, CustomS
         }
     }
 
-    /// RFC 9110 §5.6.2: `token = 1*tchar`.
-    public static func isValidToken(_ value: String) -> Bool {
+    /// RFC 9110 §5.6.2: `token = 1*tchar`, limited to `maximumLength` bytes (method names by default).
+    public static func isValidToken(_ value: String, maximumLength: Int = HTTPMethod.maximumLength) -> Bool {
         guard !value.isEmpty, value.utf8.count <= maximumLength else { return false }
         return value.unicodeScalars.allSatisfy(isTokenCharacter)
     }
