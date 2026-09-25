@@ -1,0 +1,19 @@
+// App target settings (iOS/iPadOS + macOS multiplatform target).
+
+INFOPLIST_FILE = RequestPad/Info.plist
+GENERATE_INFOPLIST_FILE = YES
+INFOPLIST_KEY_CFBundleDisplayName = RequestPad
+INFOPLIST_KEY_LSApplicationCategoryType = public.app-category.developer-tools
+INFOPLIST_KEY_NSHumanReadableCopyright = © 2026 Eonix (Pvt) Ltd. All rights reserved.
+
+// macOS: App Sandbox + Hardened Runtime (B6/B7). Values mirror RequestPad-macOS.entitlements.
+CODE_SIGN_ENTITLEMENTS[sdk=macosx*] = RequestPad/RequestPad-macOS.entitlements
+ENABLE_APP_SANDBOX = YES
+ENABLE_HARDENED_RUNTIME = YES
+ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES
+// Loopback "Local Echo" responder (A10, justified in review notes).
+ENABLE_INCOMING_NETWORK_CONNECTIONS = YES
+ENABLE_USER_SELECTED_FILES = readwrite
+
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor

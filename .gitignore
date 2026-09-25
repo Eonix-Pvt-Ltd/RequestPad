@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+
+# Xcode user state (the .xcodeproj itself is committed and must never be ignored)
+xcuserdata/
+*.xcuserstate
+DerivedData/
+
+# Build output
+build/
+.build/
+
+# Swift Package Manager: keep only the package workspace used by scripts/test.sh
+.swiftpm/*
+!.swiftpm/xcode/
+.swiftpm/xcode/*
+!.swiftpm/xcode/package.xcworkspace/
+.swiftpm/xcode/package.xcworkspace/*
+!.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+
+# Secrets — never commit
+*.p8
+*.p12
+*.mobileprovision
+.env
+.env.*
+
+# Documented template for local release credentials (never real values)
+!.env.example

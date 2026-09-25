@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "phase-*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GITLEAKS_VERSION: 8.30.1
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks (pinned, checksum-verified)
+        run: |
+          curl -sSfL -o gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  gitleaks.tar.gz" | sha256sum --check
+          tar -xzf gitleaks.tar.gz gitleaks
+      - name: Scan full history
+        run: ./gitleaks git --redact --verbose .
+
+  build-and-test:
+    name: Lint, test, analyze, release build
+    runs-on: macos-26
+    timeout-minutes: 90
+    env:
+      CI: "true"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Select newest Xcode
+        run: |
+          latest=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          sudo xcode-select -s "$latest/Contents/Developer"
+          xcodebuild -version
+      - name: Bootstrap
+        run: scripts/bootstrap.sh
+      - name: Lint, unit + UI tests (macOS, iPhone, iPad), coverage gate, sanitizers, analyze
+        run: scripts/test.sh --sanitizers --analyze
+      - name: Release builds (warnings are errors)
+        run: |
+          set -o pipefail
+          for destination in 'generic/platform=macOS' 'generic/platform=iOS'; do
+            xcodebuild build -project RequestPad.xcodeproj -scheme RequestPad -configuration Release \
+              -destination "$destination" CODE_SIGNING_ALLOWED=NO
+          done
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: test-results
+          path: build/test-results/*.xcresult
+          retention-days: 14

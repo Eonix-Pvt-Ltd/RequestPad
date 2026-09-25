@@ -6,6 +6,14 @@
 	objectVersion = 110;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		285FF30F6EA5D5741ED7B18D /* RPUI in Frameworks */ = {isa = PBXBuildFile; productRef = A7D0E0CCEDCC0D160DFA1E42 /* RPUI */; };
+		513CC5473EC99D0FA3A552B7 /* RPStore in Frameworks */ = {isa = PBXBuildFile; productRef = D0971DA4F1FDD0A282614345 /* RPStore */; };
+		6D5A4D10CBF37101A575FCB8 /* RPServices in Frameworks */ = {isa = PBXBuildFile; productRef = 4E1AF5A0D2E8E046EB5C8A47 /* RPServices */; };
+		97025110C40C08504A391EE8 /* RPData in Frameworks */ = {isa = PBXBuildFile; productRef = 312CAF95510DA88B7DBAC09A /* RPData */; };
+		BBE53B7992F26ECF65E9D56E /* RPCore in Frameworks */ = {isa = PBXBuildFile; productRef = 35A744E87F52F85E5C4FADD6 /* RPCore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		499DA8A4306631B000C05F96 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,9 +32,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		321AB45FF02BF7F680D8ECB9 /* RequestPad-App.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "RequestPad-App.xcconfig"; sourceTree = "<group>"; };
 		499DA892306631AF00C05F96 /* RequestPad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RequestPad.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		499DA8A3306631B000C05F96 /* RequestPadTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RequestPadTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		499DA8AD306631B000C05F96 /* RequestPadUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RequestPadUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BD0CE0AC698C6568812D7870 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		C9F1F57CDC0DA96647235986 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		CB43B140FF57BAE150F6B046 /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Base.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -34,6 +46,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				Resources/Products.storekit,
 			);
 			target = 499DA891306631AF00C05F96 /* RequestPad */;
 		};
@@ -64,6 +77,11 @@
 		499DA88F306631AF00C05F96 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				BBE53B7992F26ECF65E9D56E /* RPCore in Frameworks */,
+				97025110C40C08504A391EE8 /* RPData in Frameworks */,
+				6D5A4D10CBF37101A575FCB8 /* RPServices in Frameworks */,
+				513CC5473EC99D0FA3A552B7 /* RPStore in Frameworks */,
+				285FF30F6EA5D5741ED7B18D /* RPUI in Frameworks */,
 			);
 		};
 		499DA8A0306631B000C05F96 /* Frameworks */ = {
@@ -83,6 +101,7 @@
 			isa = PBXGroup;
 			children = (
 				499DA894306631AF00C05F96 /* RequestPad */,
+				7277CC4EF36948D68AD50C4B /* Config */,
 				499DA8A6306631B000C05F96 /* RequestPadTests */,
 				499DA8B0306631B000C05F96 /* RequestPadUITests */,
 				499DA893306631AF00C05F96 /* Products */,
@@ -97,6 +116,17 @@
 				499DA8AD306631B000C05F96 /* RequestPadUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		7277CC4EF36948D68AD50C4B /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				CB43B140FF57BAE150F6B046 /* Base.xcconfig */,
+				C9F1F57CDC0DA96647235986 /* Debug.xcconfig */,
+				BD0CE0AC698C6568812D7870 /* Release.xcconfig */,
+				321AB45FF02BF7F680D8ECB9 /* RequestPad-App.xcconfig */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -116,6 +146,13 @@
 				499DA894306631AF00C05F96 /* RequestPad */,
 			);
 			name = RequestPad;
+			packageProductDependencies = (
+				35A744E87F52F85E5C4FADD6 /* RPCore */,
+				312CAF95510DA88B7DBAC09A /* RPData */,
+				4E1AF5A0D2E8E046EB5C8A47 /* RPServices */,
+				D0971DA4F1FDD0A282614345 /* RPStore */,
+				A7D0E0CCEDCC0D160DFA1E42 /* RPUI */,
+			);
 			productName = RequestPad;
 			productReference = 499DA892306631AF00C05F96 /* RequestPad.app */;
 			productType = "com.apple.product-type.application";
@@ -194,6 +231,9 @@
 			);
 			mainGroup = 499DA889306631AF00C05F96;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				01568FBFEF49462C45F55477 /* XCLocalSwiftPackageReference "." */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 499DA893306631AF00C05F96 /* Products */;
 			projectDirPath = "";
@@ -258,18 +298,11 @@
 /* Begin XCBuildConfiguration section */
 		499DA8B5306631B000C05F96 /* Debug configuration for PBXNativeTarget "RequestPad" */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 321AB45FF02BF7F680D8ECB9 /* RequestPad-App.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 835LNLUPAJ;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = RequestPad/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -280,41 +313,25 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = lk.eonix.RequestPad;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				REGISTER_APP_GROUPS = YES;
-				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				XROS_DEPLOYMENT_TARGET = 27.0;
 			};
 			name = Debug;
 		};
 		499DA8B6306631B000C05F96 /* Release configuration for PBXNativeTarget "RequestPad" */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 321AB45FF02BF7F680D8ECB9 /* RequestPad-App.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 835LNLUPAJ;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = RequestPad/Info.plist;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -325,29 +342,21 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = lk.eonix.RequestPad;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				REGISTER_APP_GROUPS = YES;
-				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				XROS_DEPLOYMENT_TARGET = 27.0;
 			};
 			name = Release;
 		};
 		499DA8B7306631B000C05F96 /* Debug configuration for PBXProject "RequestPad" */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C9F1F57CDC0DA96647235986 /* Debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -410,6 +419,7 @@
 		};
 		499DA8B8306631B000C05F96 /* Release configuration for PBXProject "RequestPad" */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = BD0CE0AC698C6568812D7870 /* Release.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -467,24 +477,15 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 835LNLUPAJ;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
-				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = lk.eonix.RequestPadTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/RequestPad.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/RequestPad";
-				XROS_DEPLOYMENT_TARGET = 27.0;
 			};
 			name = Debug;
 		};
@@ -493,24 +494,15 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 835LNLUPAJ;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
-				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = lk.eonix.RequestPadTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/RequestPad.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/RequestPad";
-				XROS_DEPLOYMENT_TARGET = 27.0;
 			};
 			name = Release;
 		};
@@ -518,24 +510,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 835LNLUPAJ;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
-				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = lk.eonix.RequestPadUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_TARGET_NAME = RequestPad;
-				XROS_DEPLOYMENT_TARGET = 27.0;
 			};
 			name = Debug;
 		};
@@ -543,24 +526,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 835LNLUPAJ;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
-				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = lk.eonix.RequestPadUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_TARGET_NAME = RequestPad;
-				XROS_DEPLOYMENT_TARGET = 27.0;
 			};
 			name = Release;
 		};
@@ -600,6 +574,41 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		01568FBFEF49462C45F55477 /* XCLocalSwiftPackageReference "." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = .;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		312CAF95510DA88B7DBAC09A /* RPData */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 01568FBFEF49462C45F55477 /* XCLocalSwiftPackageReference "." */;
+			productName = RPData;
+		};
+		35A744E87F52F85E5C4FADD6 /* RPCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 01568FBFEF49462C45F55477 /* XCLocalSwiftPackageReference "." */;
+			productName = RPCore;
+		};
+		4E1AF5A0D2E8E046EB5C8A47 /* RPServices */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 01568FBFEF49462C45F55477 /* XCLocalSwiftPackageReference "." */;
+			productName = RPServices;
+		};
+		A7D0E0CCEDCC0D160DFA1E42 /* RPUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 01568FBFEF49462C45F55477 /* XCLocalSwiftPackageReference "." */;
+			productName = RPUI;
+		};
+		D0971DA4F1FDD0A282614345 /* RPStore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 01568FBFEF49462C45F55477 /* XCLocalSwiftPackageReference "." */;
+			productName = RPStore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 499DA88A306631AF00C05F96 /* Project object */;
 	validationLevel = 1;

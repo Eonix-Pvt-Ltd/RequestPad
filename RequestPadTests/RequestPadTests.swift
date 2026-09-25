@@ -1,18 +1,34 @@
-//
-//  RequestPadTests.swift
-//  RequestPadTests
-//
-//  Created by Yasas Alwis on 2026-09-25.
-//
-
+import Foundation
+import RPData
 import Testing
 
-struct RequestPadTests {
+@testable import RequestPad
 
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-        // Swift Testing Documentation
-        // https://developer.apple.com/documentation/testing
+@MainActor
+@Suite("LaunchModel")
+struct LaunchModelTests {
+    private let locations = StorageLocations(
+        applicationSupport: URL(filePath: "/support", directoryHint: .isDirectory),
+        temporary: URL(filePath: "/tmp-root", directoryHint: .isDirectory))
+
+    @Test func successfulPreparationIsReady() {
+        let model = LaunchModel { locations }
+        #expect(model.state == .ready(locations))
     }
 
+    @Test func failedPreparationIsRecoverableByRetry() {
+        let failure = StorageLocationError.cannotCreateDirectory(name: "Diagnostics", underlying: "disk full")
+        let model = LaunchModel { () throws(StorageLocationError) -> StorageLocations in throw failure }
+        #expect(model.state == .failed(failure))
+
+        model.retry { locations }
+        #expect(model.state == .ready(locations))
+    }
+
+    @Test func livePreparationSucceedsInTestHost() throws {
+        let prepared = try LaunchModel.prepareLiveLocations()
+        for directory in prepared.ownedDirectories {
+            #expect(FileManager.default.fileExists(atPath: directory.path(percentEncoded: false)))
+        }
+    }
 }
