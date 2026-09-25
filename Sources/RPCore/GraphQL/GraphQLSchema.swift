@@ -27,6 +27,12 @@ public struct GraphQLSchema: Hashable, Sendable, Codable {
         public var name: String
         public var type: TypeRef
         public var description: String?
+
+        public init(name: String, type: TypeRef, description: String? = nil) {
+            self.name = name
+            self.type = type
+            self.description = description
+        }
     }
 
     public struct Field: Hashable, Sendable, Codable {
@@ -35,6 +41,17 @@ public struct GraphQLSchema: Hashable, Sendable, Codable {
         public var arguments: [Argument]
         public var description: String?
         public var isDeprecated: Bool
+
+        public init(
+            name: String, type: TypeRef, arguments: [Argument] = [], description: String? = nil,
+            isDeprecated: Bool = false
+        ) {
+            self.name = name
+            self.type = type
+            self.arguments = arguments
+            self.description = description
+            self.isDeprecated = isDeprecated
+        }
     }
 
     public enum Kind: String, Hashable, Sendable, Codable {
@@ -54,12 +71,34 @@ public struct GraphQLSchema: Hashable, Sendable, Codable {
         public var enumValues: [String]
         public var possibleTypes: [String]
         public var description: String?
+
+        public init(
+            name: String, kind: Kind, fields: [Field] = [], inputFields: [Argument] = [], enumValues: [String] = [],
+            possibleTypes: [String] = [], description: String? = nil
+        ) {
+            self.name = name
+            self.kind = kind
+            self.fields = fields
+            self.inputFields = inputFields
+            self.enumValues = enumValues
+            self.possibleTypes = possibleTypes
+            self.description = description
+        }
     }
 
     public var queryType: String?
     public var mutationType: String?
     public var subscriptionType: String?
     public var types: [String: NamedType]
+
+    public init(
+        queryType: String?, mutationType: String? = nil, subscriptionType: String? = nil, types: [String: NamedType]
+    ) {
+        self.queryType = queryType
+        self.mutationType = mutationType
+        self.subscriptionType = subscriptionType
+        self.types = types
+    }
 
     /// The standard introspection query sent by "Fetch Schema" (P04.2).
     public static let introspectionQuery = """
