@@ -164,10 +164,10 @@ SHAs.
 CI runners have no signing certificates. `CI=true scripts/test.sh` overrides macOS signing to ad hoc (`-`) for test
 runs only; archives always use automatic signing with team `835LNLUPAJ`.
 
-### Unverified: StoreKit configuration file format
-No `.storekit` template ships inside Xcode 27, so `RequestPad/Resources/Products.storekit` was written from the known
-version 4 JSON format. It parses as JSON; Xcode's StoreKit editor and the Phase 5 StoreKit tests are the
-verification. Re-verify in Phase 5.
+### Verified (Phase 5): StoreKit configuration file format
+`RequestPadTests/StoreKit/Products.storekit` (version 4 JSON) loads in `SKTestSession`: `StoreKitTests` read all three
+products with their prices, periods and the 7-day free trial, and run purchases, Ask to Buy, refunds, expiry and
+failures against it. It moved from `RequestPad/Resources` to the test target in Phase 5 (ADR-0041).
 
 ### Unverified: required-reason codes in PrivacyInfo.xcprivacy
 `CA92.1` (UserDefaults, app-only data), `C617.1` (file timestamps inside the app container) and `3B52.1` (file
@@ -294,7 +294,8 @@ sheet's buttons were outside the window and could not be clicked.
   bar buttons (drawn by the system on Liquid Glass over scrolling content) measure the backdrop, so those two cases
   are exempt from the contrast audit on iOS; the accent colors above are what those buttons use.
 - **iPad audit sampling.** Findings without an element come from the dimmed content behind a form sheet and from
-  rows clipped by the sheet; contrast findings for the iPad glass sidebar measure the backdrop, as on macOS
+  rows clipped by the sheet; contrast findings for elements that are not hittable (scrolled out of a sheet's visible
+  area) and for the iPad glass sidebar measure the backdrop, as on macOS
   (ADR-0019). These are exempt; the manual pass (HUMAN_HANDOFF H3) covers them. Choosing a search result now hides
   the keyboard on iPad, and destructive buttons use `Color.textRed` (system red is 4.0:1 on white).
 - **Text colors.** `Color.textSecondary`, `textGreen`, `textOrange`, `textRed`, `textPurple` and `textBlue` (RPUI)
@@ -312,3 +313,28 @@ Files picked for multipart fields are stored as a path relative to the collectio
 folder collection (portable in git, as Bruno does), otherwise as `bookmark:<base64>` (a security-scoped bookmark,
 so sandboxed access survives relaunch). `BookmarkFileResolver` resolves both; relative paths cannot escape the
 collection folder.
+
+### ADR-0040 — StoreKit 2 entitlement design (Phase 5)
+- The App Store is the only source of truth: `Transaction.currentEntitlements` is read at launch, whenever the app
+  becomes active, after purchases and restores, and on every `Transaction.updates` event (Ask to Buy approvals,
+  renewals, refunds, purchases on other devices). No entitlement is cached in UserDefaults (user-editable).
+- Only transactions whose JWS verifies are used; unverified ones are logged without identifiers and never grant
+  Pro. Transactions are finished after they are delivered.
+- `EntitlementResolver` (pure) grants Pro for an unrevoked lifetime purchase or an unrevoked, not upgraded
+  subscription whose expiration date is in the future. Expiry sends no update, which is why entitlements are re-read
+  when the app becomes active.
+- One paywall (`PaywallView`) for every trigger (B4.6), with prices, periods and trial terms from StoreKit, the
+  auto-renewal disclosure, Restore Purchases, Terms and Privacy links and a close control. Settings adds Restore,
+  Manage Subscription and (iOS) Redeem Offer Code.
+- The paywall is presented by the topmost presenter (root view or a registered sheet); on iOS a sheet cannot be
+  presented from the root while another sheet is up, which had silently swallowed Pro prompts inside sheets.
+
+### ADR-0041 — StoreKit testing
+- `Products.storekit` lives in `RequestPadTests/StoreKit/`, so it ships in the test bundle only (never in the
+  app) and the scheme's Run action uses the same single copy.
+- The app-hosted test target adds `-Xcc -Wno-deprecated-declarations` (test target only): `StoreKitTest`'s own
+  header uses a StoreKit 1 type deprecated in macOS 15, which warnings-as-errors turned into a build error. App
+  code and all other targets keep warnings as errors.
+- `SKTestSession.expireSubscription` does not shorten the transaction's recorded period, so expiry is tested with
+  accelerated time (`oneRenewalEveryTwoSeconds`) and renewal turned off, which exercises the real date-based path.
+- UI tests use `FakeStoreClient` (Debug-only `-UITestMode`); `-UITestPro` starts with a lifetime purchase.

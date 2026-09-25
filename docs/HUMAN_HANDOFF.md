@@ -60,4 +60,16 @@ The same flows pass on iPhone and iPad, and macOS is covered by the app-hosted u
    file and a Postman export; run a folder (Pro via `-UITestPro` in a Debug build) and export results.
 Record results in `docs/SDLC_LOG.md`.
 
+### H8 — App Store Connect in-app purchases (before TestFlight, Phase 9)
+1. In App Store Connect → RequestPad → Monetization, create the subscription group **Pro** with
+   `lk.eonix.requestpad.pro.yearly` ($19.99/year) and `lk.eonix.requestpad.pro.monthly` ($2.99/month), each with a
+   7-day free trial introductory offer, and the non-consumable `lk.eonix.requestpad.pro.lifetime` ($39.99). Match the
+   IDs exactly (`ProductID`); prices, periods and the trial should match `RequestPadTests/StoreKit/Products.storekit`.
+2. Add display names, descriptions and a review screenshot of the paywall for each product; submit them with the
+   first app version.
+3. Accept the Paid Apps agreement and complete tax and banking (purchases do not work in TestFlight otherwise).
+4. With a Sandbox Apple Account on a device: buy each product, cancel, restore on a second device (Pro unlocks
+   there, X03.3), use Ask to Buy with a family sandbox account, and refund via the Sandbox account settings. Record
+   results in `docs/SDLC_LOG.md`.
+
 _Further items (App Store Connect products, sandbox purchase test, TestFlight, submission) are added in Phases 5–10._

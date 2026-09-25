@@ -263,3 +263,44 @@ Not run in this phase, with reason:
   even for a minimal app (ADR-0037); the app itself works when launched normally. HUMAN_HANDOFF H7 has the steps to
   clear the host state or run them elsewhere, and the manual macOS pass.
 - CI (H5), device-only checks (H6), manual VoiceOver pass (H3).
+
+## Phase 5 — StoreKit and paywall (2026-09-25)
+
+Built:
+- RPStore: `StoreProduct` / `TransactionSnapshot` / `PurchaseOutcome` / `StoreError` models, `EntitlementResolver`
+  (pure), `PaywallCopy` (prices, trial terms, auto-renewal disclosure, status lines), `StoreClient` protocol with
+  `FakeStoreClient`, and the `@Observable EntitlementManager` (products, purchase, pending/Ask to Buy, restore,
+  transaction updates, refresh). Coverage 99.5%.
+- App: `LiveStoreClient` (StoreKit 2; verified transactions only, finished after delivery), `PaywallView` (plans
+  first, trial terms, purchase, Restore, Terms/Privacy, close), paywall presentation from the topmost presenter,
+  "Welcome to RequestPad Pro" confirmation, entitlement refresh when the app becomes active, Settings: status,
+  See Pro Features, Restore Purchases, Manage Subscription, Redeem Offer Code (iOS).
+- `Products.storekit` moved to `RequestPadTests/StoreKit/` (test bundle only; scheme updated) — ADR-0041.
+
+Defects found and fixed in this phase:
+- Pro prompts inside sheets (Import, Collection/Folder Settings, Settings' "See Pro Features") were never shown on
+  iOS: the root view cannot present while a sheet is up (ADR-0040).
+- macOS minimum sheet sizes pushed the paywall and other sheets off screen on iPhone (`sheetFrame` is macOS-only now;
+  `testImportSheetFitsOnScreen` guards it).
+- iPad form sheet hid the plans below the fold — plans and the purchase button now come first.
+
+Verification (local; Xcode 27.0, macOS 27.0; iPhone 18 Pro and iPad Pro 13-inch (M5) simulators, iOS 27.0):
+```
+scripts/test.sh --platform ios                         → package-iphone: passed 332, skipped 2* · app-iphone: passed 44
+                                                         · app-ipad: passed 44 · RPCore 95.93% · RPStore 99.47%
+scripts/test.sh --platform macos --skip-macos-ui \
+    --sanitizers --analyze                             → package-macos: passed 334 · app-macos: passed 34 · ASan 327
+                                                         passed, 7 skipped† · TSan 327 passed, 7 skipped† · Analyze ×2
+Coverage (macOS package): RPCore 95.93% · RPData 93.47% · RPServices 91.74% · RPStore 99.47%
+Release builds (macOS, iOS)                            → succeeded, 0 compiler warnings; no .storekit in the app bundle
+```
+StoreKit tests (app-hosted, `SKTestSession`, on macOS, iPhone and iPad): products/prices/7-day trial from the
+configuration, subscription and lifetime purchase, Ask to Buy pending → approval, refund revokes Pro, period end
+ends Pro (accelerated time), purchase failure, purchase on another device arrives as an update, restore.
+UI tests: `testPaywallPurchaseUnlocksPro` (locked feature → paywall with prices, trial, Restore → purchase →
+confirmation → feature unlocked), `testImportSheetFitsOnScreen`; audits pass on iPhone and iPad.
+\* Live-Keychain package tests skipped on the iOS simulator by design. † Performance tests skip under sanitizers.
+
+Not run in this phase, with reason:
+- Real App Store / sandbox purchases need App Store Connect products and agreements (HUMAN_HANDOFF H8).
+- macOS UI tests (H7), CI (H5), device checks (H6), manual VoiceOver pass (H3).

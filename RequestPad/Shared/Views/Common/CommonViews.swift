@@ -161,3 +161,15 @@ struct SectionHeader: View {
             .accessibilityAddTraits(.isHeader)
     }
 }
+
+extension View {
+    /// A minimum size for sheets on macOS, where sheets size to their content. iOS sheets fill the available width,
+    /// and a minimum wider than an iPhone would push content off screen.
+    func sheetFrame(minWidth: CGFloat, minHeight: CGFloat) -> some View {
+        #if os(macOS)
+            frame(minWidth: minWidth, minHeight: minHeight)
+        #else
+            self
+        #endif
+    }
+}

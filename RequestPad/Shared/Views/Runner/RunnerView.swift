@@ -76,7 +76,7 @@ struct RunnerView: View {
             }
             .onAppear { items = app.runItems(collectionID: collectionID, folderKey: folderKey) }
         }
-        .frame(minWidth: 560, minHeight: 520)
+        .sheetFrame(minWidth: 560, minHeight: 520)
     }
 
     private var isRunning: Bool { runTask != nil }

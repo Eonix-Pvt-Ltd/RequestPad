@@ -44,7 +44,7 @@ struct CookieJarView: View {
             }
             .task { jar = await app.cookieJar() }
         }
-        .frame(minWidth: 520, minHeight: 480)
+        .sheetFrame(minWidth: 520, minHeight: 480)
     }
 
     private func list(_ jar: CookieJar) -> some View {

@@ -36,7 +36,7 @@ open RequestPad.xcodeproj
 ```
 
 Select the **RequestPad** scheme and a destination (My Mac, an iPhone or iPad simulator), then Run. The scheme's
-Run action uses `RequestPad/Resources/Products.storekit`, so purchases work locally without App Store Connect.
+Run action uses `RequestPadTests/StoreKit/Products.storekit`, so purchases work locally without App Store Connect.
 
 ## Test
 

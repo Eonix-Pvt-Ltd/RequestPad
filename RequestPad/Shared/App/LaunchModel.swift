@@ -34,23 +34,12 @@ final class LaunchModel {
         do {
             let environment = try makeEnvironment()
             Log.logger(.app).info("Launch preparation finished")
-            return .ready(
-                AppModel(
-                    environment: environment,
-                    entitlements: EntitlementState(isPro: environment.isUITesting && uiTestsRequestPro)))
+            let store = EntitlementManager(client: environment.storeClient, state: EntitlementState())
+            return .ready(AppModel(environment: environment, store: store))
         } catch {
             Log.logger(.app).error("Launch preparation failed: \(error.localizedDescription, privacy: .public)")
             return .failed(PresentedError(error))
         }
-    }
-
-    /// Debug UI tests pass `-UITestPro` to exercise Pro screens before StoreKit is wired up (Phase 5).
-    private static var uiTestsRequestPro: Bool {
-        #if DEBUG
-            ProcessInfo.processInfo.arguments.contains("-UITestPro")
-        #else
-            false
-        #endif
     }
 
     nonisolated static func prepareLiveLocations() throws(StorageLocationError) -> StorageLocations {

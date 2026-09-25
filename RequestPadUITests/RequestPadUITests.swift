@@ -129,9 +129,10 @@ final class RequestPadUITests: XCTestCase {
         try audit(app)
     }
 
-    /// PRD §4: a Pro feature on the free plan explains itself instead of failing.
+    /// PRD §4 + X03: a locked feature opens the paywall with App Store prices and trial terms; buying unlocks
+    /// the feature immediately.
     @MainActor
-    func testProFeatureShowsUpgradeSheet() throws {
+    func testPaywallPurchaseUnlocksPro() throws {
         let app = launch()
         loadSampleDataFromOnboarding(app)
         openRequest(app, named: "Echo a GET")
@@ -139,11 +140,37 @@ final class RequestPadUITests: XCTestCase {
         let locked = element(app, "proLocked.assertionsAndRunner")
         XCTAssertTrue(locked.waitForExistence(timeout: Self.timeout))
         locked.tap()
+        XCTAssertTrue(element(app, "paywall.feature").waitForExistence(timeout: Self.timeout), "Paywall did not appear")
         XCTAssertTrue(
-            element(app, "pro.feature").waitForExistence(timeout: Self.timeout), "Upgrade sheet did not appear")
-        attachScreenshot(app, named: "07-pro")
+            element(app, "paywall.product.lk.eonix.requestpad.pro.yearly").waitForExistence(timeout: Self.timeout))
+        XCTAssertTrue(element(app, "paywall.offer").exists, "Trial terms missing")
+        XCTAssertTrue(element(app, "paywall.restore").exists, "Restore Purchases missing")
+        assertFitsOnScreen(element(app, "paywall.purchase"), in: app)
+        attachScreenshot(app, named: "07-paywall")
+        // Audit at the end of the content: rows under a sheet's soft bottom edge are faded by the system.
+        #if os(iOS)
+            for _ in 0..<3 { element(app, "paywall.restore").swipeUp() }
+        #endif
         try audit(app)
-        element(app, "pro.close").tap()
+        element(app, "paywall.purchase").tap()
+        let welcome = app.alerts["Welcome to RequestPad Pro"].firstMatch
+        XCTAssertTrue(welcome.waitForExistence(timeout: Self.timeout), "Unlock confirmation did not appear")
+        welcome.buttons["OK"].tap()
+        XCTAssertTrue(element(app, "assert.add").waitForExistence(timeout: Self.timeout), "Assertions did not unlock")
+    }
+
+    /// Sheets fit the screen on iPhone (a macOS minimum width once pushed content off screen).
+    @MainActor
+    func testImportSheetFitsOnScreen() throws {
+        let app = launch()
+        skipOnboarding(app)
+        element(app, "sidebar.add").tap()
+        menuItem(app, "Import…").tap()
+        let text = element(app, "import.text")
+        XCTAssertTrue(text.waitForExistence(timeout: Self.timeout), "Import sheet did not open")
+        assertFitsOnScreen(text, in: app)
+        attachScreenshot(app, named: "09-import")
+        try audit(app)
     }
 
     /// X04.2: Erase All Data returns the app to first launch.
@@ -267,6 +294,14 @@ final class RequestPadUITests: XCTestCase {
                 app.windows.firstMatch.scroll(byDeltaX: 0, deltaY: -400)
             #endif
         }
+    }
+
+    @MainActor
+    private func assertFitsOnScreen(_ target: XCUIElement, in app: XCUIApplication, line: UInt = #line) {
+        let screen = app.windows.firstMatch.frame
+        XCTAssertTrue(
+            target.frame.minX >= screen.minX && target.frame.maxX <= screen.maxX,
+            "\(target.identifier) \(target.frame) extends beyond \(screen)", line: line)
     }
 
     /// Menu entries are menu items on macOS and buttons on iOS.

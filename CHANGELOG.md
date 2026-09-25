@@ -13,6 +13,9 @@ All notable changes to RequestPad are documented here. The format follows
   environments with Keychain secrets, response viewer (JSON tree with JSONPath filter, raw, image preview, timings,
   save to file), history, cURL/OpenAPI/Postman import, collection runner, cookie jar, Local Echo with sample data,
   onboarding, settings with data export/import/erase and diagnostics, keyboard shortcuts.
+- RequestPad Pro: yearly and monthly subscriptions with a 7-day free trial and a lifetime purchase (StoreKit 2),
+  one paywall for every Pro feature, Restore Purchases, Manage Subscription and Redeem Offer Code, with Pro
+  unlocking immediately and following refunds, renewals and purchases on other devices.
 
 ## [1.0.0] — not yet released
 

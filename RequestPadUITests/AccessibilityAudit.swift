@@ -86,6 +86,7 @@ private struct FrameworkLayout {
     let sidebarFrames: [CGRect]
     let screenFrame: CGRect
     let navigationBarFrames: [CGRect]
+    let scrollViewFrames: [CGRect]
 
     init(app: XCUIApplication) {
         #if os(macOS)
@@ -97,6 +98,7 @@ private struct FrameworkLayout {
             sidebarFrames = columns.compactMap(\.first)
             screenFrame = .infinite
             navigationBarFrames = []
+            scrollViewFrames = []
         #else
             containerFrames = []
             // iPad: the sidebar column, shown beside the detail in regular width.
@@ -104,6 +106,7 @@ private struct FrameworkLayout {
             sidebarFrames = app.windows.firstMatch.frame.width > 700 && sidebar.exists ? [sidebar.frame] : []
             screenFrame = app.windows.firstMatch.frame
             navigationBarFrames = app.navigationBars.allElementsBoundByIndex.map(\.frame)
+            scrollViewFrames = app.scrollViews.allElementsBoundByIndex.map(\.frame)
         #endif
     }
 
@@ -121,6 +124,9 @@ private struct FrameworkLayout {
             return !screenFrame.contains(element.frame)
                 || navigationBarFrames.contains { $0.contains(element.frame) }
                 || sidebarFrames.contains { $0.contains(element.frame) }
+                // Scrolled fully or partly out of view (e.g. at the bottom edge of an iPad form sheet).
+                || !element.isHittable
+                || scrollViewFrames.contains { $0.intersects(element.frame) && !$0.contains(element.frame) }
         #else
             guard let element = issue.element else { return false }
             switch issue.auditType {

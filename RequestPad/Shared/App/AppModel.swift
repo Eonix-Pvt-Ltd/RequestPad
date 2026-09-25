@@ -42,6 +42,8 @@ struct PresentedError: Identifiable, Equatable {
 final class AppModel {
     let environment: AppEnvironment
     let entitlements: EntitlementState
+    /// Purchases, restore and live entitlement updates (Phase 5).
+    let store: EntitlementManager
 
     private(set) var collections: [CollectionState] = []
     private(set) var globals = Environment(id: SampleData.globalsID, name: String(localized: "Globals"))
@@ -54,6 +56,8 @@ final class AppModel {
     private(set) var activeEnvironmentKeys: [UUID: String] = [:]
     /// Pro feature the user tried to use (drives the upgrade sheet).
     var requestedProFeature: ProFeature?
+    /// 0 when no sheet is shown; sheets that can show Pro prompts set 1 (see `PaywallPresenter`).
+    var presentationLevel = 0
     var presentedError: PresentedError?
     var onboardingCompleted: Bool
     /// Mirrors ``Preferences/appearance`` so windows update when it changes.
@@ -64,9 +68,10 @@ final class AppModel {
     private var watchTasks: [UUID: Task<Void, Never>] = [:]
     private let log = Log.logger(.app)
 
-    init(environment: AppEnvironment, entitlements: EntitlementState) {
+    init(environment: AppEnvironment, store: EntitlementManager) {
         self.environment = environment
-        self.entitlements = entitlements
+        self.store = store
+        entitlements = store.state
         onboardingCompleted = environment.preferences.onboardingCompleted
         appearance = environment.preferences.appearance
     }
@@ -80,6 +85,7 @@ final class AppModel {
         guard !isLoaded else { return }
         purgeTemporaryBodies()
         environment.metrics.start()
+        await store.start()
         if preferences.localEchoEnabled { await startEcho() }
         await reloadCollections()
         await reloadGlobals()
