@@ -37,4 +37,14 @@ CI jobs are refused for billing reasons (failed payment / spending limit). Fix u
 plans, then re-run the latest `main` workflow (`gh run rerun <id>` or push). Phase 1's "CI green" exit criterion
 remains open until this passes; record the run ID in `docs/SDLC_LOG.md`.
 
+### H6 — Device-only checks for Phase 3 services (after Phase 4 UI exists)
+On a physical iPhone or iPad:
+1. Send a request to a LAN address (e.g. a dev server at `http://192.168.x.y:port`). Expect RequestPad's explainer
+   first, then the system Local Network prompt; after allowing, the request succeeds. After denying, the error reads
+   "RequestPad doesn't have permission to reach …" (F01.9, `ServiceError.localNetworkDenied`).
+2. Reveal a secret variable: Face ID / Touch ID / passcode prompt appears with the RequestPad usage text (F04.5).
+3. OAuth 2.0 authorization code + PKCE against a real provider (e.g. a test tenant): the system sign-in sheet opens,
+   the token is stored, and the request is sent with it (F05.4).
+Record results in `docs/SDLC_LOG.md`.
+
 _Further items (App Store Connect products, sandbox purchase test, TestFlight, submission) are added in Phases 5–10._
