@@ -152,7 +152,7 @@ public enum GraphQLLexer {
         return tokens
     }
 
-    static func isNameContinue(_ scalar: Unicode.Scalar) -> Bool {
+    public static func isNameContinue(_ scalar: Unicode.Scalar) -> Bool {
         scalar == "_" || ("a"..."z").contains(scalar) || ("A"..."Z").contains(scalar) || ("0"..."9").contains(scalar)
     }
 }

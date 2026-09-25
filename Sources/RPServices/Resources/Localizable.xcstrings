@@ -1,6 +1,121 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "“%@” authentication isn't supported by RequestPad, so the request can't be sent with it." : {
+
+    },
+    "“%@” can't be sent as an HTTP method." : {
+
+    },
+    "A secure connection to “%@” couldn't be established." : {
+
+    },
+    "Allow Local Network access for RequestPad in System Settings → Privacy & Security." : {
+
+    },
+    "Change the URL to start with https://." : {
+
+    },
+    "Check the endpoint URL and auth; some servers disable introspection." : {
+
+    },
+    "Check the host name and your environment variables." : {
+
+    },
+    "Check your internet connection, then send again." : {
+
+    },
+    "Choose another auth type in the Auth tab." : {
+
+    },
+    "Choose the file again in the Body tab." : {
+
+    },
+    "Local Echo couldn't start." : {
+
+    },
+    "Make sure the server is running and the port is correct." : {
+
+    },
+    "Make sure the URL is a GraphQL endpoint with introspection enabled." : {
+
+    },
+    "Open the Auth tab and choose Get New Token." : {
+
+    },
+    "Plain http:// connections to “%@” aren't allowed. Apple requires https:// for internet hosts." : {
+
+    },
+    "Request a smaller range of data." : {
+
+    },
+    "RequestPad can only send http and https requests, not “%@”." : {
+
+    },
+    "RequestPad couldn't connect to “%@”." : {
+
+    },
+    "RequestPad doesn't have permission to reach “%@” on your local network." : {
+
+    },
+    "Sign in to get an access token for this request." : {
+
+    },
+    "The %@ couldn't be found." : {
+
+    },
+    "The connection was lost." : {
+
+    },
+    "The file “%@” can't be opened." : {
+
+    },
+    "The request failed (%lld): %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The request failed (%1$lld): %2$@"
+          }
+        }
+      }
+    },
+    "The request was cancelled." : {
+
+    },
+    "The response is larger than %@." : {
+
+    },
+    "The server “%@” couldn't be found." : {
+
+    },
+    "The server answered the schema request with HTTP %lld." : {
+
+    },
+    "The server didn't respond within %lld seconds." : {
+
+    },
+    "The server redirected more than %lld times." : {
+
+    },
+    "The server's certificate isn't trusted by this device. RequestPad doesn't bypass certificate checks." : {
+
+    },
+    "Try again, or increase the timeout in the request's Settings tab." : {
+
+    },
+    "Try again. If the problem continues, export diagnostics from Settings and contact support." : {
+
+    },
+    "Turn off Follow Redirects to inspect the first redirect." : {
+
+    },
+    "Use a method made of letters, digits and !#$%&'*+-.^_`|~." : {
+
+    },
+    "You're offline." : {
+
+    }
   },
   "version" : "1.0"
 }

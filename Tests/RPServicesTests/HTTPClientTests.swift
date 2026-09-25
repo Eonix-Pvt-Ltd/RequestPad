@@ -1,5 +1,6 @@
 import Foundation
 import RPCore
+import RPData
 import Testing
 
 @testable import RPServices
@@ -306,5 +307,38 @@ struct URLSessionHTTPClientTests {
         #expect(throws: ServiceError.fileUnavailable(name: "relative")) {
             try PathFileResolver(baseDirectory: nil).open("relative")
         }
+    }
+}
+
+@Suite("BookmarkFileResolver")
+struct BookmarkFileResolverTests {
+    @Test func relativePathsInsideTheCollectionAndBookmarksOutside() throws {
+        let root = FileManager.default.temporaryDirectory.appending(
+            path: "files-\(UUID().uuidString)", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: root.appending(path: "assets"), withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let inside = root.appending(path: "assets/logo.png")
+        try Data([1]).write(to: inside)
+        let outside = FileManager.default.temporaryDirectory.appending(path: "outside-\(UUID().uuidString).txt")
+        try Data([2]).write(to: outside)
+        defer { try? FileManager.default.removeItem(at: outside) }
+        let access = PathBookmarks()
+
+        let relative = try BookmarkFileResolver.reference(for: inside, baseDirectory: root, folderAccess: access)
+        #expect(relative == "assets/logo.png")
+        let bookmarked = try BookmarkFileResolver.reference(for: outside, baseDirectory: root, folderAccess: access)
+        #expect(bookmarked.hasPrefix(BookmarkFileResolver.bookmarkPrefix))
+        let noBase = try BookmarkFileResolver.reference(for: inside, baseDirectory: nil, folderAccess: access)
+        #expect(noBase.hasPrefix(BookmarkFileResolver.bookmarkPrefix))
+
+        let resolver = BookmarkFileResolver(baseDirectory: root, folderAccess: access)
+        #expect(try resolver.open(relative).url.lastPathComponent == "logo.png")
+        let (url, token) = try resolver.open(bookmarked)
+        #expect(url.lastPathComponent == outside.lastPathComponent)
+        token?.stop()
+        #expect(throws: ServiceError.self) { try resolver.open("bookmark:not-base64!") }
+        #expect(BookmarkFileResolver.displayName(for: bookmarked, folderAccess: access) == outside.lastPathComponent)
+        #expect(BookmarkFileResolver.displayName(for: "a/b.png", folderAccess: access) == "b.png")
+        #expect(BookmarkFileResolver.displayName(for: "bookmark:AAAA", folderAccess: access) == "Missing file")
     }
 }

@@ -200,3 +200,66 @@ Not run in this phase, with reason:
   which blocks XCUITest from launching the app. App UI code is unchanged since Phase 1. Stop the debug session in
   Xcode and run `scripts/test.sh --platform macos`.
 - CI: blocked by GitHub billing (HUMAN_HANDOFF H5). Device-only checks listed in HUMAN_HANDOFF H6.
+
+## Phase 4 — UI (2026-09-25)
+
+Built (app target, `RequestPad/Shared/`):
+- App layer: `AppEnvironment` (composition root; Debug-only `-UITestMode` in-memory store/secrets and `-UITestPro`),
+  `AppModel` (collections, folders, requests, environments + Keychain secrets, sending, history, imports, Local
+  Echo, sample data, export/import/erase; runner and cookie jar in `AppModel+Runner`), `WorkspaceModel` +
+  `RequestEditorModel` (drafts, query sync, cURL paste, save with conflict handling, send/cancel, Local Network
+  explainer, review prompt, GraphQL schema, OAuth tokens), `LaunchModel` with a recoverable failure screen.
+- Views: sidebar (collections tree, search, add menu, prompts, deletions, folder picker), request workspace (URL bar,
+  method menu, 9 editor tabs incl. body modes, multipart files, GraphQL with completions, auth incl. OAuth 2.0,
+  extraction and assertion editors, settings, docs), response (status, timings, body Pretty/Raw/Preview with JSONPath
+  filter, save to file, headers, cookies, timeline, tests), history, import (cURL/OpenAPI/Postman with preview and
+  notices), environments (secrets with reveal), collection/folder settings, runner (export JSON), cookie jar,
+  settings, onboarding (3 pages), Pro sheet (feature list; purchase arrives in Phase 5).
+- Commands: ⌘N New Request, ⌥⌘N New Window, ⌘S, ⌘↩, ⌘., ⌘E, ⌘L; macOS Settings scene and Help links.
+- RPUI: `KeyValueEditor`, `CodeEditor`, `LargeTextView`, `MethodBadge`, `StatusBadge`, `JSONTreeView`,
+  `minimumHitTarget()`, accessible text colors (`TextColors.swift`). RPServices: `BookmarkFileResolver` (ADR-0039).
+- String Catalog synced from the compiler (437 keys); `scripts/sync-strings.sh` for command-line builds.
+
+Defects found by Phase 4 tests and fixed:
+- Name prompt submitted the value captured when the alert appeared, not the typed name (collections could not be
+  created from the prompt).
+- Onboarding sheet taller than the default macOS window (buttons outside the window); window default size is now
+  1100×720. ⌘N was bound twice (New Window and New Request) — ADR-0037.
+- Contrast: system blue/green/orange/red and secondary text are below 4.5:1 in light mode; white on the dark-mode
+  accent is 3:1; selected sidebar rows put colored badges on the accent highlight — accessible colors (ADR-0038).
+- Large text (AX-XXXL): URL bar squeezed the URL to one letter per line, onboarding buttons pushed off screen or
+  overlapping, history metadata and sidebar rows squeezed, response sections truncated, Settings toolbar button
+  disappeared into overflow — all adapt now (screenshots reviewed below).
+- iPad portrait showed the sidebar as an overlay dimming the editor — balanced split view; choosing a search result
+  now hides the keyboard.
+- Container accessibility identifiers hid their children's identifiers on macOS.
+
+Verification (local; Xcode 27.0, macOS 27.0; iPhone 18 Pro and iPad Pro 11-inch (M5) simulators, iOS 27.0):
+```
+scripts/lint.sh                                            → Lint passed (swift-format strict, placeholders, markers)
+scripts/test.sh --platform ios                             → package-iphone: passed 307, failed 0, skipped 2*
+                                                             · app-iphone: passed 34, failed 0 · app-ipad: passed 34, failed 0
+                                                             · RPCore 95.91% · RPStore 100% · All tests passed.
+scripts/test.sh --platform macos --skip-macos-ui \
+    --sanitizers --analyze                                 → package-macos: passed 309 · app-macos: passed 25 (unit + app-hosted)
+                                                             · ASan: passed 302, skipped 7† · TSan: passed 302, skipped 7†
+                                                             · Analyze Succeeded ×2 (macOS, iOS) · All tests passed.
+Coverage (macOS package): RPCore 95.91% · RPData 93.47% · RPServices 91.81% · RPStore 100% · RPUI 8.9% (views)
+Release builds (macOS, iOS)                                → succeeded; 0 compiler warnings (1 App Intents metadata note:
+                                                             no AppIntents dependency until Phase 6)
+```
+\* Live-Keychain package tests skipped on the iOS simulator by design (covered by the app-hosted test).
+† Performance tests skip under sanitizers.
+
+UI tests (iPhone and iPad; 8 each incl. accessibility audits on every visited screen): onboarding skip, sample data →
+send to Local Echo (status + JSON tree), create collection → edit URL → save, environment switch resolves
+variables, history lists sent requests, Pro sheet from a locked feature, erase all data → onboarding, and every main
+screen at AX-XXXL. The AX-XXXL screenshots (onboarding, sidebar, editor, response, history, settings) were
+reviewed by eye: text wraps without clipping and all controls stay reachable. Audit exemptions and deferred
+Dynamic Type findings are listed in ADR-0038.
+
+Not run in this phase, with reason:
+- macOS UI tests: on this Mac, SwiftUI opens no window for this bundle ID when XCUITest launches the app directly,
+  even for a minimal app (ADR-0037); the app itself works when launched normally. HUMAN_HANDOFF H7 has the steps to
+  clear the host state or run them elsewhere, and the manual macOS pass.
+- CI (H5), device-only checks (H6), manual VoiceOver pass (H3).

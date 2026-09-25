@@ -23,7 +23,7 @@ public struct EmptyStateView<Actions: View>: View {
             Image(systemName: systemImage)
                 .font(.largeTitle)
                 .imageScale(.large)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.textSecondary)
                 .accessibilityHidden(true)
             VStack(spacing: Spacing.xSmall) {
                 Text(title)

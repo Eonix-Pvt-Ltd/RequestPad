@@ -99,7 +99,7 @@ public struct PathBookmarks: FolderAccess {
             throw .bookmarkUnresolvable(reason: "missing")
         }
         return ResolvedBookmark(
-            url: URL(filePath: path, directoryHint: .isDirectory), isStale: staleBookmarks.contains(bookmark))
+            url: URL(filePath: path, directoryHint: .checkFileSystem), isStale: staleBookmarks.contains(bookmark))
     }
 
     public func beginAccess(to url: URL) -> ScopedAccess { ScopedAccess(url: url, started: false) }

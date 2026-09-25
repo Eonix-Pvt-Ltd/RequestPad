@@ -13,9 +13,9 @@ struct StatusBadgeStyleTests {
     }
 
     @Test func successIsGreenAndErrorsAreRed() {
-        #expect(StatusBadgeStyle(statusClass: .success).tint == .green)
-        #expect(StatusBadgeStyle(statusClass: .clientError).tint == .red)
-        #expect(StatusBadgeStyle(statusClass: .serverError).tint == .red)
+        #expect(StatusBadgeStyle(statusClass: .success).tint == .textGreen)
+        #expect(StatusBadgeStyle(statusClass: .clientError).tint == .textRed)
+        #expect(StatusBadgeStyle(statusClass: .serverError).tint == .textRed)
     }
 
     @Test func spacingScaleIsIncreasing() {

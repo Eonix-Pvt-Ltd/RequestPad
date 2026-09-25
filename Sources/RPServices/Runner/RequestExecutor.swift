@@ -254,7 +254,7 @@ public struct RequestExecutor: Sendable {
         return VariableContext(scopes: scopes)
     }
 
-    static func interpolate(_ config: OAuth2Config, interpolator: Interpolator, context: VariableContext)
+    public static func interpolate(_ config: OAuth2Config, interpolator: Interpolator, context: VariableContext)
         -> OAuth2Config
     {
         func apply(_ text: String) -> String { interpolator.interpolate(text, in: context).text }

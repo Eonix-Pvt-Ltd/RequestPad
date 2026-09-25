@@ -11,22 +11,22 @@ public struct StatusBadgeStyle: Equatable, Sendable {
         switch statusClass {
         case .informational:
             systemImage = "info.circle"
-            tint = .blue
+            tint = .textBlue
         case .success:
             systemImage = "checkmark.circle"
-            tint = .green
+            tint = .textGreen
         case .redirection:
             systemImage = "arrow.triangle.turn.up.right.circle"
-            tint = .orange
+            tint = .textOrange
         case .clientError:
             systemImage = "exclamationmark.triangle"
-            tint = .red
+            tint = .textRed
         case .serverError:
             systemImage = "xmark.octagon"
-            tint = .red
+            tint = .textRed
         case .nonStandard:
             systemImage = "questionmark.circle"
-            tint = .secondary
+            tint = .textSecondary
         }
     }
 }

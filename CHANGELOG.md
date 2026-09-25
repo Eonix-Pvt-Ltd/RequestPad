@@ -9,6 +9,10 @@ All notable changes to RequestPad are documented here. The format follows
 - Project foundation: Swift package `RequestPadKit` (RPCore, RPData, RPServices, RPStore, RPUI), Swift 6 strict
   concurrency, iOS/iPadOS 17 and macOS 14 deployment, App Sandbox, privacy manifest, StoreKit test configuration,
   lint/test/archive scripts and CI.
+- Request editing and sending on iPhone, iPad and Mac: collections and folders (native and Bruno `.bru` folders),
+  environments with Keychain secrets, response viewer (JSON tree with JSONPath filter, raw, image preview, timings,
+  save to file), history, cURL/OpenAPI/Postman import, collection runner, cookie jar, Local Echo with sample data,
+  onboarding, settings with data export/import/erase and diagnostics, keyboard shortcuts.
 
 ## [1.0.0] — not yet released
 

@@ -263,3 +263,52 @@ expects failure. The same investigation found Local Echo sending a body with 204
 `xcodebuild` waited for minutes on "Reload Package" while the user's Xcode had the project open (shared DerivedData
 build lock). `scripts/test.sh` now passes `-derivedDataPath build/DerivedData`, so scripted runs never contend
 with the IDE.
+
+### ADR-0037 — macOS UI tests and the launch window; ⌘N is New Request
+On this development Mac, SwiftUI opened no window when the app was launched directly (as XCUITest does) under the
+bundle ID `lk.eonix.RequestPad`, even for a minimal `WindowGroup { Text }` app with that bundle ID, while the same
+binary launched through LaunchServices showed its window. A minimal app with another bundle ID opened its window,
+so this is per-bundle state on the host, not app code (the persisted state is in the sandbox container, which the
+shell cannot read). A fresh install, as App Review sees it, is unaffected. UI tests therefore launch with
+`-ApplePersistenceIgnoreState YES -NSQuitAlwaysKeepsWindows NO` and, on macOS, open a window with File › New Window
+when none appears, as a user would. This also explains the Phase 3 smoke-test failure.
+Building the fallback exposed a real conflict: SwiftUI's New Window and our New Request both used ⌘N. The File
+menu's new-item group is replaced: ⌘N = New Request (the app's primary "new" action), ⌥⌘N = New Window.
+The default window size is 1100×720 so the onboarding sheet (560×520) fits inside it; at the old 900×450 the
+sheet's buttons were outside the window and could not be clicked.
+
+### ADR-0038 — Accessibility decisions from the Phase 4 audits
+- **Accent color.** The default system blue is 4.0:1 on white. The app accent is #0A63C9 in light mode (5.8:1 on
+  white, 5.2:1 on grouped backgrounds, 5.8:1 for white text on it) and #5AA0FA in dark mode (6.3:1 on #1C1C1E,
+  5.2:1 on #2C2C2E). No blue can carry white text at 4.5:1 while also reading at 4.5:1 on dark backgrounds, so
+  prominent buttons use `prominentButtonStyle()`: white labels in light mode, black in dark mode (7.8:1).
+- **Dynamic Type.** On iOS the audit's Dynamic Type and text-clipped findings include system bar buttons and
+  wrapping text that it cannot size-test. They are attached to the test results for review, not failed, and
+  `testLargestDynamicTypeSizes` captures every main screen at AX-XXXL for visual verification (evidence in
+  SDLC_LOG). Real problems found this way are fixed (onboarding content scrolls at large sizes; history URLs are
+  not truncated at accessibility sizes).
+- **Touch targets.** Icon-only buttons use `minimumHitTarget()` (44×44 pt on iOS). Switches are regular size.
+- **Settings on iPhone** is a sidebar row, not a toolbar button: bar items move into an overflow menu at the
+  largest text sizes.
+- **iOS contrast sampling.** The contrast audit samples pixels. Elements cut off by the screen edge and navigation
+  bar buttons (drawn by the system on Liquid Glass over scrolling content) measure the backdrop, so those two cases
+  are exempt from the contrast audit on iOS; the accent colors above are what those buttons use.
+- **iPad audit sampling.** Findings without an element come from the dimmed content behind a form sheet and from
+  rows clipped by the sheet; contrast findings for the iPad glass sidebar measure the backdrop, as on macOS
+  (ADR-0019). These are exempt; the manual pass (HUMAN_HANDOFF H3) covers them. Choosing a search result now hides
+  the keyboard on iPad, and destructive buttons use `Color.textRed` (system red is 4.0:1 on white).
+- **Text colors.** `Color.textSecondary`, `textGreen`, `textOrange`, `textRed`, `textPurple` and `textBlue` (RPUI)
+  replace the system secondary label and system tints for text; each is ≥ 4.5:1 on the light and dark system
+  backgrounds. Section headers and footers use them. On a selected list row, badges switch to the row's own
+  foreground (`backgroundProminence`).
+- **macOS menu buttons.** The "action missing" audit is exempt for `menuButton` elements only: toolbar menus open
+  with AXShowMenu (VoiceOver VO-Space), not AXPress.
+- **Container identifiers.** An accessibility identifier on a container replaces its children's identifiers on
+  macOS unless the container is `.accessibilityElement(children: .contain)`; containers with identified children
+  use `.contain`.
+
+### ADR-0039 — Multipart file references
+Files picked for multipart fields are stored as a path relative to the collection folder when they are inside a
+folder collection (portable in git, as Bruno does), otherwise as `bookmark:<base64>` (a security-scoped bookmark,
+so sandboxed access survives relaunch). `BookmarkFileResolver` resolves both; relative paths cannot escape the
+collection folder.
