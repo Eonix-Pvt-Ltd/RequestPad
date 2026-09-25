@@ -6,16 +6,20 @@ import Testing
 
 @Suite("SecretStore", .serialized)
 struct SecretStoreTests {
-    /// Unsigned macOS test runners can't use the data-protection keychain; the app does (see app-hosted tests).
-    static var usesDataProtection: Bool {
+    /// Unsigned package test runners have no Keychain entitlement. On macOS they can use the legacy keychain; on
+    /// the iOS simulator (iOS 27) they get `errSecMissingEntitlement`, so the live Keychain is covered there by the
+    /// app-hosted `PlatformIntegrationTests.dataProtectionKeychainWorksInSignedApp` instead (ADR-0033).
+    static var usesDataProtection: Bool { false }
+    static var runnerHasKeychain: Bool {
         #if os(macOS)
-            false
-        #else
             true
+        #else
+            false
         #endif
     }
 
-    @Test func keychainRoundTripUpdateDeleteAndDeleteAll() async throws {
+    @Test(.enabled(if: runnerHasKeychain, "Covered by the app-hosted test on iOS"))
+    func keychainRoundTripUpdateDeleteAndDeleteAll() async throws {
         let store = KeychainStore(
             service: "lk.eonix.RequestPad.tests.\(UUID().uuidString)",
             useDataProtectionKeychain: Self.usesDataProtection)
@@ -44,7 +48,8 @@ struct SecretStoreTests {
         try await store.deleteAll()
     }
 
-    @Test func servicesAreIsolated() async throws {
+    @Test(.enabled(if: runnerHasKeychain, "Covered by the app-hosted test on iOS"))
+    func servicesAreIsolated() async throws {
         let first = KeychainStore(
             service: "lk.eonix.RequestPad.tests.a.\(UUID().uuidString)",
             useDataProtectionKeychain: Self.usesDataProtection)

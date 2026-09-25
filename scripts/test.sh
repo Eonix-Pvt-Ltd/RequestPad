@@ -19,6 +19,8 @@ APP_SCHEME=RequestPad
 PACKAGE_WORKSPACE=.swiftpm/xcode/package.xcworkspace
 PACKAGE_SCHEME=RequestPadKit-Package
 RESULTS=build/test-results
+# A private DerivedData folder, so command-line runs never wait on (or disturb) an open Xcode's build lock.
+DERIVED_DATA=build/DerivedData
 
 platform=all
 run_sanitizers=false
@@ -83,11 +85,11 @@ for entry in "${destinations[@]}"; do
     # The iPad run covers the same package code as iPhone, so package tests run once per OS family.
     if [[ "$name" != ipad ]]; then
         run_xcodebuild "Package tests ($name)" test -workspace "$PACKAGE_WORKSPACE" -scheme "$PACKAGE_SCHEME" \
-            -destination "$destination" -enableCodeCoverage YES -resultBundlePath "$RESULTS/package-$name.xcresult" \
+            -destination "$destination" -derivedDataPath "$DERIVED_DATA" -enableCodeCoverage YES -resultBundlePath "$RESULTS/package-$name.xcresult" \
             ${signing_overrides[@]+"${signing_overrides[@]}"}
     fi
     run_xcodebuild "App tests ($name)" test -project "$PROJECT" -scheme "$APP_SCHEME" \
-        -destination "$destination" -enableCodeCoverage YES -resultBundlePath "$RESULTS/app-$name.xcresult" \
+        -destination "$destination" -derivedDataPath "$DERIVED_DATA" -enableCodeCoverage YES -resultBundlePath "$RESULTS/app-$name.xcresult" \
         ${signing_overrides[@]+"${signing_overrides[@]}"}
 done
 
@@ -116,6 +118,7 @@ if $run_sanitizers; then
         slug=$(echo "$sanitizer" | tr '[:upper:]' '[:lower:]')
         run_xcodebuild "Package tests under ${sanitizer} Sanitizer (macOS)" test -workspace "$PACKAGE_WORKSPACE" \
             -scheme "$PACKAGE_SCHEME" -destination 'platform=macOS' "-enable${sanitizer}Sanitizer" YES \
+            -derivedDataPath "$DERIVED_DATA" \
             -resultBundlePath "$RESULTS/package-${slug}-sanitizer.xcresult" \
             ${signing_overrides[@]+"${signing_overrides[@]}"}
     done
@@ -123,7 +126,7 @@ fi
 
 if $run_analyze; then
     run_xcodebuild "Static analysis (macOS)" analyze -project "$PROJECT" -scheme "$APP_SCHEME" \
-        -destination 'platform=macOS' ${signing_overrides[@]+"${signing_overrides[@]}"}
+        -destination 'platform=macOS' -derivedDataPath "$DERIVED_DATA" ${signing_overrides[@]+"${signing_overrides[@]}"}
     run_xcodebuild "Static analysis (iOS)" analyze -project "$PROJECT" -scheme "$APP_SCHEME" \
         -destination 'generic/platform=iOS Simulator'
 fi

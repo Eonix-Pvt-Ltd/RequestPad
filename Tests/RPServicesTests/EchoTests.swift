@@ -164,6 +164,23 @@ struct EchoRouterTests {
         #expect(try json(echo)["data"]?["echo"]?["variables"]?["a"] == .number(1))
     }
 
+    @Test func noBodyForNoContentNotModifiedAndHead() {
+        let noContent = String(
+            decoding: EchoResponse(
+                status: 204, headers: [EchoHeader(name: "Content-Type", value: "application/json")],
+                body: Data("x".utf8)
+            )
+            .serialized(keepAlive: true), as: UTF8.self)
+        #expect(noContent == "HTTP/1.1 204 No Content\r\nConnection: keep-alive\r\nServer: RequestPad-Echo\r\n\r\n")
+        let notModified = String(
+            decoding: EchoResponse(status: 304, body: Data("x".utf8)).serialized(keepAlive: true), as: UTF8.self)
+        #expect(notModified.contains("Content-Length: 0\r\n") && notModified.hasSuffix("\r\n\r\n"))
+        let head = String(
+            decoding: EchoResponse(status: 200, body: Data("hello".utf8)).serialized(
+                keepAlive: true, isHeadRequest: true), as: UTF8.self)
+        #expect(head.contains("Content-Length: 5\r\n") && head.hasSuffix("\r\n\r\n"))
+    }
+
     @Test func serializesResponses() {
         let text = String(
             decoding: EchoResponse(status: 201, headers: [EchoHeader(name: "X", value: "1")], body: Data("ok".utf8))
@@ -203,7 +220,7 @@ struct LocalEchoServerTests {
         #expect(value["body"]?["json"]?["hello"] == .string("world"))
 
         // Keep-alive: several sequential requests over the same session succeed.
-        for code in [201, 404, 503] {
+        for code in [201, 204, 304, 404, 503] {
             let (_, statusResponse) = try await session.data(from: base.appending(path: "status/\(code)"))
             #expect((statusResponse as? HTTPURLResponse)?.statusCode == code)
         }
@@ -232,6 +249,38 @@ struct LocalEchoServerTests {
         let tooLarge = try await rawExchange(
             port: port, request: Data("POST / HTTP/1.1\r\nContent-Length: 99999999\r\n\r\n".utf8))
         #expect(tooLarge.hasPrefix("HTTP/1.1 413"))
+    }
+
+    @Test(.timeLimit(.minutes(1)))
+    func isNotReachableThroughNetworkInterfaces() async throws {
+        guard let lanAddress = Self.nonLoopbackIPv4Address() else { return }
+        let server = LocalEchoServer()
+        let port = try await server.start()
+        defer { Task { await server.stop() } }
+        var request = URLRequest(url: try #require(URL(string: "http://\(lanAddress):\(port)/")))
+        request.timeoutInterval = 3
+        await #expect(throws: URLError.self) { _ = try await session.data(for: request) }
+    }
+
+    /// The first non-loopback IPv4 address of this machine, if any.
+    static func nonLoopbackIPv4Address() -> String? {
+        var pointer: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&pointer) == 0, let first = pointer else { return nil }
+        defer { freeifaddrs(pointer) }
+        for interface in sequence(first: first, next: { $0.pointee.ifa_next }) {
+            guard let address = interface.pointee.ifa_addr, address.pointee.sa_family == UInt8(AF_INET) else {
+                continue
+            }
+            var host = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+            guard
+                getnameinfo(
+                    address, socklen_t(address.pointee.sa_len), &host, socklen_t(host.count), nil, 0, NI_NUMERICHOST)
+                    == 0
+            else { continue }
+            let text = String(decoding: host.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }, as: UTF8.self)
+            if !text.hasPrefix("127.") { return text }
+        }
+        return nil
     }
 
     /// Sends raw bytes over TCP and returns the reply text (for requests URLSession can't produce).

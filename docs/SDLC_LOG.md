@@ -148,3 +148,55 @@ Not run in this phase, with reason:
   code is unchanged since Phase 1, where these tests passed. To re-run: stop the debug session in Xcode, then
   `scripts/test.sh --platform macos`.
 - CI: still blocked by GitHub billing (HUMAN_HANDOFF H5).
+
+## Phase 3 — Data & services (2026-09-25)
+
+Deliverables:
+- RPData: SwiftData `SchemaV1` + migration plan; `LocalStore` (`@ModelActor`) with natural-key upserts for
+  collections, folders, requests, environments, history (pruned), cookies, GraphQL schema cache and drafts;
+  `KeychainStore` / `InMemorySecretStore` + `SecretSnapshot`; `DeviceOwnerAuthenticator` / `FakeAuthenticator`;
+  security-scoped `SecurityScopedBookmarks` / `PathBookmarks` + `ScopedAccess`; typed `Preferences`;
+  `FolderCollectionRepository` (Bruno folders: load with limits and ignore rules, minimal-diff saves, conflict
+  detection, folders, environments, renames/moves/deletes, no symlink following); `FolderWatcher`;
+  `NativeCollectionExporter` (P01.7); `AppDataTransfer` (export/import, X04.1); `DataEraser` (X04.2).
+- RPServices: `LocalEchoServer` (Network.framework, 127.0.0.1 only) with `EchoRequestParser` / `EchoRouter`;
+  `URLSessionHTTPClient` (metrics, TLS info, redirect policy, credential stripping, disk spooling > 10 MB, multipart
+  streaming, cancellation) + `FakeHTTPClient`; `URLSessionTransport` / `FakeTransport`; `RetryPolicy`;
+  `OAuth2Service` (client credentials, authorization code + PKCE, refresh, Keychain tokens) with
+  `SystemWebAuthenticator` / `FakeWebAuthenticator`; `GraphQLSchemaService`; `RequestExecutor`; `CollectionRunner`;
+  `DiagnosticsService`, `MetricsSubscriber`, `AppPolicies`.
+- App: macOS `keychain-access-groups` entitlement, `NSFaceIDUsageDescription`; app-hosted `PlatformIntegrationTests`.
+- Every service protocol has a live and a fake implementation: `HTTPClient` (URLSessionHTTPClient / FakeHTTPClient),
+  `HTTPTransport` (URLSessionTransport / FakeTransport), `SecretStore` (KeychainStore / InMemorySecretStore),
+  `UserAuthenticator` (DeviceOwnerAuthenticator / FakeAuthenticator), `WebAuthenticator` (SystemWebAuthenticator /
+  FakeWebAuthenticator), `FolderAccess` (SecurityScopedBookmarks / PathBookmarks), `SchemaCache` / `HistoryRecorder` /
+  `CookieStore` (LocalStore; in-memory container in tests), `FileReferenceResolver` (PathFileResolver).
+
+Defects found by Phase 3 tests and fixed:
+- macOS Keychain `errSecMissingEntitlement` in the signed app — missing `keychain-access-groups` (ADR-0033).
+- Local Echo accepted no connections on iOS (`acceptLocalOnly`) and sent bodies with 204/HEAD responses (ADR-0035);
+  loopback-only binding now has a LAN-reachability test.
+- `xcodebuild` stalls behind the open Xcode's DerivedData lock — private DerivedData in scripts (ADR-0036).
+- Typed-throws stored closures unavailable on macOS 14 / iOS 17 runtimes (ADR-0032).
+
+Verification (local; Xcode 27.0, macOS 27.0; iPhone 18 Pro and iPad Pro 11-inch (M5) simulators, iOS 27.0):
+```
+scripts/test.sh --platform ios                       → Lint passed · package-iphone: passed 296, failed 0, skipped 2*
+                                                       · app-iphone: passed 11, failed 0 · app-ipad: passed 11, failed 0
+                                                       · RPCore 95.93% · RPStore 100% · All tests passed.
+Package suite, macOS (xcodebuild, coverage)          → passed 298, failed 0
+App-hosted tests, macOS (RequestPadTests)            → passed 8, failed 0 (ATS, Keychain, bookmarks, Local Echo in sandbox)
+swift test --sanitize=address                        → 291 Swift Testing tests passed, no reports (perf tests skipped)
+swift test --sanitize=thread                         → 291 Swift Testing tests passed, no reports (perf tests skipped)
+Coverage (macOS package): RPCore 95.94% · RPData 93.36% · RPServices 90.74% · RPStore 100%
+xcodebuild analyze (macOS, iOS)                      → ANALYZE SUCCEEDED ×2
+Release builds (macOS, iOS)                          → Build Succeeded ×2, 0 warnings
+```
+\* The two live-Keychain package tests are skipped on the iOS simulator by design (unsigned runner has no Keychain
+entitlement); the iOS Keychain is verified by the app-hosted test (passed on iPhone and iPad).
+
+Not run in this phase, with reason:
+- macOS UI tests: a RequestPad instance launched by the user's Xcode (pid 33954) is still paused in the debugger,
+  which blocks XCUITest from launching the app. App UI code is unchanged since Phase 1. Stop the debug session in
+  Xcode and run `scripts/test.sh --platform macos`.
+- CI: blocked by GitHub billing (HUMAN_HANDOFF H5). Device-only checks listed in HUMAN_HANDOFF H6.

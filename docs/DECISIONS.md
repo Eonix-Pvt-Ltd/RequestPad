@@ -85,7 +85,9 @@ Consequences: known product limitation, stated in the support FAQ. CIDR key synt
 `NSExceptionDomains` documentation ("In iOS 17, iPadOS 17, and macOS 14, you can use … a classless inter-domain
 routing (CIDR) range"). Note from the same page: an IP exception does not apply when a host is reached by a DNS name
 that resolves to that IP, so `http://myserver.lan` style names are only allowed when unqualified or `.local`.
-Runtime behavior is verified by a live request test in Phase 3.
+Runtime behavior verified in Phase 3 (app-hosted `PlatformIntegrationTests`, macOS): plain HTTP to `127.0.0.1`
+and `localhost` succeeds; `http://example.com` fails with `appTransportSecurityRequiresSecureConnection`;
+`http://10.255.255.1` is not rejected by ATS (it times out).
 
 ### ADR-0011 — No web views; "Preview" = images only
 B7/B10.7 disallow web views. HTML responses show in Raw with syntax highlighting; Preview supports images only.
@@ -172,9 +174,10 @@ verification. Re-verify in Phase 5.
 timestamps of files/folders the user granted access to — folder collections). Apple's page renders client-side and
 could not be read by the agent. Re-verify in Phase 7 with the archive privacy report.
 
-### Unverified: `com.apple.security.files.bookmarks.app-scope`
-Included per B7 for app-scoped security bookmarks on macOS. Confirm in Phase 3 that bookmark creation/resolution
-works in the sandboxed build, and in Phase 7 with the archived entitlements (`codesign -d --entitlements`).
+### Verified (Phase 3): `com.apple.security.files.bookmarks.app-scope`
+Security-scoped bookmark creation, resolution and access work in the sandboxed, signed macOS app
+(`PlatformIntegrationTests.securityScopedBookmarksWorkInSandbox`). Re-check the archived entitlements in Phase 7
+(`codesign -d --entitlements`).
 
 ### ADR-0024 — OpenAPI path templates become Bruno path parameters
 PRD P02.1 originally said `{{param}}`. Bruno represents path parameters as `:param` in the URL plus a
@@ -216,3 +219,47 @@ remains recursive (depth ≤ 64) but `YAMLParser.parse` runs on a dedicated 8 MB
 acceptable because YAML is only parsed for user-initiated imports. `DeepNestingTests` parses, serializes, queries
 and compares maximum-depth JSON, YAML and GraphQL documents on a 512 KB-stack thread; the whole suite passes under
 ASan and TSan. Cost: 10 MB JSON parse 0.60 s → 0.77 s (Debug), within budget.
+
+### ADR-0031 — No synchronizable Keychain items; no `setSynchronized`
+B5 describes toggling iCloud Keychain sync per item. Part A lists no data that syncs, so every item is
+`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly` with `kSecAttrSynchronizable = false`, and no toggle is built
+(it would be untested-in-production code). If a future version syncs secrets, add `setSynchronized(_:for:)` as B5
+specifies, with its tests.
+
+### ADR-0032 — No typed-throws function values
+Storing a closure whose type has typed `throws` needs runtime support that ships in macOS 15 / iOS 18; with
+deployment targets macOS 14 / iOS 17 the compiler rejects it. Stored closures use untyped `throws` and convert to
+the module's error type at the boundary; non-escaping typed-throws parameters and typed-throws functions are fine.
+
+### ADR-0033 — macOS `keychain-access-groups` entitlement (defect fixed in Phase 3)
+The app-hosted test found `errSecMissingEntitlement` (-34018) when the signed macOS app used the data-protection
+keychain: `RequestPad-macOS.entitlements` lacked `keychain-access-groups` (listed in B7). Added
+`$(AppIdentifierPrefix)lk.eonix.RequestPad` (the app's own group only; no sharing). iOS uses the default
+application-identifier group. Package tests on macOS use the legacy keychain because the unsigned test runner
+has no entitlements; the app-hosted test covers the production configuration.
+
+### ADR-0034 — Services design choices
+- User requests are sent once; `RetryPolicy` applies only to OAuth token and GraphQL introspection calls (ADR-0007).
+- `ASWebAuthenticationSession` runs with `prefersEphemeralWebBrowserSession = true` (no shared browser cookies;
+  most privacy-preserving). Users sign in on each "Get New Token"; tokens are cached in the Keychain.
+- OAuth tokens are keyed by grant, endpoints, client ID and scope (SHA-256 prefix), so collections sharing a
+  configuration share a token.
+- History stores the unresolved request (templates) and a response summary; failed sends are recorded with a short
+  error summary (F06.1).
+- An explicit `Cookie` header wins over the cookie jar; `Authorization` and `Cookie` are dropped on cross-origin
+  redirects.
+- Response bodies over 10 MB spool to `tmp/Responses`; downloads over 2 GB are cancelled.
+- Local Echo binds 127.0.0.1 only; `/redirect-to` accepts only loopback targets (no open redirect).
+
+### ADR-0035 — Local Echo on iOS: no `acceptLocalOnly`; bodiless status codes (defects fixed in Phase 3)
+Running the services suite on the iOS simulator found that Local Echo accepted no connections on iOS
+(`NWParameters.acceptLocalOnly = true` stops the listener from receiving loopback connections there; macOS was
+unaffected). The listener is restricted to loopback by `requiredLocalEndpoint = 127.0.0.1` instead, and
+`LocalEchoServerTests.isNotReachableThroughNetworkInterfaces` connects through the machine's LAN address and
+expects failure. The same investigation found Local Echo sending a body with 204 responses and with HEAD responses
+(forbidden by RFC 9110 §6.4.1); both fixed and tested.
+
+### ADR-0036 — Command-line builds use a private DerivedData folder
+`xcodebuild` waited for minutes on "Reload Package" while the user's Xcode had the project open (shared DerivedData
+build lock). `scripts/test.sh` now passes `-derivedDataPath build/DerivedData`, so scripted runs never contend
+with the IDE.

@@ -238,3 +238,52 @@ struct FolderCollectionRepositoryTests {
         #expect(throws: DataError.self) { try FolderCollectionRepository.sanitizedComponent(input) }
     }
 }
+
+@Suite("NativeCollectionExporter")
+struct NativeCollectionExporterTests {
+    @Test func exportsNativeCollectionAsBrunoFolder() async throws {
+        let root = FileManager.default.temporaryDirectory.appending(
+            path: "export-\(UUID().uuidString)", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = LocalStore(modelContainer: try PersistenceContainer.makeInMemory())
+        let summary = try await store.createCollection(
+            name: "Shop API", storage: .native, settings: FolderSettings(auth: .bearer(token: "{{token}}")))
+        let users = RequestFolder(name: "Users", path: "Users")
+        let admin = RequestFolder(
+            name: "Admin", path: "Users/Admin",
+            settings: FolderSettings(headers: [KeyValue(name: "X-Admin", value: "1")]))
+        try await store.upsertFolder(admin, parentID: users.id, in: summary.id, sortOrder: 2)
+        try await store.upsertFolder(users, parentID: nil, in: summary.id, sortOrder: 1)
+        try await store.upsertRequest(
+            RequestItem(name: "Health", url: "{{base}}/health"), folderID: nil, in: summary.id)
+        try await store.upsertRequest(
+            RequestItem(name: "Promote", method: .post, url: "{{base}}/admin/promote", body: .json("{}")),
+            folderID: admin.id, in: summary.id)
+        let environment = Environment(
+            name: "Local",
+            variables: [
+                .plain("base", "http://localhost"),
+                Variable(name: "token", value: .secret(SecretRef(account: "env:x:token"))),
+            ])
+
+        let native = try await store.nativeCollection(summary.id)
+        let count = try await NativeCollectionExporter.export(
+            native, environments: [environment], to: root, collectionKey: "k")
+        #expect(count == 2)
+        let snapshot = try await FolderCollectionRepository(root: root, collectionKey: "k").load()
+        #expect(snapshot.name == "Shop API")
+        #expect(snapshot.settings.auth == .bearer(token: "{{token}}"))
+        #expect(snapshot.folders.map(\.path) == ["Users", "Users/Admin"])
+        #expect(snapshot.folders[1].settings.headers == [KeyValue(name: "X-Admin", value: "1")])
+        #expect(snapshot.requests.map(\.path) == ["Health.bru", "Users/Admin/Promote.bru"])
+        #expect(snapshot.requests[1].request.body == .json("{}"))
+        #expect(snapshot.environments.first?.environment.variables.map(\.name) == ["base", "token"])
+        #expect(snapshot.issues.isEmpty)
+        let environmentText = try String(contentsOf: root.appending(path: "environments/Local.bru"), encoding: .utf8)
+        #expect(!environmentText.contains("env:x:token"))
+        await #expect(throws: DataError.nameInUse("bruno.json")) {
+            try await NativeCollectionExporter.export(native, environments: [], to: root, collectionKey: "k")
+        }
+    }
+}

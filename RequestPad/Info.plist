@@ -52,6 +52,8 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSFaceIDUsageDescription</key>
+	<string>RequestPad uses Face ID to reveal stored secrets.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>RequestPad connects to servers on your local network when you enter a local address.</string>
 </dict>

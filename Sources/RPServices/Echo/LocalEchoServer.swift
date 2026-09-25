@@ -63,7 +63,8 @@ final class EchoListener: @unchecked Sendable {
         queue.async { [weak self] in
             guard let self else { return }
             let parameters = NWParameters.tcp
-            parameters.acceptLocalOnly = true
+            // Binding to 127.0.0.1 keeps the server on the loopback interface. (`acceptLocalOnly` is not used: on iOS
+            // it stops the listener from receiving loopback connections at all.)
             parameters.requiredLocalEndpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: .any)
             parameters.allowLocalEndpointReuse = true
             let listener: NWListener
@@ -197,7 +198,10 @@ final class EchoConnection: @unchecked Sendable {
         guard let request else { return }
         let response = EchoRouter.respond(to: request)
         isResponding = true
-        let deliver: @Sendable () -> Void = { [weak self] in self?.send(response, keepAlive: request.keepAlive) }
+        let isHead = request.method.uppercased() == "HEAD"
+        let deliver: @Sendable () -> Void = { [weak self] in
+            self?.send(response, keepAlive: request.keepAlive, isHead: isHead)
+        }
         if response.delayMilliseconds > 0 {
             queue.asyncAfter(deadline: .now() + .milliseconds(response.delayMilliseconds), execute: deliver)
         } else {
@@ -205,10 +209,10 @@ final class EchoConnection: @unchecked Sendable {
         }
     }
 
-    private func send(_ response: EchoResponse, keepAlive: Bool) {
+    private func send(_ response: EchoResponse, keepAlive: Bool, isHead: Bool = false) {
         guard !isClosed else { return }
         connection.send(
-            content: response.serialized(keepAlive: keepAlive),
+            content: response.serialized(keepAlive: keepAlive, isHeadRequest: isHead),
             completion: .contentProcessed { [weak self] error in
                 guard let self else { return }
                 self.isResponding = false

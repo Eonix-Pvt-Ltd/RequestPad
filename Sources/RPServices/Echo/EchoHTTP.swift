@@ -45,14 +45,20 @@ public struct EchoResponse: Sendable, Hashable {
     }
 
     /// Serialized status line, headers and body.
-    public func serialized(keepAlive: Bool) -> Data {
+    /// RFC 9110 §6.4.1: 1xx, 204 and 304 responses have no body (1xx/204 no Content-Length either); responses to
+    /// HEAD carry the length but never the body bytes.
+    public func serialized(keepAlive: Bool, isHeadRequest: Bool = false) -> Data {
         let reason = HTTPURLResponse.localizedString(forStatusCode: status).capitalized
+        let forbidsBody = (100..<200).contains(status) || status == 204 || status == 304
         var head = "HTTP/1.1 \(status) \(reason)\r\n"
-        for header in headers { head += "\(header.name): \(header.value)\r\n" }
-        head +=
-            "Content-Length: \(body.count)\r\nConnection: \(keepAlive ? "keep-alive" : "close")\r\nServer: RequestPad-Echo\r\n\r\n"
+        for header in headers where !(forbidsBody && header.name.caseInsensitiveCompare("Content-Type") == .orderedSame)
+        {
+            head += "\(header.name): \(header.value)\r\n"
+        }
+        if !forbidsBody || status == 304 { head += "Content-Length: \(forbidsBody ? 0 : body.count)\r\n" }
+        head += "Connection: \(keepAlive ? "keep-alive" : "close")\r\nServer: RequestPad-Echo\r\n\r\n"
         var data = Data(head.utf8)
-        data.append(body)
+        if !forbidsBody && !isHeadRequest { data.append(body) }
         return data
     }
 }
