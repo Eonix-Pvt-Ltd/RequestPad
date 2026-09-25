@@ -6,6 +6,7 @@
 #   --platform     which destinations to run (default: all = macOS, iPhone simulator, iPad simulator)
 #   --sanitizers   additionally run the package suite under ASan and, separately, TSan (macOS)
 #   --analyze      additionally run `xcodebuild analyze` for iOS and macOS
+#   --skip-macos-ui  skip the macOS UI test target (hosts where XCUITest gets no app window; see HUMAN_HANDOFF H7)
 # Environment:
 #   IOS_SIMULATOR / IPAD_SIMULATOR   simulator names to use (default: first available iPhone / iPad)
 #   CI=true                          sign macOS test products ad hoc (no certificates on CI runners)
@@ -25,9 +26,11 @@ DERIVED_DATA=build/DerivedData
 platform=all
 run_sanitizers=false
 run_analyze=false
+skip_macos_ui=false
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --platform) platform="$2"; shift 2 ;;
+        --skip-macos-ui) skip_macos_ui=true; shift ;;
         --sanitizers) run_sanitizers=true; shift ;;
         --analyze) run_analyze=true; shift ;;
         *) echo "error: unknown option $1" >&2; exit 2 ;;
@@ -88,9 +91,14 @@ for entry in "${destinations[@]}"; do
             -destination "$destination" -derivedDataPath "$DERIVED_DATA" -enableCodeCoverage YES -resultBundlePath "$RESULTS/package-$name.xcresult" \
             ${signing_overrides[@]+"${signing_overrides[@]}"}
     fi
+    app_filters=()
+    if [[ "$name" == macos ]] && $skip_macos_ui; then
+        echo "▸ Skipping macOS UI tests (--skip-macos-ui)"
+        app_filters=(-skip-testing:RequestPadUITests)
+    fi
     run_xcodebuild "App tests ($name)" test -project "$PROJECT" -scheme "$APP_SCHEME" \
         -destination "$destination" -derivedDataPath "$DERIVED_DATA" -enableCodeCoverage YES -resultBundlePath "$RESULTS/app-$name.xcresult" \
-        ${signing_overrides[@]+"${signing_overrides[@]}"}
+        ${app_filters[@]+"${app_filters[@]}"} ${signing_overrides[@]+"${signing_overrides[@]}"}
 done
 
 coverage_bundle="$RESULTS/package-macos.xcresult"
@@ -128,7 +136,7 @@ if $run_analyze; then
     run_xcodebuild "Static analysis (macOS)" analyze -project "$PROJECT" -scheme "$APP_SCHEME" \
         -destination 'platform=macOS' -derivedDataPath "$DERIVED_DATA" ${signing_overrides[@]+"${signing_overrides[@]}"}
     run_xcodebuild "Static analysis (iOS)" analyze -project "$PROJECT" -scheme "$APP_SCHEME" \
-        -destination 'generic/platform=iOS Simulator'
+        -destination 'generic/platform=iOS Simulator' -derivedDataPath "$DERIVED_DATA"
 fi
 
 echo "▸ Result summary"

@@ -25,7 +25,7 @@ account, no cloud, no telemetry.
 | `Package.swift`, `Sources/`, `Tests/` | Local Swift package `RequestPadKit`: `RPCore`, `RPData`, `RPServices`, `RPStore`, `RPUI` and their Swift Testing suites |
 | `Config/` | xcconfig files (`Base`, `Debug`, `Release`, `RequestPad-App`) |
 | `RequestPadTests/`, `RequestPadUITests/` | App-hosted unit tests and XCUITests (incl. accessibility audits) |
-| `scripts/` | `bootstrap.sh`, `lint.sh`, `test.sh`, `archive.sh`, export options |
+| `scripts/` | `bootstrap.sh`, `lint.sh`, `test.sh`, `sync-strings.sh`, `archive.sh`, export options |
 | `docs/` | PRD, architecture, decisions, SDLC log, test plan, handoff, App Store material |
 
 ## Build and run
@@ -44,6 +44,8 @@ Run action uses `RequestPad/Resources/Products.storekit`, so purchases work loca
 scripts/test.sh                            # lint + package tests + app unit/UI tests on macOS, iPhone, iPad + coverage gate
 scripts/test.sh --platform macos           # macOS only (fastest)
 scripts/test.sh --sanitizers --analyze     # also ASan, TSan and the static analyzer (what CI runs)
+scripts/test.sh --platform macos --skip-macos-ui  # when XCUITest gets no app window on a Mac (HUMAN_HANDOFF H7)
+scripts/sync-strings.sh                    # after a command-line build: add new UI strings to the String Catalog
 ```
 
 Package suites run through `.swiftpm/xcode/package.xcworkspace` (scheme `RequestPadKit-Package`); app suites run

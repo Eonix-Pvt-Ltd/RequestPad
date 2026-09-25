@@ -123,7 +123,8 @@ public actor NativeCollectionSession: CollectionSession {
 
     public init(
         id: UUID, storage: CollectionStorage, store: LocalStore,
-        files: any FileReferenceResolver = PathFileResolver(baseDirectory: nil)
+        files: any FileReferenceResolver = BookmarkFileResolver(
+            baseDirectory: nil, folderAccess: SecurityScopedBookmarks())
     ) {
         self.id = id
         self.storage = storage
@@ -264,7 +265,7 @@ public actor FolderCollectionSession: CollectionSession {
         self.access = access
         repository = FolderCollectionRepository(root: resolved.url, collectionKey: id.uuidString)
         watcher = FolderWatcher(root: resolved.url)
-        files = PathFileResolver(baseDirectory: resolved.url)
+        files = BookmarkFileResolver(baseDirectory: resolved.url, folderAccess: folderAccess)
     }
 
     public func load() async throws(DataError) -> CollectionTree {
