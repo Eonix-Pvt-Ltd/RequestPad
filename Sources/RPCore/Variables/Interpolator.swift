@@ -30,10 +30,14 @@ public struct VariableScope: Hashable, Sendable {
         self.init(kind: kind, values: values)
     }
 
-    /// Builds a scope from `.bru`-style key/value rows (request and folder vars).
+    /// Builds a scope from `.bru`-style key/value rows (request and folder vars). Bruno's `@name` (local
+    /// variable) prefix is not part of the name.
     public init(kind: VariableScopeKind, rows: [KeyValue]) {
         var values: [String: VariableValue] = [:]
-        for row in rows.active { values[row.name] = .plain(row.value) }
+        for row in rows.active {
+            let name = row.name.hasPrefix("@") ? String(row.name.dropFirst()) : row.name
+            if !name.isEmpty { values[name] = .plain(row.value) }
+        }
         self.init(kind: kind, values: values)
     }
 }

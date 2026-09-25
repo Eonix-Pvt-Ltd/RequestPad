@@ -1,0 +1,27 @@
+meta {
+  name: Upload avatar
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/users/:id/avatar
+  body: multipartForm
+  auth: inherit
+}
+
+params:path {
+  id: 42
+}
+
+body:multipart-form {
+  caption: Profile picture
+  avatar: @file(images/avatar.png) @contentType(image/png)
+  attachments: @file(docs/a.pdf|docs/b.pdf)
+  ~draft: true
+  metadata: '''
+    {
+      "source": "requestpad"
+    }
+  ''' @contentType(application/json)
+}

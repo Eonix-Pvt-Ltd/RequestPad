@@ -18,19 +18,37 @@ public struct Extractor: Hashable, Sendable, Codable, Identifiable {
     public var source: ResponseSource?
     public var rawExpression: String
     public var isEnabled: Bool
-    /// Also persist the value into the active environment (P05.1 option).
-    public var persistToEnvironment: Bool
+    /// Bruno annotation lines on the `.bru` entry, preserved verbatim.
+    public var annotations: [String]
+
+    /// Annotation RequestPad uses to mark "also save to the active environment" in `.bru` files (P05.1).
+    public static let persistAnnotation = "@persist"
 
     public init(
         id: UUID = UUID(), variableName: String, source: ResponseSource?, rawExpression: String,
-        isEnabled: Bool = true, persistToEnvironment: Bool = false
+        isEnabled: Bool = true, annotations: [String] = []
     ) {
         self.id = id
         self.variableName = variableName
         self.source = source
         self.rawExpression = rawExpression
         self.isEnabled = isEnabled
-        self.persistToEnvironment = persistToEnvironment
+        self.annotations = annotations
+    }
+
+    /// Also persist the value into the active environment (P05.1 option).
+    public var persistToEnvironment: Bool {
+        get { annotations.contains(Self.persistAnnotation) }
+        set {
+            annotations.removeAll { $0 == Self.persistAnnotation }
+            if newValue { annotations.append(Self.persistAnnotation) }
+        }
+    }
+
+    /// Changes the source and keeps the stored Bruno expression in sync.
+    public mutating func setSource(_ newSource: ResponseSource) {
+        source = newSource
+        rawExpression = BruExpression.format(newSource)
     }
 
     /// Creates an extractor for a supported source; the Bruno expression is derived from it.
@@ -42,7 +60,7 @@ public struct Extractor: Hashable, Sendable, Codable, Identifiable {
 
     public static func == (lhs: Extractor, rhs: Extractor) -> Bool {
         lhs.variableName == rhs.variableName && lhs.source == rhs.source && lhs.rawExpression == rhs.rawExpression
-            && lhs.isEnabled == rhs.isEnabled && lhs.persistToEnvironment == rhs.persistToEnvironment
+            && lhs.isEnabled == rhs.isEnabled && lhs.annotations == rhs.annotations
     }
 
     public func hash(into hasher: inout Hasher) {
@@ -78,10 +96,11 @@ public struct Assertion: Hashable, Sendable, Codable, Identifiable {
     public var operand: String
     public var rawValue: String
     public var isEnabled: Bool
+    public var annotations: [String]
 
     public init(
         id: UUID = UUID(), source: ResponseSource?, rawKey: String, operation: Operator?, operand: String,
-        rawValue: String, isEnabled: Bool = true
+        rawValue: String, isEnabled: Bool = true, annotations: [String] = []
     ) {
         self.id = id
         self.source = source
@@ -90,6 +109,36 @@ public struct Assertion: Hashable, Sendable, Codable, Identifiable {
         self.operand = operand
         self.rawValue = rawValue
         self.isEnabled = isEnabled
+        self.annotations = annotations
+    }
+
+    /// Bruno assertion operators. Values whose first word is not one of these are compared with `eq` (Bruno).
+    public static let bruOperators: Set<String> = [
+        "eq", "neq", "gt", "gte", "lt", "lte", "in", "notIn", "contains", "notContains", "length", "matches",
+        "notMatches", "startsWith", "endsWith", "between", "isEmpty", "isNotEmpty", "isNull", "isUndefined",
+        "isDefined", "isTruthy", "isFalsy", "isJson", "isNumber", "isString", "isBoolean", "isArray",
+    ]
+
+    /// Parses a Bruno assertion entry (`key: value`).
+    public static func fromBru(key: String, value: String, isEnabled: Bool, annotations: [String]) -> Assertion {
+        let trimmed = value.trimmingCharacters(in: .whitespaces)
+        let firstWord = trimmed.prefix(while: { !$0.isWhitespace })
+        let rest = trimmed.dropFirst(firstWord.count).trimmingCharacters(in: .whitespaces)
+        let operation: Operator?
+        let operand: String
+        if let supported = Operator(rawValue: String(firstWord)) {
+            operation = supported.isUnary && !rest.isEmpty ? nil : supported
+            operand = supported.isUnary ? "" : rest
+        } else if bruOperators.contains(String(firstWord)) {
+            operation = nil
+            operand = rest
+        } else {
+            operation = .equals
+            operand = trimmed
+        }
+        return Assertion(
+            source: BruExpression.parse(key), rawKey: key, operation: operation, operand: operand, rawValue: value,
+            isEnabled: isEnabled, annotations: annotations)
     }
 
     /// Creates a supported assertion; Bruno key and value text are derived.
@@ -104,6 +153,7 @@ public struct Assertion: Hashable, Sendable, Codable, Identifiable {
 
     public static func == (lhs: Assertion, rhs: Assertion) -> Bool {
         lhs.rawKey == rhs.rawKey && lhs.rawValue == rhs.rawValue && lhs.isEnabled == rhs.isEnabled
+            && lhs.annotations == rhs.annotations
     }
 
     public func hash(into hasher: inout Hasher) {

@@ -1,0 +1,20 @@
+vars {
+  baseUrl: https://staging.example.com
+  pageSize: 20
+  ~legacyHost: http://old.example.com
+  certificate: '''
+    -----BEGIN PUBLIC KEY-----
+    MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC8
+    -----END PUBLIC KEY-----
+  '''
+}
+
+vars:secret [
+  clientSecret,
+  ~oldToken,
+  apiKey
+]
+
+color {
+  value: #ff9500
+}

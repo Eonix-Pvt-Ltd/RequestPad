@@ -1,0 +1,39 @@
+meta {
+  name: Launches
+  type: graphql
+  seq: 2
+}
+
+post {
+  url: https://spacex.example.com/graphql
+  body: graphql
+  auth: none
+}
+
+body:graphql {
+  query Launches($limit: Int) {
+    launchesPast(limit: $limit) {
+      mission_name
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+    "limit": {{limit}}
+  }
+}
+
+vars:post-response {
+  firstMission: res.body.data.launchesPast[0].mission_name
+  @persist
+  etag: res.headers.etag
+}
+
+assert {
+  res.status: eq 200
+  res.body.data: isDefined
+  res.body.errors: isUndefined
+  res.body.data.launchesPast[0].mission_name: contains "Falcon"
+  res.responseTime: lte 2000
+}

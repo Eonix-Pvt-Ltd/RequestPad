@@ -4,19 +4,16 @@ import Foundation
 public struct RequestSettings: Hashable, Sendable, Codable {
     public var followRedirects: Bool
     public var maximumRedirects: Int
-    /// Timeout in milliseconds; `nil` uses the app default (30 s).
+    /// Timeout in milliseconds; `nil` or 0 uses the app default (30 s).
     public var timeoutMilliseconds: Int?
-    /// Persist cookies from responses and send matching cookies (Pro, P07.1).
-    public var useCookieJar: Bool
 
     public init(
         followRedirects: Bool = true, maximumRedirects: Int = RequestDefaults.maximumRedirects,
-        timeoutMilliseconds: Int? = nil, useCookieJar: Bool = true
+        timeoutMilliseconds: Int? = nil
     ) {
         self.followRedirects = followRedirects
         self.maximumRedirects = maximumRedirects
         self.timeoutMilliseconds = timeoutMilliseconds
-        self.useCookieJar = useCookieJar
     }
 
     /// The timeout to apply, clamped to ``RequestDefaults/timeoutRange``.

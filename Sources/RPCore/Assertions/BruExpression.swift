@@ -5,7 +5,9 @@ import Foundation
 /// `res.body.a.b[0]`, `res.body["key with space"]`, and `res("a.b")` (Bruno's query shorthand for the body).
 public enum BruExpression {
     public static func parse(_ expression: String) -> ResponseSource? {
-        let text = expression.trimmingCharacters(in: .whitespaces)
+        var text = expression.trimmingCharacters(in: .whitespaces)
+        // Older Bruno versions wrote `$res.body.x`.
+        if text.hasPrefix("$res") { text.removeFirst() }
         switch text {
         case "res.status", "res.getStatus()": return .status
         case "res.responseTime", "res.getResponseTime()": return .responseTime
