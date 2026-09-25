@@ -95,3 +95,8 @@ $ PlistBuddy: LSMinimumSystemVersion 14.0, ITSAppUsesNonExemptEncryption false, 
 
 Not exercised in Phase 1 (by design): `scripts/archive.sh` (needs an Apple Distribution certificate — Phase 9),
 iOS 17 / macOS 14 runtime testing (HUMAN_HANDOFF H2).
+
+CI status: run 36098984682 on `phase-1-scaffold` — **not executed**. Both jobs were refused by GitHub before start:
+"The job was not started because recent account payments have failed or your spending limit needs to be
+increased." Phase 1 exit criterion "CI green" is therefore **not met**. Human decision (2026-09-25): merge to `main`
+on local evidence; billing to be fixed later (HUMAN_HANDOFF H5). CI must be re-run and green before Phase 9.

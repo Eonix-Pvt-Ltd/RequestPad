@@ -32,4 +32,9 @@ exempt there — ADR-0019). Record findings in `docs/SDLC_LOG.md`.
 CI selects the newest Xcode on GitHub's `macos-26` image. The project was created with Xcode 27 (project format
 objectVersion 110). If CI reports the project cannot be opened, switch `runs-on` to an image that ships Xcode 27.
 
+### H5 — Restore GitHub Actions and confirm CI green (blocks Phase 9)
+CI jobs are refused for billing reasons (failed payment / spending limit). Fix under GitHub → Settings → Billing &
+plans, then re-run the latest `main` workflow (`gh run rerun <id>` or push). Phase 1's "CI green" exit criterion
+remains open until this passes; record the run ID in `docs/SDLC_LOG.md`.
+
 _Further items (App Store Connect products, sandbox purchase test, TestFlight, submission) are added in Phases 5–10._
