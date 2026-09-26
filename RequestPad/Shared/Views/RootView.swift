@@ -33,11 +33,18 @@ struct RootView: View {
         .navigationSplitViewStyle(.balanced)
         .focusedSceneValue(\.workspace, workspace)
         .task {
+            #if DEBUG
+                let scenario = app.environment.isUITesting ? ScreenshotScenario.current : nil
+                if scenario != nil { app.completeOnboarding() }
+            #endif
             await app.load()
             restoreSelection()
             openRequestedTarget()
             #if os(macOS)
                 AppRuntime.shared.openMainWindow = { openWindow(id: RequestPadApp.mainWindowID) }
+            #endif
+            #if DEBUG
+                if let scenario { await ScreenshotDirector.stage(scenario, app: app, workspace: workspace) }
             #endif
         }
         .onChange(of: app.requestedOpen) { _, _ in openRequestedTarget() }
@@ -130,6 +137,12 @@ struct DetailView: View {
 }
 
 extension WorkspaceModel {
+    /// The selected saved request, if any.
+    var currentRequestReference: RequestReference? {
+        if case .request(let reference) = selection { return reference }
+        return nil
+    }
+
     /// The collection of the current selection.
     var currentCollectionID: UUID? {
         if case .request(let reference) = selection { return reference.collectionID }

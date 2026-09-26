@@ -51,9 +51,15 @@ public struct JSONTreeView: View {
     }
 
     public var body: some View {
+        let top = JSONNode(path: "$", label: "$", value: root)
         List {
-            OutlineGroup(JSONNode(path: "$", label: "$", value: root), children: \.children) { node in
-                JSONNodeRow(node: node)
+            // The document's members are shown directly (the first level is open); scalars show as one row.
+            if let members = top.children {
+                OutlineGroup(members, children: \.children) { node in
+                    JSONNodeRow(node: node)
+                }
+            } else {
+                JSONNodeRow(node: top)
             }
         }
         .listStyle(.plain)

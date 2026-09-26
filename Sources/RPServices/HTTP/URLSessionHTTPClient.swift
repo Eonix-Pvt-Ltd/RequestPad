@@ -265,7 +265,7 @@ final class SessionDelegate: NSObject, URLSessionDataDelegate, @unchecked Sendab
         let transaction = state.metrics?.transactionMetrics.last
         return HTTPResponse(
             statusCode: response.statusCode,
-            reasonPhrase: HTTPURLResponse.localizedString(forStatusCode: response.statusCode).capitalized,
+            reasonPhrase: HTTPReasonPhrase.phrase(for: response.statusCode),
             headers: headers, setCookieHeaders: setCookieStrings(response: response, url: url), body: body, url: url,
             redirects: state.redirects, timings: timings(from: state.metrics),
             networkProtocol: transaction?.networkProtocolName,

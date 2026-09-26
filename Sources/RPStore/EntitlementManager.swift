@@ -39,6 +39,7 @@ public final class EntitlementManager {
     private let client: any StoreClient
     private let now: @Sendable () -> Date
     private var updatesTask: Task<Void, Never>?
+    private var hasReadEntitlements = false
 
     public init(client: any StoreClient, state: EntitlementState, now: @escaping @Sendable () -> Date = { Date() }) {
         self.client = client
@@ -115,9 +116,13 @@ public final class EntitlementManager {
     }
 
     public func refreshEntitlements() async {
+        // Captured before the await: overlapping refreshes at launch must all count as the first read.
         let wasPro = source.isPro
+        let isFirstRead = !hasReadEntitlements
         source = EntitlementResolver.resolve(await client.currentEntitlements(), now: now())
         state.update(isPro: source.isPro)
-        if !wasPro && source.isPro { didUnlockPro = true }
+        // Only a change while the app runs is an unlock; the first read at launch just restores the entitlement.
+        if !isFirstRead && !wasPro && source.isPro { didUnlockPro = true }
+        hasReadEntitlements = true
     }
 }

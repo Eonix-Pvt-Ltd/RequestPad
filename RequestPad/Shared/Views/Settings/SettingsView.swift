@@ -262,7 +262,7 @@ struct SettingsView: View {
         Section {
             Link("Help & Support", destination: AppLinks.support)
             Link("Email Support", destination: AppConstants.supportMailURL(subject: "RequestPad \(Self.versionString)"))
-            Button("View Diagnostics") {
+            Button("Export Diagnostics…") {
                 Task { diagnostics = await app.environment.diagnostics.makeReport().text }
             }
             .accessibilityIdentifier("settings.diagnostics")
@@ -287,9 +287,11 @@ struct SettingsView: View {
 }
 
 /// Shows the diagnostics report; the user decides whether to copy or share it (X04.3).
-private struct DiagnosticsSheet: View {
+struct DiagnosticsSheet: View {
     let text: String
     @SwiftUI.Environment(\.dismiss) private var dismiss
+    /// The report as a text file in the app's temporary folder, for sharing (X04.3).
+    @State private var file: URL?
 
     var body: some View {
         NavigationStack {
@@ -306,7 +308,10 @@ private struct DiagnosticsSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
                 ToolbarItem(placement: .primaryAction) {
-                    ShareLink(item: text, subject: Text("RequestPad Diagnostics"))
+                    if let file {
+                        ShareLink(item: file, subject: Text("RequestPad Diagnostics"))
+                            .accessibilityIdentifier("diagnostics.share")
+                    }
                 }
                 ToolbarItem(placement: .secondaryAction) {
                     Button("Copy") { Clipboard.copy(text) }
@@ -314,6 +319,18 @@ private struct DiagnosticsSheet: View {
             }
         }
         .sheetFrame(minWidth: 560, minHeight: 480)
+        .task { file = Self.write(text) }
+    }
+
+    /// Writes the report to `RequestPad Diagnostics.txt` in the temporary folder; `nil` (Copy still works) on failure.
+    static func write(_ text: String) -> URL? {
+        let url = FileManager.default.temporaryDirectory.appending(path: "RequestPad Diagnostics.txt")
+        do {
+            try Data(text.utf8).write(to: url, options: .atomic)
+            return url
+        } catch {
+            return nil
+        }
     }
 }
 

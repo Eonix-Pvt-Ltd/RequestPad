@@ -91,9 +91,11 @@ for entry in "${destinations[@]}"; do
             -destination "$destination" -derivedDataPath "$DERIVED_DATA" -enableCodeCoverage YES -resultBundlePath "$RESULTS/package-$name.xcresult" \
             ${signing_overrides[@]+"${signing_overrides[@]}"}
     fi
-    app_filters=()
+    # Store screenshots are produced by scripts/screenshots.sh, not by the test gate.
+    app_filters=(-skip-testing:RequestPadUITests/ScreenshotTests)
     if [[ "$name" == macos ]] && $skip_macos_ui; then
         echo "▸ Skipping macOS UI tests (--skip-macos-ui)"
+        # The whole target only: an extra per-class skip makes xcodebuild start the UI test runner anyway.
         app_filters=(-skip-testing:RequestPadUITests)
     fi
     run_xcodebuild "App tests ($name)" test -project "$PROJECT" -scheme "$APP_SCHEME" \

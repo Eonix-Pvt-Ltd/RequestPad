@@ -25,7 +25,7 @@ account, no cloud, no telemetry.
 | `Package.swift`, `Sources/`, `Tests/` | Local Swift package `RequestPadKit`: `RPCore`, `RPData`, `RPServices`, `RPStore`, `RPUI` and their Swift Testing suites |
 | `Config/` | xcconfig files (`Base`, `Debug`, `Release`, `RequestPad-App`) |
 | `RequestPadTests/`, `RequestPadUITests/` | App-hosted unit tests and XCUITests (incl. accessibility audits) |
-| `scripts/` | `bootstrap.sh`, `lint.sh`, `test.sh`, `sync-strings.sh`, `archive.sh`, export options |
+| `scripts/` | `bootstrap.sh`, `lint.sh`, `test.sh`, `sync-strings.sh`, `archive.sh`, `screenshots.sh`, `check-metadata.py`, export options |
 | `docs/` | PRD, architecture, decisions, SDLC log, test plan, handoff, App Store material |
 
 ## Build and run
@@ -61,7 +61,8 @@ scripts/lint.sh                                                        # what CI
 xcrun swift-format format -i -r Sources Tests RequestPad RequestPadTests RequestPadUITests Package.swift
 ```
 
-`lint.sh` also fails on unreplaced setup placeholders and on TODO/FIXME markers in shipped sources.
+`lint.sh` also fails on unreplaced setup placeholders, TODO/FIXME markers in shipped sources, forbidden APIs (web
+views, dynamic loading, arbitrary loads) and App Store metadata problems (`scripts/check-metadata.py`).
 
 ## Release
 
@@ -69,7 +70,15 @@ xcrun swift-format format -i -r Sources Tests RequestPad RequestPadTests Request
 scripts/archive.sh            # archives + exports iOS and macOS builds into build/*-export (no upload)
 ```
 
-Uploading, TestFlight and App Review are human-gated; see `docs/HUMAN_HANDOFF.md` and `docs/RELEASE_RUNBOOK.md`.
+App Store screenshots come from the real app on dedicated simulators and a Mac window (about 5 minutes; keep the
+Mac unlocked and don't move windows during the Mac part):
+
+```bash
+scripts/screenshots.sh --platform all   # → docs/AppStore/screenshots/{iphone-6.9,ipad-13,mac}
+```
+
+Store listing text, review notes and privacy answers live in `docs/AppStore/`; `docs/APP_REVIEW_CHECKLIST.md` holds
+the guideline evidence. Uploading, TestFlight and App Review are human-gated; see `docs/HUMAN_HANDOFF.md` and `docs/RELEASE_RUNBOOK.md`.
 Bump `CURRENT_PROJECT_VERSION` in `Config/Base.xcconfig` before every upload.
 
 ## Troubleshooting

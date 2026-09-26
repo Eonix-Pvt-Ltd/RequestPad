@@ -440,6 +440,9 @@
     "Export App Data…" : {
 
     },
+    "Export Diagnostics…" : {
+
+    },
     "Export Results…" : {
 
     },
@@ -1121,6 +1124,9 @@
     "Secret values are stored in the Keychain on this device and never written to collection files." : {
 
     },
+    "Secrets stay in the Keychain on this device, never in collection files." : {
+
+    },
     "Section" : {
 
     },
@@ -1472,9 +1478,6 @@
 
     },
     "View" : {
-
-    },
-    "View Diagnostics" : {
 
     },
     "Waiting (TTFB)" : {

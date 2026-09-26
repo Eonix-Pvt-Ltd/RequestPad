@@ -25,6 +25,8 @@ final class WorkspaceModel {
     var isEnvironmentPickerPresented = false
     /// ⌘L asks the URL field to take focus (the value changes on each request).
     var focusURLRequest: UUID?
+    /// A sidebar sheet to show (environments, runner…), requested from outside the sidebar.
+    var requestedSheet: SidebarSheet?
 
     init(app: AppModel) {
         self.app = app
@@ -90,6 +92,8 @@ final class RequestEditorModel: Identifiable {
     private(set) var oauthMessage: String?
     /// Flags a cURL paste into the URL field didn't fully support (F07.1).
     private(set) var importNotices: [String] = []
+    /// An editor tab to switch to (raw value of `RequestEditorTabs.Tab`), requested from outside the tab bar.
+    var requestedTab: String?
     /// iOS: explain the Local Network prompt before the first LAN request (F01.9).
     var isLocalNetworkExplainerPresented = false
     /// Set after a successful send when the review policy allows a prompt (X02.3); the view consumes it.

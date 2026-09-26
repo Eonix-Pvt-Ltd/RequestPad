@@ -219,6 +219,21 @@ struct EntitlementManagerTests {
         await manager.start()
         #expect(manager.state.isPro)
         #expect(manager.source == .lifetime)
+        // An existing purchase is restored silently at launch, not announced as a new unlock.
+        #expect(!manager.didUnlockPro)
+        manager.stop()
+    }
+
+    @Test func overlappingStartsAtLaunchAreNotAnUnlock() async {
+        let client = FakeStoreClient()
+        await client.deliver(await client.makeTransaction(for: .lifetime))
+        let (manager, _) = makeManager(client)
+        // Windows, the menu bar and Shortcuts can start the store at the same moment.
+        async let first: Void = manager.start()
+        async let second: Void = manager.refreshEntitlements()
+        _ = await (first, second)
+        #expect(manager.state.isPro)
+        #expect(!manager.didUnlockPro)
         manager.stop()
     }
 
