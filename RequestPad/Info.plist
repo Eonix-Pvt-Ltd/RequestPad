@@ -56,5 +56,26 @@
 	<string>RequestPad uses Face ID to reveal stored secrets.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>RequestPad connects to servers on your local network when you enter a local address.</string>
+	<key>NSServices</key>
+	<array>
+		<dict>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Send URL with RequestPad</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>sendURL</string>
+			<key>NSPortName</key>
+			<string>RequestPad</string>
+			<key>NSRequiredContext</key>
+			<dict/>
+			<key>NSSendTypes</key>
+			<array>
+				<string>public.utf8-plain-text</string>
+				<string>NSStringPboardType</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

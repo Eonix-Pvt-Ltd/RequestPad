@@ -72,4 +72,19 @@ Record results in `docs/SDLC_LOG.md`.
    there, X03.3), use Ask to Buy with a family sandbox account, and refund via the Sandbox account settings. Record
    results in `docs/SDLC_LOG.md`.
 
+### H9 — Shortcuts, menu bar, Services and login item (Phase 6, manual)
+1. **Shortcuts** (iPhone and Mac, with Pro): in the Shortcuts app add "Send Request", pick a saved request (and
+   optionally an environment), run it with RequestPad closed; expect a dialog like "200 OK · 42 ms" and the Response
+   properties (Status Code, Body) available to the next action. Without Pro, expect the "part of RequestPad Pro"
+   error. Try the App Shortcut phrase "Send a request with RequestPad" with Siri.
+2. **Menu bar Quick Send** (Mac, Pro): Settings › Mac › Menu Bar Quick Send; click the paper-plane item. Measure the
+   popover opening with Instruments (SwiftUI / Time Profiler) — target < 100 ms (P09.2). Send a saved request with a
+   chosen environment and a typed URL; use "Open in RequestPad" with all windows closed.
+3. **Services** (Mac): select a URL in TextEdit or Safari → app menu › Services › "Send URL with RequestPad"; a new
+   unsaved request opens with that URL. If the item is missing, log out and in (the Services list is cached).
+4. **Launch at login** (Mac): turn on Settings › Mac › Open at Login, check System Settings › General › Login Items,
+   log out and in; turn it off again.
+5. **State restoration** (X01.4): with a request selected, quit and relaunch on each platform; the same request opens.
+Record results in `docs/SDLC_LOG.md`.
+
 _Further items (App Store Connect products, sandbox purchase test, TestFlight, submission) are added in Phases 5–10._

@@ -16,6 +16,8 @@ All notable changes to RequestPad are documented here. The format follows
 - RequestPad Pro: yearly and monthly subscriptions with a 7-day free trial and a lifetime purchase (StoreKit 2),
   one paywall for every Pro feature, Restore Purchases, Manage Subscription and Redeem Offer Code, with Pro
   unlocking immediately and following refunds, renewals and purchases on other devices.
+- Shortcuts "Send Request" action (Pro), macOS menu bar Quick Send (Pro), macOS Services "Send URL with
+  RequestPad", and Open at Login on macOS.
 
 ## [1.0.0] — not yet released
 

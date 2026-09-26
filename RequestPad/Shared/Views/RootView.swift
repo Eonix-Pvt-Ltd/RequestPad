@@ -12,6 +12,9 @@ struct RootView: View {
     @SceneStorage("workspace.selection") private var storedSelection: Data?
     @State private var isSettingsPresented = false
     @SwiftUI.Environment(\.scenePhase) private var scenePhase
+    #if os(macOS)
+        @SwiftUI.Environment(\.openWindow) private var openWindow
+    #endif
 
     init(app: AppModel) {
         self.app = app
@@ -32,7 +35,12 @@ struct RootView: View {
         .task {
             await app.load()
             restoreSelection()
+            openRequestedTarget()
+            #if os(macOS)
+                AppRuntime.shared.openMainWindow = { openWindow(id: RequestPadApp.mainWindowID) }
+            #endif
         }
+        .onChange(of: app.requestedOpen) { _, _ in openRequestedTarget() }
         .onChange(of: workspace.selection) { _, selection in
             storedSelection = try? JSONEncoder().encode(selection)
         }
@@ -65,6 +73,16 @@ struct RootView: View {
 
     private var onboardingBinding: Binding<Bool> {
         Binding(get: { app.isLoaded && !app.onboardingCompleted }, set: { if !$0 { app.completeOnboarding() } })
+    }
+
+    /// Shows what the menu bar, Services or Shortcuts asked for; the first window to see it takes it.
+    private func openRequestedTarget() {
+        guard let target = app.requestedOpen else { return }
+        app.requestedOpen = nil
+        switch target {
+        case .request(let reference): workspace.selection = .request(reference)
+        case .scratch(let request): workspace.openScratch(request)
+        }
     }
 
     private func restoreSelection() {

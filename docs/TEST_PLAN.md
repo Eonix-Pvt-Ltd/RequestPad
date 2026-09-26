@@ -114,13 +114,13 @@ itself is only marked **✅** once the services/UI path is verified end-to-end i
 | P06.3 | Run results can be exported as JSON. | Unit (assertions, runner) + UI | 2–4 | services ✅ `CollectionRunner`; UI implemented, manual check (H3/H7) |
 | P07.1 | Cookies from `Set-Cookie` are stored per domain (RFC 6265 domain/path/secure/expiry rules) and sent on | Unit (RFC 6265 matching, jar store) + UI | 2–4 | services ✅ `CookieJar, RequestExecutor (Local Echo)`; UI implemented, manual check (H3/H7) |
 | P07.2 | Free tier: cookies are not persisted between requests (ephemeral). | Unit (RFC 6265 matching, jar store) + UI | 2–4 | core ✅ `CookieJar`; import UI implemented (Import sheet: preview + notices), manual check (H7) |
-| P08.1 | App Intent "Send Request" with parameters Request (entity query over saved requests) and optional | Unit (intent perform) + manual Shortcuts check | 6 | planned |
-| P08.2 | Without Pro, the intent returns a clear error telling the user Pro is required. | Unit (intent perform) + manual Shortcuts check | 6 | planned |
-| P09.1 | Optional `MenuBarExtra` (Settings toggle, default off) with a popover: pick a saved request or type a URL, | UI (macOS) + Instruments measurement | 6 | planned |
-| P09.2 | Popover opens in < 100 ms. | UI (macOS) + Instruments measurement | 6 | planned |
+| P08.1 | App Intent "Send Request" with parameters Request (entity query over saved requests) and optional | Unit (intent perform) + manual Shortcuts check | 6 | app ✅ `SendRequestIntentTests` (send, environment override, entity queries); manual Shortcuts run H9 |
+| P08.2 | Without Pro, the intent returns a clear error telling the user Pro is required. | Unit (intent perform) + manual Shortcuts check | 6 | app ✅ `freeTierGetsAClearProError` |
+| P09.1 | Optional `MenuBarExtra` (Settings toggle, default off) with a popover: pick a saved request or type a URL, | UI (macOS) + Instruments measurement | 6 | app ✅ `quickSendSendsATypedURL`, `quickSendCapsTheBodyAt64KB`, `quickSendUsesTheChosenEnvironment`; manual H9 |
+| P09.2 | Popover opens in < 100 ms. | UI (macOS) + Instruments measurement | 6 | app ✅ `quickSendRendersQuickly` (render < 100 ms, 300 requests); Instruments check H9 |
 | X01.1 | iPad: three-column `NavigationSplitView` (collections / request / response), Split View & Stage Manager, | UI (iPad/iPhone/macOS) + manual | 4, 6 | UI implemented, manual check (H3/H7) |
 | X01.2 | iPhone: stacked navigation; request and response as segmented tabs; all controls reachable one-handed. | UI (iPad/iPhone/macOS) + manual | 4, 6 | UI ✅ all iPhone flows; AX-XXXL screenshots reviewed |
-| X01.3 | macOS: sidebar + request tabs (window tabs), full menu bar (File/Edit/View/Request/Window/Help), Settings | UI (iPad/iPhone/macOS) + manual | 4, 6 | UI implemented, manual check (H3/H7) |
+| X01.3 | macOS: sidebar + request tabs (window tabs), full menu bar (File/Edit/View/Request/Window/Help), Settings | UI (iPad/iPhone/macOS) + manual | 4, 6 | app ✅ Services (`servicesOpenTheSelectedURLAsANewRequest`, Info.plist), launch at login (`loginItemFollowsTheSystemStatus`); unit ✅ `SharedURL`; menus and windows manual H7/H9 |
 | X01.4 | Window/tab/last-selection state restores on relaunch. | UI (iPad/iPhone/macOS) + manual | 4, 6 | UI implemented, manual check (H3/H7) |
 | X02.1 | First launch shows ≤ 3 skippable onboarding screens; no permission prompts during onboarding. | UI + unit | 4 | UI ✅ `testOnboardingCanBeSkipped` (iOS) |
 | X02.2 | Settings: appearance, default timeout, follow redirects, history size, Local Echo, Load Sample Data, | UI + unit | 4 | UI implemented, manual check (H3/H7) |
