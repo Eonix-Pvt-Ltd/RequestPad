@@ -520,3 +520,10 @@ Decisions / follow-ups: …
 ```
 
 _No entries yet: the app has not been released._
+
+### 2026-09-27 — website published (H1)
+The owner published https://requestpad.eonix.lk.
+- **Verified:** `/privacy`, `/terms` and `/support` match the repo text word for word. HTTPS-only (308 redirect),
+  HSTS preload, strict CSP, nosniff and referrer-policy. All links resolve. The home and `/pricing` claims match the
+  app and StoreKit configuration.
+- **Open:** a support mailbox test, legal review, and swapping "Coming soon" for the App Store link at release.

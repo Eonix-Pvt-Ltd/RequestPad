@@ -18,7 +18,21 @@ Publish these files as web pages at exactly these URLs (the app, paywall and App
 Confirm `support@eonix.lk` receives mail. Have the privacy policy and terms reviewed by someone qualified for your
 jurisdiction — they are written to match the app's behavior, not reviewed by a lawyer.
 
-**Phase 11 note:** `SUPPORT.md` was corrected on 2026-09-26. Publish the current version.
+**Status 2026-09-27 — published and verified by the agent:**
+- `/privacy`, `/terms` and `/support` return 200 over HTTPS, and their text matches `PRIVACY.md`, `TERMS.md` and
+  `SUPPORT.md` word for word (including the Phase 11 corrections).
+- `http://` redirects to `https://` (308), with HSTS (2 years, includeSubDomains, preload), a strict CSP, nosniff and
+  referrer-policy.
+- Every link resolves.
+- The home and `/pricing` pages match the app: features, free-tier limits, Pro history of 1,000 requests, prices,
+  trial and renewal terms.
+
+**Still open:**
+- Confirm `support@eonix.lk` receives mail (send yourself a test).
+- Legal review of the privacy policy and terms.
+- The source files' "_Published at …_" line appears as visible text on the published pages. Harmless; hide it on
+  the site if you prefer.
+- At release (H13 step 7), replace "Coming soon to the App Store" with the App Store link.
 
 ### H2 — Test on minimum OS versions
 The build Mac has only the iOS 27 simulator runtime. Install an iOS 17 runtime (Xcode → Settings → Components) or
@@ -167,6 +181,7 @@ no open P1/P2 issues. Submitting before that is possible but skips the beta's sa
    - release iOS and macOS the same day;
    - tag the submitted commit: `git tag -a v1.0.0 -m "RequestPad 1.0.0"`, then `git push origin v1.0.0`;
    - set the date on the 1.0.0 entry in `CHANGELOG.md`.
+   - on requestpad.eonix.lk, replace "Coming soon to the App Store" with the App Store link or badge.
 8. **Exit (human-verified):** "Ready for Sale" on both platforms. Then follow `docs/RELEASE_RUNBOOK.md` §10–14
    (post-launch).
 
