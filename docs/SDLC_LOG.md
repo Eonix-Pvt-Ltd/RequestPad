@@ -527,3 +527,18 @@ The owner published https://requestpad.eonix.lk.
   HSTS preload, strict CSP, nosniff and referrer-policy. All links resolve. The home and `/pricing` claims match the
   app and StoreKit configuration.
 - **Open:** a support mailbox test, legal review, and swapping "Coming soon" for the App Store link at release.
+
+### 2026-09-27 — pre-submission check and App Store Connect setup (H8, H11, H13)
+The owner chose to submit 1.0.0 without the TestFlight beta (H12 exit criteria remain unmet).
+- **Checks (local):** `scripts/lint.sh` passed. `scripts/test.sh --platform all --skip-macos-ui` passed:
+  package macOS 345/0 failed, package iPhone 343/0 (2 skipped), app macOS 74/0, app iPhone 76/0, app iPad 76/0;
+  coverage gate passed.
+- **Fixed:** the App Review notes were 4,685 characters; App Store Connect allows 4,000. Shortened to 3,665 with
+  every path kept, and `scripts/check-metadata.py` now fails on notes over the limit.
+- **Committed:** Xcode's generated string-catalog comments, the Xcode Cloud workflow manifest and the explicit
+  `PRODUCT_NAME = RequestPad` from Xcode Cloud setup.
+- **App Store Connect (agent, in the owner's browser):** name, subtitle, category, content rights, age rating 4+,
+  privacy policy URL and "Data Not Collected" (published), price Free in 175 territories; subscription group "Pro"
+  with yearly $19.99 and monthly $2.99 (each with a 1-week free trial) and lifetime $39.99, each with display name,
+  description and review screenshot; iOS and macOS version 1.0.0 with screenshots, text, URLs, copyright, review
+  notes, manual release, and Xcode Cloud build 1.0.0 (3). The owner entered the review contact name and phone.

@@ -10,6 +10,8 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 METADATA = ROOT / "docs/AppStore/metadata.md"
 CONSTANTS = ROOT / "Sources/RPCore/AppConstants.swift"
+REVIEW_NOTES = ROOT / "docs/AppStore/review_notes.md"
+REVIEW_NOTES_LIMIT = 4000
 
 LIMITS = {
     "Name": 30,
@@ -36,8 +38,19 @@ def fields(text):
     return result
 
 
+def review_notes():
+    """Returns the App Review notes: the text between the two '---' lines of review_notes.md."""
+    match = re.search(r"\n---\n\n(.*?)\n\n---\n", REVIEW_NOTES.read_text(encoding="utf-8"), flags=re.S)
+    return match.group(1) if match else None
+
+
 def main():
     problems = []
+    notes = review_notes()
+    if notes is None:
+        problems.append("review_notes.md: notes must sit between two '---' lines")
+    elif len(notes) > REVIEW_NOTES_LIMIT:
+        problems.append(f"App Review notes are {len(notes)} characters (limit {REVIEW_NOTES_LIMIT})")
     values = fields(METADATA.read_text(encoding="utf-8"))
     for name, limit in LIMITS.items():
         value = values.get(name)
@@ -76,7 +89,7 @@ def main():
     if problems:
         print("Metadata problems:", *problems, sep="\n  ")
         return 1
-    print(f"Metadata OK ({', '.join(f'{k}: {len(values[k])}' for k in LIMITS)})")
+    print(f"Metadata OK ({', '.join(f'{k}: {len(values[k])}' for k in LIMITS)}, Review Notes: {len(notes)})")
     return 0
 
 
