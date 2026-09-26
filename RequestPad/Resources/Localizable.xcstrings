@@ -4,6 +4,12 @@
     "" : {
 
     },
+    "“%@” isn't a valid name. Use letters, digits, “_”, “-” or “.”." : {
+
+    },
+    "(%@ of binary data)" : {
+
+    },
     "%@" : {
 
     },
@@ -77,16 +83,13 @@
         }
       }
     },
-    "(%@ of binary data)" : {
-
-    },
     "A small server inside RequestPad that answers on this device only, for trying requests without the internet." : {
 
     },
-    "API Key" : {
+    "Access Token URL" : {
 
     },
-    "Access Token URL" : {
+    "access_token" : {
 
     },
     "Active" : {
@@ -102,6 +105,9 @@
 
     },
     "Add Assertion" : {
+
+    },
+    "Add assertions or extraction rules in the request's Assert and Extract tabs." : {
 
     },
     "Add Environment" : {
@@ -125,9 +131,6 @@
     "Add Variable" : {
 
     },
-    "Add assertions or extraction rules in the request's Assert and Extract tabs." : {
-
-    },
     "Address" : {
 
     },
@@ -141,6 +144,9 @@
 
     },
     "Allow RequestPad in System Settings › General › Login Items." : {
+
+    },
+    "API Key" : {
 
     },
     "Appearance" : {
@@ -218,13 +224,16 @@
     "Choose Environment…" : {
 
     },
-    "Choose Files…" : {
-
-    },
     "Choose File…" : {
 
     },
+    "Choose Files…" : {
+
+    },
     "Cipher Suite" : {
+
+    },
+    "Clear all history?" : {
 
     },
     "Clear History" : {
@@ -234,9 +243,6 @@
 
     },
     "Clear Token" : {
-
-    },
-    "Clear all history?" : {
 
     },
     "Client Credentials" : {
@@ -266,6 +272,9 @@
     "Connection" : {
 
     },
+    "contains" : {
+
+    },
     "Continue" : {
 
     },
@@ -287,13 +296,13 @@
     "Copy" : {
 
     },
+    "Copy as cURL" : {
+
+    },
     "Copy Header" : {
 
     },
     "Copy Value" : {
-
-    },
-    "Copy as cURL" : {
 
     },
     "Couldn't Save the Response" : {
@@ -308,13 +317,16 @@
     "Creates a collection with the same folders. Scripts are kept but not run." : {
 
     },
+    "cURL" : {
+
+    },
+    "curl https://api.example.com -H 'Accept: application/json'" : {
+
+    },
     "Custom Method" : {
 
     },
     "Custom…" : {
-
-    },
-    "DNS Lookup" : {
 
     },
     "Dark" : {
@@ -329,6 +341,9 @@
     "Delete" : {
 
     },
+    "Delete “%@”?" : {
+
+    },
     "Delete %@" : {
 
     },
@@ -336,6 +351,12 @@
 
     },
     "Delete All Cookies" : {
+
+    },
+    "Delete all cookies?" : {
+
+    },
+    "Delete assertion" : {
 
     },
     "Delete Collection…" : {
@@ -350,22 +371,13 @@
     "Delete Folder…" : {
 
     },
-    "Delete all cookies?" : {
-
-    },
-    "Delete assertion" : {
-
-    },
     "Delete rule %@" : {
 
     },
-    "Delete “%@”?" : {
+    "Delete…" : {
 
     },
     "Deletes collections stored in the app, environments, secrets, history, cookies, tokens and settings on this device. Folders you opened stay on disk. This can't be undone." : {
-
-    },
-    "Delete…" : {
 
     },
     "Diagnostics" : {
@@ -374,10 +386,22 @@
     "Dismiss" : {
 
     },
+    "DNS Lookup" : {
+
+    },
     "Docs" : {
 
     },
     "Documentation" : {
+
+    },
+    "does not contain" : {
+
+    },
+    "does not equal" : {
+
+    },
+    "does not exist" : {
 
     },
     "Done" : {
@@ -419,16 +443,22 @@
     "Environments…" : {
 
     },
-    "Erase All Data" : {
+    "equals" : {
 
     },
-    "Erase All Data…" : {
+    "Erase All Data" : {
 
     },
     "Erase all data?" : {
 
     },
+    "Erase All Data…" : {
+
+    },
     "Error" : {
+
+    },
+    "exists" : {
 
     },
     "Expected value" : {
@@ -449,10 +479,10 @@
     "Extract" : {
 
     },
-    "Extracted Variables" : {
+    "Extracted values are available as {{name}} in later requests of this collection until the app quits." : {
 
     },
-    "Extracted values are available as {{name}} in later requests of this collection until the app quits." : {
+    "Extracted Variables" : {
 
     },
     "Failed" : {
@@ -531,13 +561,7 @@
     "Group requests into collections and folders, switch environments, and keep secrets in the Keychain." : {
 
     },
-    "HTML is shown as source; RequestPad doesn't render web pages." : {
-
-    },
     "Header" : {
-
-    },
-    "Header Prefix" : {
 
     },
     "Header name" : {
@@ -546,16 +570,19 @@
     "Header or parameter name" : {
 
     },
+    "Header Prefix" : {
+
+    },
     "Headers" : {
 
     },
     "Headers (%lld)" : {
 
     },
-    "Headers Size" : {
+    "Headers from the folder and collection are added when the request is sent. Request headers take precedence." : {
 
     },
-    "Headers from the folder and collection are added when the request is sent. Request headers take precedence." : {
+    "Headers Size" : {
 
     },
     "Help & Support" : {
@@ -570,7 +597,16 @@
     "History" : {
 
     },
+    "HTML is shown as source; RequestPad doesn't render web pages." : {
+
+    },
     "HttpOnly" : {
+
+    },
+    "https://" : {
+
+    },
+    "https://api.example.com/status" : {
 
     },
     "Import" : {
@@ -585,10 +621,10 @@
     "Import text" : {
 
     },
-    "Imported from cURL. %@" : {
+    "Import…" : {
 
     },
-    "Import…" : {
+    "Imported from cURL. %@" : {
 
     },
     "In Request Body" : {
@@ -616,6 +652,12 @@
         }
       }
     },
+    "is greater than" : {
+
+    },
+    "is less than" : {
+
+    },
     "It may have been deleted or moved." : {
 
     },
@@ -625,10 +667,10 @@
     "JSON" : {
 
     },
-    "JSON Body" : {
+    "JSON body" : {
 
     },
-    "JSON body" : {
+    "JSON Body" : {
 
     },
     "JSONPath, e.g. $.data.token" : {
@@ -769,10 +811,19 @@
     "No Cookies" : {
 
     },
+    "No documentation yet." : {
+
+    },
     "No Environment" : {
 
     },
     "No History" : {
+
+    },
+    "No inherited auth" : {
+
+    },
+    "No matching requests" : {
 
     },
     "No Request Selected" : {
@@ -780,6 +831,12 @@
       "isCommentAutoGenerated" : true
     },
     "No RequestPad Pro purchase was found for this Apple Account." : {
+
+    },
+    "No requests match “%@”." : {
+
+    },
+    "No requests yet" : {
 
     },
     "No Response Yet" : {
@@ -791,28 +848,13 @@
     "No Tests" : {
 
     },
-    "No documentation yet." : {
-
-    },
-    "No inherited auth" : {
-
-    },
-    "No matching requests" : {
-
-    },
-    "No requests match “%@”." : {
-
-    },
-    "No requests yet" : {
-
-    },
     "None" : {
 
     },
-    "Not Now" : {
+    "Not found" : {
 
     },
-    "Not found" : {
+    "Not Now" : {
 
     },
     "Nothing to Restore" : {
@@ -830,16 +872,16 @@
     "Open" : {
 
     },
-    "Open Collection Folder…" : {
-
-    },
-    "Open Login Items Settings" : {
-
-    },
     "Open at Login" : {
 
     },
+    "Open Collection Folder…" : {
+
+    },
     "Open in RequestPad" : {
+
+    },
+    "Open Login Items Settings" : {
 
     },
     "OpenAPI" : {
@@ -988,25 +1030,6 @@
       "comment" : "The title of the app.",
       "isCommentAutoGenerated" : true
     },
-    "RequestPad Couldn't Start" : {
-      "comment" : "Title of the error view when RequestPad fails to start.",
-      "isCommentAutoGenerated" : true
-    },
-    "RequestPad Diagnostics" : {
-
-    },
-    "RequestPad Pro" : {
-
-    },
-    "RequestPad Pro is active." : {
-
-    },
-    "RequestPad Quick Send" : {
-
-    },
-    "RequestPad Support" : {
-
-    },
     "RequestPad can't edit “%@” bodies. The body is kept when the file is saved." : {
 
     },
@@ -1017,6 +1040,13 @@
 
     },
     "RequestPad couldn't open its data. %@" : {
+
+    },
+    "RequestPad Couldn't Start" : {
+      "comment" : "Title of the error view when RequestPad fails to start.",
+      "isCommentAutoGenerated" : true
+    },
+    "RequestPad Diagnostics" : {
 
     },
     "RequestPad doesn't evaluate this assertion yet; it is kept in the file and reported as skipped." : {
@@ -1031,6 +1061,18 @@
     "RequestPad keeps your last %lld requests on this device." : {
 
     },
+    "RequestPad Pro" : {
+
+    },
+    "RequestPad Pro is active." : {
+
+    },
+    "RequestPad Quick Send" : {
+
+    },
+    "RequestPad Support" : {
+
+    },
     "Requests" : {
 
     },
@@ -1040,10 +1082,10 @@
     "Response" : {
 
     },
-    "Response Time" : {
+    "Response image" : {
 
     },
-    "Response image" : {
+    "Response Time" : {
 
     },
     "Restore Purchases" : {
@@ -1109,19 +1151,19 @@
     "Scope" : {
 
     },
+    "Search requests" : {
+
+    },
     "Search URL or name" : {
 
     },
-    "Search requests" : {
+    "seconds" : {
 
     },
     "Secret" : {
 
     },
     "Secret value" : {
-
-    },
-    "Secret values are stored in the Keychain on this device and never written to collection files." : {
 
     },
     "Secrets stay in the Keychain on this device, never in collection files." : {
@@ -1143,6 +1185,9 @@
 
     },
     "Send" : {
+
+    },
+    "Send ${request}" : {
 
     },
     "Send Credentials" : {
@@ -1236,12 +1281,6 @@
 
     },
     "TCP Connect" : {
-
-    },
-    "TLS" : {
-
-    },
-    "TLS Handshake" : {
 
     },
     "Terms of Use" : {
@@ -1362,6 +1401,12 @@
     "Timing" : {
 
     },
+    "TLS" : {
+
+    },
+    "TLS Handshake" : {
+
+    },
     "Token" : {
 
     },
@@ -1402,9 +1447,6 @@
     "Type a URL" : {
 
     },
-    "URL" : {
-
-    },
     "Undefined variables: %@" : {
 
     },
@@ -1423,6 +1465,9 @@
     "Upgrade" : {
 
     },
+    "URL" : {
+
+    },
     "Use" : {
 
     },
@@ -1435,10 +1480,10 @@
     "Use File" : {
 
     },
-    "Use PKCE" : {
+    "Use letters, digits, “_”, “-” or “.” only." : {
 
     },
-    "Use letters, digits, “_”, “-” or “.” only." : {
+    "Use PKCE" : {
 
     },
     "Use variables as {{name}} in URLs, headers, bodies and auth." : {
@@ -1508,51 +1553,6 @@
 
     },
     "Your Data" : {
-
-    },
-    "access_token" : {
-
-    },
-    "cURL" : {
-
-    },
-    "contains" : {
-
-    },
-    "curl https://api.example.com -H 'Accept: application/json'" : {
-
-    },
-    "does not contain" : {
-
-    },
-    "does not equal" : {
-
-    },
-    "does not exist" : {
-
-    },
-    "equals" : {
-
-    },
-    "exists" : {
-
-    },
-    "https://" : {
-
-    },
-    "https://api.example.com/status" : {
-
-    },
-    "is greater than" : {
-
-    },
-    "is less than" : {
-
-    },
-    "seconds" : {
-
-    },
-    "“%@” isn't a valid name. Use letters, digits, “_”, “-” or “.”." : {
 
     }
   },

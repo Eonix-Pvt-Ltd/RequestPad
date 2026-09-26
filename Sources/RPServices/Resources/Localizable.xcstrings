@@ -40,6 +40,9 @@
     "Make sure the URL is a GraphQL endpoint with introspection enabled." : {
 
     },
+    "Missing file" : {
+
+    },
     "Open the Auth tab and choose Get New Token." : {
 
     },
@@ -58,10 +61,16 @@
     "RequestPad doesn't have permission to reach “%@” on your local network." : {
 
     },
+    "Sample" : {
+
+    },
     "Sign in to get an access token for this request." : {
 
     },
     "The %@ couldn't be found." : {
+
+    },
+    "the chosen file" : {
 
     },
     "The connection was lost." : {
