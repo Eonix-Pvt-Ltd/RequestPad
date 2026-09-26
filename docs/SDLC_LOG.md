@@ -542,3 +542,5 @@ The owner chose to submit 1.0.0 without the TestFlight beta (H12 exit criteria r
   with yearly $19.99 and monthly $2.99 (each with a 1-week free trial) and lifetime $39.99, each with display name,
   description and review screenshot; iOS and macOS version 1.0.0 with screenshots, text, URLs, copyright, review
   notes, manual release, and Xcode Cloud build 1.0.0 (3). The owner entered the review contact name and phone.
+- **Submitted 2026-09-27 01:14–01:16 (owner confirmed):** macOS 1.0.0 (3), then iOS 1.0.0 (3) with 4 in-app purchase
+  items. Both are "Waiting for Review", with manual release.
