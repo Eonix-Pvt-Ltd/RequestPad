@@ -3,6 +3,7 @@
     import RPCore
     import RPData
     import RPServices
+    import RPStore
 
     #if os(macOS)
         import AppKit
@@ -15,6 +16,9 @@
     /// show the real UI (Guideline 2.3). Driven by `scripts/screenshots.sh`.
     enum ScreenshotScenario: String, CaseIterable {
         case response, chaining, graphql, runner, environments
+        /// The paywall for the in-app purchase review screenshots (App Store Connect, not the product page).
+        /// Launched without `-UITestPro`, so the store shows the products and prices of the StoreKit configuration.
+        case paywall
 
         static var current: ScreenshotScenario? {
             let arguments = ProcessInfo.processInfo.arguments
@@ -58,6 +62,9 @@
             case .environments:
                 _ = await open("Create JSON", app: app, workspace: workspace, tab: "body")
                 workspace.requestedSheet = .environments(SampleData.collectionID)
+            case .paywall:
+                _ = await open("Echo a GET", app: app, workspace: workspace, tab: "params")
+                app.requestedProFeature = .unlimitedCollections
             }
         }
 

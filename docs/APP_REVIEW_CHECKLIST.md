@@ -11,7 +11,7 @@ evidence here is what the agent uses to answer a rejection (Phase 10).
 | 3 | 2.4.5 macOS | ✅ | App Sandbox on (`RequestPad.entitlements`); no helper installers; Open at Login is an off-by-default toggle using `SMAppService` (`loginItemFollowsTheSystemStatus`); no self-update or Sparkle (no package dependencies); one bundle with String Catalogs; built for macOS 14+ (ADR-0004). |
 | 4 | 2.5.1 / 2.5.2 | ✅ | Public APIs only (no `dlopen`, private selectors or runtime class lookup — semgrep/grep review, ADR-0043). No downloaded or executed code, no interpreter; Local Echo reflects requests as JSON and evaluates nothing (`Sources/RPServices/Echo`; review notes). Assertions and JSONPath are declarative parsers, not scripts. |
 | 5 | 2.5.4 Background | ✅ | No `UIBackgroundModes` in `RequestPad/Info.plist`. Shortcuts action runs only on user invocation; menu bar item only while the app runs (review notes "BACKGROUND"). |
-| 6 | 3.1.1 / 3.1.2 IAP | ✅ / 👤 | All unlocks via StoreKit 2 (`EntitlementManager`, ADR-0040); Restore Purchases in the paywall and Settings; paywall shows price, period, trial, Terms and Privacy links (`PaywallView`, `testPaywallPurchaseUnlocksPro`); monthly is the shortest period (≥ 7 days); free tier fully usable (`freeTierAllowsOneCollectionAndAsksForPro`); Universal Purchase (single bundle ID `lk.eonix.RequestPad`). 👤 Products created in App Store Connect and the sandbox purchase test (H8). |
+| 6 | 3.1.1 / 3.1.2 IAP | ✅ / 👤 | All unlocks via StoreKit 2 (`EntitlementManager`, ADR-0040); Restore Purchases in the paywall and Settings; paywall shows price, period, trial, Terms and Privacy links (`PaywallView`, `testPaywallPurchaseUnlocksPro`); monthly is the shortest period (≥ 7 days); free tier fully usable (`freeTierAllowsOneCollectionAndAsksForPro`); Universal Purchase (single bundle ID `lk.eonix.RequestPad`). IAP review screenshots in `docs/AppStore/iap-review/`. 👤 Products created in App Store Connect and the sandbox purchase test (H8). |
 | 7 | 4.0 Design | ✅ | SwiftUI native controls only; no web views anywhere (no `WebKit`, `WKWebView` or `SFSafariViewController` in the source, ADR-0011). OAuth sign-in uses the system `ASWebAuthenticationSession`. |
 | 8 | 4.2 Minimum functionality | ✅ | Native, offline tool: HTTP/GraphQL client, streaming large responses to disk, Keychain secrets, `.bru` folder collections with change detection, runner, Shortcuts, menu bar and Services — see PRD "Why this is not a template app" and the claims table. |
 | 9 | 4.2.3 Standalone | ✅ | Works with no external service: Local Echo and sample data (review notes). No companion app or server. |
@@ -33,6 +33,8 @@ evidence here is what the agent uses to answer a rejection (Phase 10).
 - Demo instructions do not depend on the network: every sample request targets `127.0.0.1`.
 
 ## Responding to a rejection
+
+Prepared replies for the likely questions are in `docs/AppStore/rejection_responses.md`.
 
 1. Find the guideline in the table and quote the evidence (a test name, file or ADR) in the Resolution Center reply.
 2. If the reviewer could not find a feature, update `docs/AppStore/review_notes.md` with the exact path and reply
