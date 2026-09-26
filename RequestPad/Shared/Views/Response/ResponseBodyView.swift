@@ -256,6 +256,11 @@ struct ResponseBodyDocument: FileDocument {
     }
 
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        try makeFileWrapper()
+    }
+
+    /// The whole body: in-memory data, or the spooled file for large responses (F02.8).
+    func makeFileWrapper() throws -> FileWrapper {
         switch body {
         case .memory(let data): FileWrapper(regularFileWithContents: data)
         case .file(let url, _): try FileWrapper(url: url, options: .immediate)

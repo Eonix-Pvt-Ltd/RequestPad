@@ -18,6 +18,11 @@ All notable changes to RequestPad are documented here. The format follows
   unlocking immediately and following refunds, renewals and purchases on other devices.
 - Shortcuts "Send Request" action (Pro), macOS menu bar Quick Send (Pro), macOS Services "Send URL with
   RequestPad", and Open at Login on macOS.
+- Settings: follow redirects by default for new requests; the History limit is shown.
+
+### Fixed
+- Saving a request that changed on disk since it was opened now reports a conflict instead of overwriting.
+- OpenAPI paths with undeclared `{parameters}` import as path parameters.
 
 ## [1.0.0] — not yet released
 

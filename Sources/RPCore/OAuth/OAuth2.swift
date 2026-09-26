@@ -18,7 +18,8 @@ public struct PKCEPair: Hashable, Sendable {
         challenge = Self.challenge(for: verifier)
     }
 
-    /// `BASE64URL(SHA256(ASCII(verifier)))` — the only use of SHA-256 in the app (export compliance, ADR-0018).
+    /// `BASE64URL(SHA256(ASCII(verifier)))`. SHA-256 is only used for hashing (PKCE, token cache keys, file change
+    /// detection), never for encryption (export compliance, ADR-0018).
     public static func challenge(for verifier: String) -> String {
         Base64URL.encode(Array(SHA256.hash(data: Data(verifier.utf8))))
     }

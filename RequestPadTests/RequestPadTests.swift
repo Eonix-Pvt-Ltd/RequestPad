@@ -13,8 +13,25 @@ enum TestApp {
     static func make(
         isPro: Bool = false, client: FakeHTTPClient = FakeHTTPClient(json: #"{"token":"abc","items":[1,2]}"#)
     ) throws -> AppModel {
+        try make(isPro: isPro, client: client, transport: FakeTransport([]))
+    }
+
+    /// The real URLSession client and transport, for end-to-end tests against Local Echo.
+    static func makeLive(isPro: Bool = false) throws -> AppModel {
         let root = FileManager.default.temporaryDirectory.appending(
             path: "app-tests-\(UUID().uuidString)", directoryHint: .isDirectory)
+        return try make(
+            isPro: isPro,
+            client: URLSessionHTTPClient(
+                configuration: HTTPClientConfiguration(temporaryDirectory: root.appending(path: "Bodies"))),
+            transport: URLSessionTransport(), root: root)
+    }
+
+    static func make(
+        isPro: Bool, client: any HTTPClient, transport: any HTTPTransport,
+        root: URL = FileManager.default.temporaryDirectory.appending(
+            path: "app-tests-\(UUID().uuidString)", directoryHint: .isDirectory)
+    ) throws -> AppModel {
         let locations = StorageLocations(
             applicationSupport: root.appending(path: "Support", directoryHint: .isDirectory),
             temporary: root.appending(path: "Temp", directoryHint: .isDirectory))
@@ -25,7 +42,7 @@ enum TestApp {
             secrets: InMemorySecretStore(),
             preferences: Preferences(defaults: defaults), folderAccess: PathBookmarks(),
             authenticator: FakeAuthenticator(),
-            httpClient: client, transport: FakeTransport([]), isUITesting: true,
+            httpClient: client, transport: transport, isUITesting: true,
             storeClient: FakeStoreClient(
                 entitlements: isPro
                     ? [TransactionSnapshot(id: 1, productID: ProductID.lifetime.rawValue, purchaseDate: Date())] : []))

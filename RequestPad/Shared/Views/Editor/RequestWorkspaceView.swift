@@ -41,6 +41,9 @@ struct RequestWorkspaceView: View {
         #endif
         .toolbar { WorkspaceToolbar(editor: editor, workspace: workspace) }
         .focusedSceneValue(\.requestEditor, editor)
+        .onChange(of: editor.reference.flatMap { editor.app.request($0)?.request }) { _, _ in
+            editor.adoptStoredVersion()
+        }
         .onChange(of: editor.isSending) { _, isSending in
             if isSending, isCompact { pane = .response }
         }

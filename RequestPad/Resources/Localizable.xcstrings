@@ -485,6 +485,9 @@
     "Follow Redirects" : {
 
     },
+    "Follow Redirects for New Requests" : {
+
+    },
     "Form URL-Encoded" : {
 
     },
@@ -640,6 +643,12 @@
           }
         }
       }
+    },
+    "Last 1,000 requests" : {
+
+    },
+    "Last 100 requests (Pro: 1,000)" : {
+
     },
     "Leave empty to use the collection's active environment." : {
 

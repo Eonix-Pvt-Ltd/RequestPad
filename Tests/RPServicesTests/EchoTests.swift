@@ -293,3 +293,63 @@ struct LocalEchoServerTests {
         return String(decoding: data ?? Data(), as: UTF8.self)
     }
 }
+
+/// Phase 7: the Local Echo request parser reads raw bytes from sockets; hostile byte streams, split at random points,
+/// must yield requests or errors — never crash, loop or grow past the limits.
+@Suite("Echo parser fuzzing")
+struct EchoParserFuzzTests {
+    struct XorShift: RandomNumberGenerator {
+        var state: UInt64
+        mutating func next() -> UInt64 {
+            state ^= state << 13
+            state ^= state >> 7
+            state ^= state << 17
+            return state
+        }
+    }
+
+    static let seeds = [
+        "GET /echo?a=1 HTTP/1.1\r\nHost: 127.0.0.1\r\nAccept: */*\r\n\r\n",
+        "POST /echo HTTP/1.1\r\nHost: x\r\nContent-Length: 5\r\n\r\nhello",
+        "PUT /x HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\n5\r\nhello\r\n0\r\n\r\n",
+        "GET / HTTP/1.1\r\nContent-Length: -1\r\n\r\n",
+    ]
+    static let fragments = [
+        "\r\n", "\r\n\r\n", ":", " ", "Content-Length: 99999999999999999999\r\n", "Transfer-Encoding: chunked\r\n",
+        "ffffffff\r\n", "\u{0}", "GET", "HTTP/1.1", String(repeating: "A", count: 2048),
+    ]
+
+    @Test func parserSurvivesHostileByteStreams() {
+        var generator = XorShift(state: 0xEC40_5EED)
+        var parsed = 0
+        for _ in 0..<3_000 {
+            var bytes = Array((Self.seeds.randomElement(using: &generator) ?? "").utf8)
+            for _ in 0..<Int.random(in: 0...5, using: &generator) {
+                let position = Int.random(in: 0...bytes.count, using: &generator)
+                switch Int.random(in: 0..<3, using: &generator) {
+                case 0:
+                    bytes.insert(contentsOf: (Self.fragments.randomElement(using: &generator) ?? "").utf8, at: position)
+                case 1: if position < bytes.count { bytes.removeSubrange(position..<min(bytes.count, position + 8)) }
+                default: if position < bytes.count { bytes[position] = UInt8.random(in: 0...255, using: &generator) }
+                }
+            }
+            var parser = EchoRequestParser()
+            // Deliver in random-sized pieces, as TCP may.
+            var offset = 0
+            loop: while offset < bytes.count {
+                let size = Int.random(in: 1...64, using: &generator)
+                parser.append(Data(bytes[offset..<min(bytes.count, offset + size)]))
+                offset += size
+                do {
+                    while let request = try parser.next() {
+                        parsed += 1
+                        #expect(request.body.count <= EchoRequestParser.maximumBodyBytes)
+                    }
+                } catch {
+                    break loop
+                }
+            }
+        }
+        #expect(parsed > 100, "Only \(parsed) requests parsed; the mutations are too destructive to be useful")
+    }
+}

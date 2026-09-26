@@ -339,3 +339,42 @@ Not run in this phase, with reason:
 - Running the intent from the Shortcuts app and Siri, the menu bar popover timing in Instruments, the Services menu
   and the real login item need a person at the device (HUMAN_HANDOFF H9). macOS UI tests (H7), CI (H5), device
   checks (H6), VoiceOver (H3), App Store Connect products (H8).
+
+## Phase 7 — Hardening (2026-09-26)
+
+Done:
+- **Traceability:** every PRD acceptance criterion now has an automated passing test except X01.4 (relaunch
+  restoration; recorded manual check H9). 24 end-to-end tests (`EndToEndTests.swift`) drive the app model against the
+  real URLSession client and Local Echo. Corrected ~25 TEST_PLAN rows that a Phase 4 bulk edit had mislabelled.
+- **Fuzzing:** `FuzzTests` (15 parsers × 2,000 seeded inputs, round-trip invariants, minimum acceptance per target)
+  and `EchoParserFuzzTests` (3,000 hostile byte streams in random pieces); deterministic, part of every run incl.
+  ASan/TSan. No crashes or hangs found.
+- **Privacy:** required-reason APIs scanned and checked against Apple's reference; `3B52.1` removed (unused);
+  manifest verified in both archives.
+- **Security:** Release archives inspected (macOS entitlements exact, hardened runtime; no StoreKit file; ATS without
+  arbitrary loads; export compliance re-checked); gitleaks (history + tree) clean with a two-fixture allowlist;
+  semgrep Swift + secrets rules: 0 findings; semgrep job added to CI; two public error logs made private.
+- **Profiling:** Release launch on the iPhone 18 Pro simulator, XCTest launch metric: average 2.830 s (RSD 12.7%).
+  Simulator numbers include simulator/XCTest overhead; the < 1.0 s budget is checked on devices (H10). Package
+  performance budgets pass in every run (`PerformanceTests`). Quick Send renders in < 100 ms (Phase 6).
+
+Defects found and fixed: stale-base save overwrote external `.bru` changes (P01.4); undeclared OpenAPI path
+templates were sent literally (P02.1); error descriptions logged as public.
+
+Verification (local; Xcode 27.0, macOS 27.0; iPhone 18 Pro and iPad Pro 13-inch (M5) simulators, iOS 27.0):
+```
+scripts/test.sh --platform ios                         → package-iphone: passed 339, skipped 2* · app-iphone: passed 74
+                                                         · app-ipad: passed 74 · RPCore 96.84% · RPStore 99.47%
+scripts/test.sh --platform macos --skip-macos-ui \
+    --sanitizers --analyze                             → package-macos: passed 341 · app-macos: passed 72 · ASan 334
+                                                         passed, 7 skipped† · TSan 334 passed, 7 skipped† · Analyze ×2
+Coverage (macOS package): RPCore 96.84% · RPData 93.47% · RPServices 91.88% · RPStore 99.47%
+Release builds (macOS, iOS) and archives               → succeeded, 0 warnings
+gitleaks 8.30.1 (git history + working tree)           → no leaks found (with .gitleaks.toml)
+semgrep 1.170.0 (p/swift, p/secrets; Sources + RequestPad) → 0 findings, 0 errors
+```
+\* Live-Keychain package tests skipped on the iOS simulator by design. † Performance tests skip under sanitizers.
+
+Not run in this phase, with reason: Xcode Organizer privacy report, distribution-signed export, device launch
+times (H10); macOS UI tests (H7); CI (H5); device checks (H6); VoiceOver (H3); App Store Connect products (H8);
+manual system integrations (H9).

@@ -5,6 +5,22 @@ import Testing
 
 @Suite("OpenAPIImporter")
 struct OpenAPIImporterTests {
+    // AC: P02.1
+    @Test func undeclaredPathTemplatesBecomePathParameters() throws {
+        let yaml = """
+            openapi: 3.0.3
+            info: {title: T, version: "1"}
+            paths:
+              /stores/{storeId}/items/{item_id}:
+                get: {summary: Item}
+            """
+        let imported = try OpenAPIImporter.importDocument(Data(yaml.utf8))
+        let request = try #require(imported.items.first?.request)
+        #expect(request.url == "{{baseUrl}}/stores/:storeId/items/:item_id")
+        #expect(request.pathParams.map(\.name) == ["storeId", "item_id"])
+        #expect(OpenAPIImporter.undeclaredTemplates(in: "/a/{x}/{x}/{}/b") == ["x"])
+    }
+
     func request(_ collection: ImportedCollection, _ name: String) throws -> RequestItem {
         try #require(collection.items.first(where: { $0.request.name == name })?.request)
     }
