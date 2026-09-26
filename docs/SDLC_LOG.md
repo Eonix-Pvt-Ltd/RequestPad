@@ -304,3 +304,38 @@ confirmation → feature unlocked), `testImportSheetFitsOnScreen`; audits pass o
 Not run in this phase, with reason:
 - Real App Store / sandbox purchases need App Store Connect products and agreements (HUMAN_HANDOFF H8).
 - macOS UI tests (H7), CI (H5), device checks (H6), manual VoiceOver pass (H3).
+
+## Phase 6 — System integrations (2026-09-26)
+
+Built:
+- `AppRuntime` (single app instance for windows, intents, menu bar, Services) and `AppModel.requestedOpen` routing.
+- App Intents: `SendRequestIntent` (Pro) with `RequestEntity` / `EnvironmentEntity` queries, `SentResponse`
+  (status code, status, duration, body), specific failures, and an App Shortcut.
+- macOS: menu bar Quick Send (`MenuBarExtra`, off by default, Pro), Services "Send URL with RequestPad"
+  (`NSServices`, `ServicesProvider`, `SharedURL` in RPCore), Open at Login (`SMAppService`) in Settings › Mac.
+- Sends can use the active environment, none, or a chosen one (`EnvironmentChoice`); extracted values persist into
+  the environment that was used.
+
+Verification (local; Xcode 27.0, macOS 27.0; iPhone 18 Pro and iPad Pro 13-inch (M5) simulators, iOS 27.0):
+```
+scripts/test.sh --platform ios                         → package-iphone: passed 336, skipped 2* · app-iphone: passed 50
+                                                         · app-ipad: passed 50 · RPCore 95.95% · RPStore 99.47%
+scripts/test.sh --platform macos --skip-macos-ui \
+    --sanitizers --analyze                             → package-macos: passed 338 · app-macos: passed 48 · ASan 331
+                                                         passed, 7 skipped† · TSan 331 passed, 7 skipped† · Analyze ×2
+Coverage (macOS package): RPCore 95.92% · RPData 93.47% · RPServices 91.81% · RPStore 99.47%
+Release builds (macOS, iOS)                            → succeeded, 0 warnings
+Built app bundle                                       → Metadata.appintents lists SendRequestIntent, RequestEntity,
+                                                         EnvironmentEntity, SentResponse; Info.plist has NSServices
+```
+New tests: `SendRequestIntentTests` (Pro send with status/body, environment override, free-tier error, deleted
+request, foreign environment, entity queries, identifiers), `MacIntegrationTests` (Services handler and
+declaration, open routing, login item with a fake service, Quick Send typed URL / 64 KB cap / chosen environment /
+open in app, popover renders in < 100 ms with 300 requests), `SharedURLTests` (accepted and rejected selections).
+A test-isolation defect was found and fixed: two parallel suites installed apps into the shared runtime.
+\* Live-Keychain package tests skipped on the iOS simulator by design. † Performance tests skip under sanitizers.
+
+Not run in this phase, with reason:
+- Running the intent from the Shortcuts app and Siri, the menu bar popover timing in Instruments, the Services menu
+  and the real login item need a person at the device (HUMAN_HANDOFF H9). macOS UI tests (H7), CI (H5), device
+  checks (H6), VoiceOver (H3), App Store Connect products (H8).

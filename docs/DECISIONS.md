@@ -338,3 +338,22 @@ collection folder.
 - `SKTestSession.expireSubscription` does not shorten the transaction's recorded period, so expiry is tested with
   accelerated time (`oneRenewalEveryTwoSeconds`) and renewal turned off, which exercises the real date-based path.
 - UI tests use `FakeStoreClient` (Debug-only `-UITestMode`); `-UITestPro` starts with a lifetime purchase.
+
+### ADR-0042 — System integrations (Phase 6)
+- **One app instance.** `AppRuntime` owns the single `LaunchModel`; windows, App Intents (which run without a
+  window), the menu bar and Services all use it, so the SwiftData store is never opened twice in a process.
+  Outside entry points ask a window to show something through `AppModel.requestedOpen`; the first window takes it,
+  and on macOS a window is opened if none is visible.
+- **Shortcuts "Send Request" (P08).** `openAppWhenRun = false`; parameters are a saved request (`RequestEntity`,
+  id `collectionID|key`) and an optional environment (default: the collection's active one; an environment from
+  another collection is an error). The intent re-reads entitlements, returns a `SentResponse` (status code, status,
+  duration, body — text up to 1 MB, binary described) and a dialog, and fails with a specific message for free
+  users, deleted requests and mismatched environments. Requests sent this way are recorded in History like any send.
+- **Menu bar Quick Send (P09).** `MenuBarExtra` (window style), inserted only while enabled in Settings and Pro is
+  active; off by default. It reads already-loaded collections, sends through the same path as the app, shows the
+  first 64 KB of the body, and "Open in RequestPad" opens the request or the typed URL.
+- **Services (X01.3).** `NSServices` "Send URL with RequestPad" (message `sendURL`). The selection is untrusted:
+  `SharedURL` accepts only one http(s) URL or a bare host (≤ 8 KB); anything else returns an error to the system.
+  The result opens as an unsaved request; nothing is sent automatically.
+- **Launch at login.** `SMAppService.mainApp`, off by default; the system status is the source of truth
+  (re-read when Settings appears), including "requires approval" with a button to System Settings › Login Items.

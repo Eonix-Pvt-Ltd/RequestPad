@@ -58,6 +58,13 @@ final class AppModel {
     var requestedProFeature: ProFeature?
     /// 0 when no sheet is shown; sheets that can show Pro prompts set 1 (see `PaywallPresenter`).
     var presentationLevel = 0
+    /// Something to show in a window, requested from outside one (menu bar, Services, Shortcuts). The frontmost
+    /// window consumes it (`RootView`).
+    var requestedOpen: OpenTarget?
+    /// macOS menu bar Quick Send (P09.1); mirrors ``Preferences/menuBarQuickSendEnabled``.
+    var menuBarQuickSendEnabled: Bool {
+        didSet { preferences.menuBarQuickSendEnabled = menuBarQuickSendEnabled }
+    }
     var presentedError: PresentedError?
     var onboardingCompleted: Bool
     /// Mirrors ``Preferences/appearance`` so windows update when it changes.
@@ -74,6 +81,7 @@ final class AppModel {
         entitlements = store.state
         onboardingCompleted = environment.preferences.onboardingCompleted
         appearance = environment.preferences.appearance
+        menuBarQuickSendEnabled = environment.preferences.menuBarQuickSendEnabled
     }
 
     var gate: FeatureGate { entitlements.gate }
@@ -541,10 +549,13 @@ final class AppModel {
     // MARK: Sending (F01, P05)
 
     /// Sends a request. `reference` is nil for unsaved scratch requests (no collection context).
-    func send(_ request: RequestItem, reference: RequestReference?) async throws(SendError) -> SendResult {
+    func send(_ request: RequestItem, reference: RequestReference?, environment choice: EnvironmentChoice = .active)
+        async throws(SendError) -> SendResult
+    {
         let collectionID = reference?.collectionID
         let context = sendContext(
-            collectionID: collectionID, folderKey: reference.flatMap { self.request($0)?.folderKey })
+            collectionID: collectionID, folderKey: reference.flatMap { self.request($0)?.folderKey },
+            environment: choice)
         var effective = applyingDefaults(to: request)
         if !gate.isPro {
             // Free tier: extraction and assertions are Pro (P05, P06); they don't run.
@@ -554,7 +565,11 @@ final class AppModel {
         let result = try await environment.executor.send(effective, context: context)
         if let collectionID {
             runtimeVariables[collectionID] = result.runtimeVariables
-            if !result.variablesToPersist.isEmpty { await persist(result.variablesToPersist, in: collectionID) }
+            if !result.variablesToPersist.isEmpty,
+                let target = environmentEntry(for: collectionID, choice: choice)
+            {
+                await persist(result.variablesToPersist, into: target, in: collectionID)
+            }
         }
         if (200..<400).contains(result.response.statusCode) { preferences.successfulRequestCount += 1 }
         await reloadHistory()
@@ -571,12 +586,15 @@ final class AppModel {
     }
 
     /// Folders, environment, globals, runtime variables, cookies and files for sending in a collection.
-    func sendContext(collectionID: UUID?, folderKey: String?) -> SendContext {
+    func sendContext(collectionID: UUID?, folderKey: String?, environment choice: EnvironmentChoice = .active)
+        -> SendContext
+    {
         let state = collectionID.flatMap(collection)
         var context = SendContext(
             folders: state?.tree?.folderChain(to: folderKey) ?? [],
             collection: state?.tree?.settings ?? FolderSettings(),
-            environment: collectionID.flatMap { activeEnvironment(for: $0)?.environment }, globals: globals,
+            environment: collectionID.flatMap { environmentEntry(for: $0, choice: choice)?.environment },
+            globals: globals,
             runtimeVariables: collectionID.flatMap { runtimeVariables[$0] } ?? [:],
             useCookieJar: gate.isPro && (state?.summary.useCookieJar ?? true), recordHistory: true,
             historyLimit: gate.historyLimit)
@@ -585,9 +603,21 @@ final class AppModel {
         return context
     }
 
-    /// Writes extracted values into the active environment (P05.1).
-    private func persist(_ values: [String: String], in collectionID: UUID) async {
-        guard let active = activeEnvironment(for: collectionID) else { return }
+    /// The environment a send uses: the collection's active one, none, or a specific one (Shortcuts, Quick Send).
+    func environmentEntry(for collectionID: UUID, choice: EnvironmentChoice) -> CollectionTree.EnvironmentEntry? {
+        switch choice {
+        case .active: activeEnvironment(for: collectionID)
+        case .none: nil
+        case .key(let key): environments(for: collectionID).first { $0.key == key }
+        }
+    }
+
+    /// Writes extracted values into the environment the request was sent with (P05.1).
+    private func persist(
+        _ values: [String: String], into active: CollectionTree.EnvironmentEntry, in collectionID: UUID
+    )
+        async
+    {
         var environment = active.environment
         for (name, value) in values {
             if let index = environment.variables.firstIndex(where: { $0.name == name }) {
@@ -725,6 +755,7 @@ final class AppModel {
         globals = Environment(id: SampleData.globalsID, name: String(localized: "Globals"))
         onboardingCompleted = false
         appearance = preferences.appearance
+        menuBarQuickSendEnabled = false
     }
 
     func exportAppData() async -> Data? {
@@ -794,5 +825,41 @@ struct UnexpectedError: LocalizedError {
     var errorDescription: String? { String(localized: "Something went wrong") }
     var recoverySuggestion: String? {
         String(localized: "Please try again. If it keeps happening, contact support from Settings.")
+    }
+}
+
+/// Which environment a send uses.
+enum EnvironmentChoice: Hashable, Sendable {
+    case active
+    case none
+    case key(String)
+}
+
+/// What an outside entry point asks a window to show.
+enum OpenTarget: Equatable {
+    case request(RequestReference)
+    case scratch(RequestItem)
+}
+
+/// A saved request with its collection, for pickers outside the main window (Shortcuts, Quick Send).
+struct SavedRequestSummary: Identifiable, Hashable {
+    var reference: RequestReference
+    var collectionName: String
+    var displayPath: String
+    var request: RequestItem
+    var id: String { "\(reference.collectionID.uuidString)|\(reference.key)" }
+}
+
+extension AppModel {
+    /// Every saved request in collection order, then tree order.
+    func savedRequests() -> [SavedRequestSummary] {
+        collections.flatMap { state -> [SavedRequestSummary] in
+            guard let tree = state.tree else { return [] }
+            return tree.requestsInOrder(under: nil).map { entry in
+                SavedRequestSummary(
+                    reference: RequestReference(collectionID: tree.id, key: entry.key), collectionName: tree.name,
+                    displayPath: tree.displayPath(of: entry.key), request: entry.request)
+            }
+        }
     }
 }

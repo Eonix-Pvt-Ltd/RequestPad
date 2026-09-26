@@ -8,7 +8,10 @@ import SwiftUI
 @main
 struct RequestPadApp: App {
     static let mainWindowID = "main"
-    @State private var launch = LaunchModel()
+    @State private var launch = AppRuntime.shared.launch
+    #if os(macOS)
+        @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    #endif
 
     var body: some Scene {
         WindowGroup(id: Self.mainWindowID) {
@@ -25,6 +28,16 @@ struct RequestPadApp: App {
             #endif
         }
         #if os(macOS)
+            // Menu bar Quick Send (P09): off by default, Pro only.
+            MenuBarExtra(isInserted: menuBarBinding) {
+                if let app = launch.appModel {
+                    QuickSendView(app: app)
+                        .preferredColorScheme(app.appearance.colorScheme)
+                }
+            } label: {
+                Label("RequestPad Quick Send", systemImage: "paperplane.fill")
+            }
+            .menuBarExtraStyle(.window)
             Settings {
                 if let app = launch.appModel {
                     SettingsView(app: app)
@@ -35,6 +48,17 @@ struct RequestPadApp: App {
         #endif
     }
 }
+
+#if os(macOS)
+    extension RequestPadApp {
+        /// Shown while enabled in Settings and Pro is active; removing the item from the menu bar turns it off.
+        fileprivate var menuBarBinding: Binding<Bool> {
+            Binding(
+                get: { launch.appModel.map { $0.menuBarQuickSendEnabled && $0.gate.isPro } ?? false },
+                set: { launch.appModel?.menuBarQuickSendEnabled = $0 })
+        }
+    }
+#endif
 
 /// Shows the app once launch preparation succeeded, or a recoverable error.
 struct LaunchRootView: View {

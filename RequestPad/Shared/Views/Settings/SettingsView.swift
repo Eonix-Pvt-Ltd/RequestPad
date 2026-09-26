@@ -20,6 +20,9 @@ struct SettingsView: View {
     @State private var diagnostics: String?
     @State private var isWorking = false
     @State private var isPaywallPresented = false
+    #if os(macOS)
+        @State private var loginItem = LoginItemModel()
+    #endif
     @State private var restoreResult: EntitlementManager.RestoreResult?
     #if os(iOS)
         @State private var isRedeemingCode = false
@@ -55,6 +58,9 @@ struct SettingsView: View {
                 }
                 .foregroundStyle(Color.textSecondary)
             }
+            #if os(macOS)
+                macSection
+            #endif
             echoSection
             Section {
                 LabeledContent("Status", value: PaywallCopy.statusLine(for: app.store.source))
@@ -146,6 +152,44 @@ struct SettingsView: View {
         }
         .disabled(isWorking)
     }
+
+    #if os(macOS)
+        private var macSection: some View {
+            Section {
+                Toggle("Open at Login", isOn: Binding(get: { loginItem.isEnabled }, set: { loginItem.setEnabled($0) }))
+                    .accessibilityIdentifier("settings.loginItem")
+                if loginItem.needsApproval {
+                    Text("Allow RequestPad in System Settings › General › Login Items.")
+                        .foregroundStyle(Color.textSecondary)
+                    Button("Open Login Items Settings") { loginItem.openSystemSettings() }
+                }
+                if let message = loginItem.errorMessage {
+                    Text(message).foregroundStyle(Color.textOrange)
+                }
+                Toggle(
+                    "Menu Bar Quick Send",
+                    isOn: Binding(
+                        get: { app.menuBarQuickSendEnabled && app.gate.isPro },
+                        set: { enabled in
+                            if enabled && !app.gate.isPro {
+                                isPaywallPresented = true
+                            } else {
+                                app.menuBarQuickSendEnabled = enabled
+                            }
+                        })
+                )
+                .accessibilityIdentifier("settings.menuBar")
+            } header: {
+                SectionHeader("Mac")
+            } footer: {
+                Text(
+                    "Quick Send (Pro) adds a menu bar item for sending a saved request or a URL without opening a window."
+                )
+                .foregroundStyle(Color.textSecondary)
+            }
+            .onAppear { loginItem.refresh() }
+        }
+    #endif
 
     private var echoSection: some View {
         Section {
