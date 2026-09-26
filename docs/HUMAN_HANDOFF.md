@@ -157,6 +157,15 @@ Phase 9). The TestFlight text and plan are in `docs/AppStore/testflight.md`.
    Record this in `docs/SDLC_LOG.md` under "Phase 9 — Beta".
 
 ### H13 — App Store submission and release (Phase 10)
+**Status 2026-09-27 — submitted by the agent at the owner's request (beta skipped by the owner's choice):**
+- iOS 1.0.0 and macOS 1.0.0 are "Waiting for Review", both with Xcode Cloud build 1.0.0 (3), built from commit
+  `8104b5c`. Tag that commit at release (step 7), not `main`. Build 4 has no code changes.
+- The iOS submission includes the "Pro" subscription group (yearly $19.99 and monthly $2.99, each with a 1-week free
+  trial) and the lifetime purchase ($39.99). Both versions are set to manual release.
+- Steps 1–5 are done. H8 steps 1–2 and H11 are done in App Store Connect. H8 step 4 (sandbox purchase tests) and the
+  H12 beta were not run.
+- Next: step 6 (forward any App Review message), then step 7.
+
 **Prerequisite:** H12 is complete — the external TestFlight build is approved, there are 0 crashes in Organizer and
 no open P1/P2 issues. Submitting before that is possible but skips the beta's safety net.
 1. **Choose the build:** the last TestFlight build (same `CURRENT_PROJECT_VERSION` on iOS and macOS). If code changed
