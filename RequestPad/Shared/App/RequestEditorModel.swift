@@ -196,6 +196,12 @@ final class RequestEditorModel: Identifiable {
     func save(overwrite: Bool = false) async {
         guard let reference, !isReadOnly else { return }
         if request.auth.requiresPro, !app.require(.oauth2) { return }
+        // The stored version changed since this editor loaded it (another window, or a file changed on disk and
+        // was reloaded): saving would silently discard that change (P01.4).
+        if !overwrite, let stored = app.request(reference)?.request, !stored.hasSameContent(as: saved) {
+            conflict = .fileConflict(name: stored.name)
+            return
+        }
         do {
             let updated = try await app.saveRequest(request, reference: reference, overwrite: overwrite)
             saved = request
@@ -221,6 +227,16 @@ final class RequestEditorModel: Identifiable {
         }
         conflict = nil
         try? await app.environment.store.deleteDraft(key: draftKey)
+    }
+
+    /// Follows a newer stored version (file changed on disk, edit in another window) when there are no local
+    /// edits; with local edits the difference surfaces as a conflict on save.
+    func adoptStoredVersion() {
+        guard let reference, let stored = app.request(reference)?.request, !stored.hasSameContent(as: saved),
+            !hasUnsavedChanges
+        else { return }
+        saved = stored
+        request = stored
     }
 
     func revert() async {

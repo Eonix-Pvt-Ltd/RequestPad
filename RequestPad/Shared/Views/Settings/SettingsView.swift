@@ -13,6 +13,7 @@ struct SettingsView: View {
     @SwiftUI.Environment(\.dismiss) private var dismiss
     @SwiftUI.Environment(\.requestReview) private var requestReview
     @State private var timeoutSeconds = 30
+    @State private var followRedirects = true
     @State private var isEchoRunning = false
     @State private var isEraseConfirmationPresented = false
     @State private var exportDocument: AppDataDocument?
@@ -47,6 +48,14 @@ struct SettingsView: View {
                 }
                 .onChange(of: timeoutSeconds) { _, newValue in app.preferences.defaultTimeoutSeconds = newValue }
                 .accessibilityIdentifier("settings.timeout")
+                Toggle("Follow Redirects for New Requests", isOn: $followRedirects)
+                    .onChange(of: followRedirects) { _, newValue in app.preferences.followRedirects = newValue }
+                    .accessibilityIdentifier("settings.followRedirects")
+                LabeledContent(
+                    "History",
+                    value: app.gate.isPro
+                        ? String(localized: "Last 1,000 requests") : String(localized: "Last 100 requests (Pro: 1,000)")
+                )
             } header: {
                 Group {
                     Text("Requests")
@@ -148,6 +157,7 @@ struct SettingsView: View {
         }
         .task {
             timeoutSeconds = app.preferences.defaultTimeoutSeconds
+            followRedirects = app.preferences.followRedirects
             isEchoRunning = await app.environment.echo.isRunning
         }
         .disabled(isWorking)

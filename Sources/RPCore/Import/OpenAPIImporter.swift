@@ -12,6 +12,22 @@ public enum OpenAPIImporter {
     public static let maximumSchemaDepth = 8
     static let methods = ["get", "put", "post", "delete", "options", "head", "patch", "trace"]
 
+    /// `{name}` segments left in a path after declared parameters were converted.
+    static func undeclaredTemplates(in path: String) -> [String] {
+        var names: [String] = []
+        var remainder = path[...]
+        while let open = remainder.firstIndex(of: "{"), let close = remainder[open...].firstIndex(of: "}") {
+            let name = String(remainder[remainder.index(after: open)..<close])
+            if !name.isEmpty, name.allSatisfy({ $0.isLetter || $0.isNumber || "_.-".contains($0) }),
+                !names.contains(name)
+            {
+                names.append(name)
+            }
+            remainder = remainder[remainder.index(after: close)...]
+        }
+        return names
+    }
+
     public static func importDocument(_ data: Data) throws(CoreError) -> ImportedCollection {
         let root = try StructuredDocument.parse(data)
         guard case .object = root else {
@@ -141,6 +157,13 @@ public enum OpenAPIImporter {
                 default:
                     break
                 }
+            }
+            // Templated segments the spec doesn't declare (common in hand-written specs) still become path
+            // parameters, so `{id}` is never sent literally.
+            for name in OpenAPIImporter.undeclaredTemplates(in: brunoPath)
+            where !request.pathParams.contains(where: { $0.name == name }) {
+                brunoPath = brunoPath.replacingOccurrences(of: "{\(name)}", with: ":\(name)")
+                request.pathParams.append(KeyValue(name: name, value: ""))
             }
             request.url = QueryParameters.url("{{baseUrl}}\(brunoPath)", replacingQueryWith: request.queryParams)
 

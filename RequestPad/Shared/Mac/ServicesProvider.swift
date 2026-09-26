@@ -24,7 +24,7 @@
                     AppRuntime.shared.show(.scratch(request), in: model)
                 } catch {
                     Logger(subsystem: AppConstants.loggingSubsystem, category: "app")
-                        .error("Services request not opened: \(error.localizedDescription, privacy: .public)")
+                        .error("Services request not opened: \(error.localizedDescription, privacy: .private)")
                 }
             }
         }

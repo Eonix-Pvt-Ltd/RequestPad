@@ -87,4 +87,14 @@ Record results in `docs/SDLC_LOG.md`.
 5. **State restoration** (X01.4): with a request selected, quit and relaunch on each platform; the same request opens.
 Record results in `docs/SDLC_LOG.md`.
 
+### H10 — Release checks that need your certificates and devices (Phase 7)
+1. **Privacy report:** Xcode → Window → Organizer → Archives → select the archive → Generate Privacy Report. Expect
+   UserDefaults (CA92.1) and File Timestamp (C617.1) only, no tracking, no collected data.
+2. **Distribution signing:** `scripts/archive.sh` (needs the Apple Distribution certificate). Then
+   `codesign -d --entitlements - build/ios-export/*.ipa` (unzip first) shows no `get-task-allow`.
+3. **Launch time on devices:** Instruments › App Launch on an iPhone, an iPad and a Mac, cold launch. Budget < 1.0 s
+   (TEST_PLAN). The iPhone simulator measured 2.83 s (Release, XCTest launch metric, which includes simulator and
+   test overhead) — not representative, so the device number decides.
+Record results in `docs/SDLC_LOG.md`.
+
 _Further items (App Store Connect products, sandbox purchase test, TestFlight, submission) are added in Phases 5–10._

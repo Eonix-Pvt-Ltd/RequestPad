@@ -126,6 +126,9 @@ gate. The agent stops at each gate for approval (user's global CLAUDE.md).
 Cryptography used: OS TLS via URLSession; Keychain; SHA-256 (CryptoKit `SHA256`) for PKCE code challenge only;
 `SecRandomCopyBytes` for PKCE verifier/state. No other cryptography, no `swift-crypto`, no encryption of data at rest
 by the app. Therefore `ITSAppUsesNonExemptEncryption = NO` (authentication-only use, exempt), matching Part A A12.
+Phase 7 re-check: SHA-256 is used in three places, all hashing — the PKCE challenge, OAuth token cache keys, and
+content hashes that detect external changes to `.bru` files. No encryption or decryption of data by the app; the
+determination (`NO`) is unchanged.
 
 ### ADR-0019 — Accessibility audit exemptions (macOS framework elements)
 Context: `performAccessibilityAudit()` on macOS 27 reports (a) "Element has no description" for the unlabeled
@@ -169,15 +172,23 @@ runs only; archives always use automatic signing with team `835LNLUPAJ`.
 products with their prices, periods and the 7-day free trial, and run purchases, Ask to Buy, refunds, expiry and
 failures against it. It moved from `RequestPad/Resources` to the test target in Phase 5 (ADR-0041).
 
-### Unverified: required-reason codes in PrivacyInfo.xcprivacy
-`CA92.1` (UserDefaults, app-only data), `C617.1` (file timestamps inside the app container) and `3B52.1` (file
-timestamps of files/folders the user granted access to — folder collections). Apple's page renders client-side and
-could not be read by the agent. Re-verify in Phase 7 with the archive privacy report.
+### Verified (Phase 7): required-reason codes in PrivacyInfo.xcprivacy
+Checked against Apple's `NSPrivacyAccessedAPITypeReasons` reference (fetched as JSON on 2026-09-26) and a scan of
+all first-party code for required-reason APIs (UserDefaults, file timestamps, boot time, disk space, active
+keyboards). Used: UserDefaults for the app's own settings → `CA92.1`; file modification dates of the app's own
+MetricKit files in its container (Diagnostics) → `C617.1`. `3B52.1` (timestamps of user-granted files) was removed:
+the folder repository and watcher read only directory/symlink flags, never timestamps. No boot-time, disk-space or
+keyboard APIs are used. The archived apps (macOS and iOS) contain the manifest. Xcode Organizer's privacy report
+is a manual step (HUMAN_HANDOFF H10).
 
 ### Verified (Phase 3): `com.apple.security.files.bookmarks.app-scope`
 Security-scoped bookmark creation, resolution and access work in the sandboxed, signed macOS app
 (`PlatformIntegrationTests.securityScopedBookmarksWorkInSandbox`). Re-check the archived entitlements in Phase 7
 (`codesign -d --entitlements`).
+Phase 7: the Release archive's signed entitlements (macOS) are exactly app-sandbox, bookmarks.app-scope,
+user-selected read-write, network client/server and the app's own keychain group, with the hardened runtime; no
+debugging entitlement. The iOS archive is development-signed locally (`get-task-allow`); the App Store export
+re-signs with the distribution certificate (H10).
 
 ### ADR-0024 — OpenAPI path templates become Bruno path parameters
 PRD P02.1 originally said `{{param}}`. Bruno represents path parameters as `:param` in the URL plus a
@@ -357,3 +368,19 @@ collection folder.
   The result opens as an unsaved request; nothing is sent automatically.
 - **Launch at login.** `SMAppService.mainApp`, off by default; the system status is the source of truth
   (re-read when Settings appears), including "requires approval" with a button to System Settings › Login Items.
+
+### ADR-0043 — Hardening results (Phase 7)
+- **End-to-end tests** through the app model against the real URLSession stack and Local Echo cover every PRD
+  criterion that previously rested on a manual UI check, except X01.4 (relaunch restoration, manual H9).
+- **Fuzzing:** a deterministic, seeded harness mutates valid seeds and random bytes for 15 parsers (2,000 inputs
+  each) plus Local Echo's HTTP parser (3,000 byte streams in random TCP-sized pieces). Invariants: JSON, `.bru` and
+  shell-word round trips; every target must accept a minimum share of inputs so deep paths are exercised. Runs in
+  every test run, including ASan/TSan.
+- **Defects found and fixed:** (1) saving an editor whose base version changed on disk silently overwrote the external
+  change — now a conflict (P01.4), and editors without local edits follow the new version; (2) OpenAPI paths with
+  undeclared `{templates}` were sent literally — now path parameters (P02.1); (3) two log statements marked
+  error descriptions public, which can contain file paths with the user name — now private.
+- **Secret scanning:** gitleaks over the full history and the working tree; `.gitleaks.toml` allowlists only two
+  placeholder tokens in named parser fixtures, per rule. **SAST:** semgrep (Swift + secrets rules) finds nothing; a
+  pinned semgrep job was added to CI.
+- **Settings (X02.2):** "Follow Redirects for New Requests" default and the tier's history size are shown.

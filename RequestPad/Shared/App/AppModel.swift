@@ -355,6 +355,7 @@ final class AppModel {
             return nil
         }
         var item = request ?? RequestItem(name: String(localized: "New Request"), url: "https://")
+        if request == nil { item.settings.followRedirects = preferences.followRedirects }
         item.id = UUID()
         let siblings = state.tree?.children(of: folderKey).requests ?? []
         item.sortOrder = (siblings.map(\.request.sortOrder).max() ?? 0) + 1

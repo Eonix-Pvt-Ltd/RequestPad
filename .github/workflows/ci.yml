@@ -33,6 +33,19 @@ jobs:
       - name: Scan full history
         run: ./gitleaks git --redact --verbose .
 
+  sast:
+    name: Static analysis (semgrep)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SEMGREP_VERSION: 1.170.0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install semgrep (pinned)
+        run: 'python3 -m pip install --user --only-binary=:all: "semgrep==${SEMGREP_VERSION}"'
+      - name: Scan app and package sources (Swift and secrets rules)
+        run: ~/.local/bin/semgrep scan --metrics=off --config p/swift --config p/secrets --error Sources RequestPad
+
   build-and-test:
     name: Lint, test, analyze, release build
     runs-on: macos-26

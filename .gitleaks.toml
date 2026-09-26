@@ -1,0 +1,14 @@
+# Secret scanning (gitleaks). Extends the default rules; the only exceptions are two test fixtures that contain
+# placeholder credentials on purpose (reviewed in Phase 7, docs/SDLC_LOG.md):
+# - CurlTests: a fake, truncated JWT in a sample "Copy as cURL" command (tests header parsing);
+# - the Bruno fixture: the public jwt.io example token with an altered signature (tests .bru auth round-trips).
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Placeholder credentials in parser test fixtures"
+targetRules = ["curl-auth-header", "jwt", "generic-api-key"]
+paths = [
+    '''^Tests/RPCoreTests/CurlTests\.swift$''',
+    '''^Tests/RPCoreTests/Fixtures/bru/bruno/complex-with-auth\.bru$''',
+]

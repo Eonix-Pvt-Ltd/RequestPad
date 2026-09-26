@@ -37,7 +37,7 @@ final class LaunchModel {
             let store = EntitlementManager(client: environment.storeClient, state: EntitlementState())
             return .ready(AppModel(environment: environment, store: store))
         } catch {
-            Log.logger(.app).error("Launch preparation failed: \(error.localizedDescription, privacy: .public)")
+            Log.logger(.app).error("Launch preparation failed: \(error.localizedDescription, privacy: .private)")
             return .failed(PresentedError(error))
         }
     }
