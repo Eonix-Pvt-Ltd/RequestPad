@@ -75,7 +75,7 @@ App Store screenshots come from the real app on dedicated simulators and a Mac w
 Mac unlocked and don't move windows during the Mac part):
 
 ```bash
-scripts/screenshots.sh --platform all   # → docs/AppStore/screenshots/{iphone-6.9,ipad-13,mac}
+scripts/screenshots.sh --platform all   # → docs/AppStore/screenshots/{iphone-6.9,ipad-13,mac} and iap-review/
 ```
 
 Store listing text, review notes and privacy answers live in `docs/AppStore/`; `docs/APP_REVIEW_CHECKLIST.md` holds

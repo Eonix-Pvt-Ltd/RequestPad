@@ -459,3 +459,36 @@ macOS RequestPad.pkg  signed by 3rd Party Mac Developer Installer: Eonix (Pvt) L
 
 Human-gated (H12): upload, internal and external TestFlight groups, Beta App Review, and the feedback loop. Exit
 criteria: external build approved, 0 crashes in Organizer, no open P1/P2 issues.
+
+## Phase 10 — Submission: agent deliverables (2026-09-26)
+
+Started at the owner's request before the Phase 9 beta (H12) had run. The beta's exit criteria stay a prerequisite
+of submission (HUMAN_HANDOFF H13).
+
+Done:
+- **In-app purchase review screenshots:** `docs/AppStore/iap-review/{yearly,monthly,lifetime}.png` (1320×2868). They
+  show the real paywall with each product selected: price, period, trial terms, Restore Purchases. They are made by
+  `ScreenshotTests.testCaptureInAppPurchaseReviewScreenshots` through `scripts/screenshots.sh` (Debug-only
+  `paywall` scenario, no Pro).
+- **Prepared App Review replies:** `docs/AppStore/rejection_responses.md` covers 2.1 (IAP not found, crash),
+  2.5.2/2.5.4 (Local Echo), 2.4.5 (login item, menu bar, Services, entitlements), 3.1.2, 4.2, 5.1.1, and 2.3
+  (other apps' names, screenshots). Every factual statement was checked against the source: Local Echo is off by
+  default; Face ID uses `deviceOwnerAuthentication` (passcode fallback); the paywall has the 24-hour renewal text;
+  the Local Network usage string is quoted verbatim.
+- **Submission and release steps:** HUMAN_HANDOFF H13 (manual release on both platforms, phased release on iOS,
+  attach the IAPs, tag `v1.0.0` after approval). H8 step 2 points to the IAP screenshots.
+- **Docs:** APP_REVIEW_CHECKLIST links the IAP screenshots and the prepared replies; CHANGELOG has the 1.0.0 section
+  (pending submission).
+
+Verification:
+```
+scripts/screenshots.sh --platform ios        → iPhone 5 + 3 IAP review screenshots (1320×2868), iPad 5 (2064×2752)
+                                               (first run failed to compile: missing `import RPStore` under
+                                               MemberImportVisibility — fixed)
+xcodebuild build-for-testing (macOS)         → succeeded (the Mac compiles the Debug-only code and the UI tests)
+scripts/lint.sh                              → passed
+```
+Unchanged since Phase 9: app code outside the Debug-only screenshot scenario, and the uploaded or exported archives
+(`build/*-export`, build 1.0.0 (1)).
+
+Human-gated: H12 (beta), then H13 (submit, review, release). Exit (human-verified): "Ready for Sale".

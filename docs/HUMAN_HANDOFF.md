@@ -70,8 +70,11 @@ Record results in `docs/SDLC_LOG.md`.
    `lk.eonix.requestpad.pro.yearly` ($19.99/year) and `lk.eonix.requestpad.pro.monthly` ($2.99/month), each with a
    7-day free trial introductory offer, and the non-consumable `lk.eonix.requestpad.pro.lifetime` ($39.99). Match the
    IDs exactly (`ProductID`); prices, periods and the trial should match `RequestPadTests/StoreKit/Products.storekit`.
-2. Add display names, descriptions and a review screenshot of the paywall for each product; submit them with the
-   first app version.
+2. Add display names and descriptions (`docs/AppStore/metadata.md` → "In-app purchase display names") and the
+   review screenshot for each product from `docs/AppStore/iap-review/` (`yearly.png`, `monthly.png`,
+   `lifetime.png`: the real paywall with that product selected, made by `scripts/screenshots.sh`). If you set
+   different prices, change them in `RequestPadTests/StoreKit/Products.storekit` and the fake store
+   (`Sources/RPStore/StoreClient.swift`) first, then recapture. Submit the products with the first app version.
 3. Accept the Paid Apps agreement and complete tax and banking (purchases do not work in TestFlight otherwise).
 4. With a Sandbox Apple Account on a device: buy each product, cancel, restore on a second device (Pro unlocks
    there, X03.3), use Ask to Buy with a family sandbox account, and refund via the Sandbox account settings. Record
@@ -137,4 +140,32 @@ Phase 9). The TestFlight text and plan are in `docs/AppStore/testflight.md`.
    - there are no open P1 or P2 issues.
    Record this in `docs/SDLC_LOG.md` under "Phase 9 — Beta".
 
-_Further items (submission, release) are added in Phase 10._
+### H13 — App Store submission and release (Phase 10)
+**Prerequisite:** H12 is complete — the external TestFlight build is approved, there are 0 crashes in Organizer and
+no open P1/P2 issues. Submitting before that is possible but skips the beta's safety net.
+1. **Choose the build:** the last TestFlight build (same `CURRENT_PROJECT_VERSION` on iOS and macOS). If code changed
+   after it, run `scripts/archive.sh` and `scripts/upload.sh` again with a bumped build number.
+2. **Complete the version page** for iOS and for macOS (App Store Connect → the app → 1.0.0):
+   - everything from H11 (metadata, screenshots, privacy, age rating, review information with
+     `docs/AppStore/review_notes.md`);
+   - select the build;
+   - attach the three in-app purchases (In-App Purchases and Subscriptions → select all);
+   - set pricing: Free, all territories you choose.
+3. **Release options:**
+   - **iOS:** "Automatically release this version" is off; use **Manually release**, and turn on **Phased Release for
+     Automatic Updates**.
+   - **macOS:** **Manually release this version**.
+   - Releasing both manually lets the Universal Purchase go live on both platforms at once.
+4. **Final check:** every row of `docs/APP_REVIEW_CHECKLIST.md` is ✅ or its 👤 step is done, and the legal pages
+   are live (H1).
+5. **Submit** both versions for review (Add for Review → Submit). Review usually takes 24–48 hours.
+6. **During review:** forward any message from App Review to the agent. It drafts a reply from
+   `docs/AppStore/rejection_responses.md` within 24 hours and fixes the issue if a fix is needed.
+7. **After "Pending Developer Release" on both platforms:**
+   - release iOS and macOS the same day;
+   - tag the submitted commit: `git tag -a v1.0.0 -m "RequestPad 1.0.0"`, then `git push origin v1.0.0`;
+   - set the date on the 1.0.0 entry in `CHANGELOG.md`.
+8. **Exit (human-verified):** "Ready for Sale" on both platforms. Then follow `docs/RELEASE_RUNBOOK.md` §10–14
+   (post-launch).
+
+_All handoff items are now listed. Post-launch operations live in `docs/RELEASE_RUNBOOK.md`._

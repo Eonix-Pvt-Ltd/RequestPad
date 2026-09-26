@@ -3,6 +3,8 @@
 #   iphone-6.9/  1320×2868   (iPhone Pro Max simulator)
 #   ipad-13/     2064×2752   (iPad Pro 13-inch simulator)
 #   mac/         2880×1800   (this Mac; needs a Retina display)
+# and the in-app purchase review screenshots (App Store Connect → each product → Review Information) into
+# docs/AppStore/iap-review/ (iPhone, paywall with each product selected; not shown on the product page).
 # Each scene is staged by the app's Debug-only `-ScreenshotScenario` (sample data, real sends to Local Echo, a real
 # runner run), so screenshots show the real UI. Simulators get a clean status bar and light appearance; the previous
 # appearance is restored afterwards.
@@ -21,6 +23,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 OUT=docs/AppStore/screenshots
+IAP_OUT=docs/AppStore/iap-review
+IAP_PRODUCTS=(yearly monthly lifetime)
 DERIVED_DATA=build/DerivedData
 SCENES=(response chaining graphql runner environments)
 # Dedicated simulators (created if missing), so status bar and appearance changes never touch your own devices.
@@ -68,7 +72,9 @@ raise SystemExit("error: no available simulator named " + name)' "$1"
 }
 
 capture_ios() {
-    local label="$1" name="$2" width="$3" height="$4"
+    local label="$1" name="$2" width="$3" height="$4" with_iap="${5:-false}"
+    local tests=(-only-testing:RequestPadUITests/ScreenshotTests/testCaptureAppStoreScreenshots)
+    if $with_iap; then tests+=(-only-testing:RequestPadUITests/ScreenshotTests/testCaptureInAppPurchaseReviewScreenshots); fi
     local udid appearance was_booted=false results="build/screenshots-$label.xcresult" dir="$OUT/$label"
     udid=$(simulator_udid "$name")
     if xcrun simctl list devices | grep -q "$udid) (Booted)"; then was_booted=true; fi
@@ -84,19 +90,22 @@ capture_ios() {
     rm -rf "$results" "$dir" "build/screenshots-$label"
     echo "▸ Screenshots ($label, $name)"
     xcodebuild test -project RequestPad.xcodeproj -scheme RequestPad -destination "id=$udid" \
-        -derivedDataPath "$DERIVED_DATA" -only-testing:RequestPadUITests/ScreenshotTests \
+        -derivedDataPath "$DERIVED_DATA" "${tests[@]}" \
         -resultBundlePath "$results" 2>&1 | format
     xcrun xcresulttool export attachments --path "$results" --output-path "build/screenshots-$label" >/dev/null
     mkdir -p "$dir"
-    python3 - "build/screenshots-$label" "$dir" <<'PY'
+    if $with_iap; then rm -rf "$IAP_OUT"; mkdir -p "$IAP_OUT"; fi
+    python3 - "build/screenshots-$label" "$dir" "$IAP_OUT" <<'PY'
 import json, os, shutil, sys
-source, destination = sys.argv[1], sys.argv[2]
+source, destination, iap = sys.argv[1], sys.argv[2], sys.argv[3]
 for test in json.load(open(os.path.join(source, "manifest.json"))):
     for attachment in test["attachments"]:
-        name = attachment.get("suggestedHumanReadableName", "")
+        name = attachment.get("suggestedHumanReadableName", "").split("_")[0]
+        exported = os.path.join(source, attachment["exportedFileName"])
         if name.startswith("appstore-"):
-            scene = name.split("_")[0].removeprefix("appstore-")
-            shutil.copy(os.path.join(source, attachment["exportedFileName"]), os.path.join(destination, scene + ".png"))
+            shutil.copy(exported, os.path.join(destination, name.removeprefix("appstore-") + ".png"))
+        elif name.startswith("iapreview-"):
+            shutil.copy(exported, os.path.join(iap, name.removeprefix("iapreview-") + ".png"))
 PY
     local count=0
     for file in "$dir"/*.png; do
@@ -105,6 +114,13 @@ PY
     done
     [[ $count -eq ${#SCENES[@]} ]] || { echo "error: $count screenshots in $dir, expected ${#SCENES[@]}" >&2; exit 1; }
     echo "  $count screenshots, ${width}×${height}, in $dir"
+    if $with_iap; then
+        for product in "${IAP_PRODUCTS[@]}"; do
+            [[ -f "$IAP_OUT/$product.png" ]] || { echo "error: missing $IAP_OUT/$product.png" >&2; exit 1; }
+            require_size "$IAP_OUT/$product.png" "$width" "$height"
+        done
+        echo "  ${#IAP_PRODUCTS[@]} in-app purchase review screenshots in $IAP_OUT"
+    fi
 }
 
 capture_mac() {
@@ -134,7 +150,7 @@ capture_mac() {
 if [[ "$platform" == all || "$platform" == ios ]]; then
     ensure_simulator "$IPHONE" "$IPHONE_TYPE"
     ensure_simulator "$IPAD" "$IPAD_TYPE"
-    capture_ios iphone-6.9 "$IPHONE" 1320 2868
+    capture_ios iphone-6.9 "$IPHONE" 1320 2868 true
     capture_ios ipad-13 "$IPAD" 2064 2752
 fi
 if [[ "$platform" == all || "$platform" == macos ]]; then

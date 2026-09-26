@@ -5,6 +5,11 @@ All notable changes to RequestPad are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0] — pending submission (the date is set on release)
+
+The first release: everything below ships in 1.0.0. The full feature list with acceptance criteria is in
+`docs/PRD.md`.
+
 ### Added
 - Project foundation: Swift package `RequestPadKit` (RPCore, RPData, RPServices, RPStore, RPUI), Swift 6 strict
   concurrency, iOS/iPadOS 17 and macOS 14 deployment, App Sandbox, privacy manifest, StoreKit test configuration,
@@ -31,7 +36,3 @@ All notable changes to RequestPad are documented here. The format follows
 - Selecting a request inside a collapsed folder expands the folder in the sidebar.
 - On Mac, start-up work runs once even when the window and the menu bar item open together.
 - The Environments note is no longer cut off on Mac.
-
-## [1.0.0] — not yet released
-
-The 1.0.0 entry is completed at release (Phase 10) with the full V1 feature list from `docs/PRD.md`.
