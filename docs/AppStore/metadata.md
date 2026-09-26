@@ -17,7 +17,7 @@ HTTP & GraphQL, git-friendly
 ```
 
 > The PRD subtitle "HTTP & GraphQL, Bruno-compatible" is 32 characters (App Store Connect allows 30) and names
-> another app (Guideline 2.3.7). Pending the owner's confirmation (Phase 8 gate).
+> another app (Guideline 2.3.7). The owner approved this replacement on 2026-09-26 (ADR-0044).
 
 ## Promotional Text
 
@@ -84,7 +84,7 @@ http,rest,graphql,request,openapi,json,curl,oauth,developer,bru,environment,endp
 ```
 
 > Part A lists "postman" and "bruno"; they are other apps' names, which Guideline 2.3.7 and B10.2 forbid in
-> keywords. Pending the owner's confirmation (Phase 8 gate).
+> keywords. The owner approved leaving them out on 2026-09-26 (ADR-0044).
 
 ## What's New in This Version
 

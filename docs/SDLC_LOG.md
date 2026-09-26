@@ -429,3 +429,33 @@ covered by the runs listed above; re-run `scripts/test.sh --platform macos --ski
 after the next reboot (HUMAN_HANDOFF H7).
 
 Not run in this phase, with reason: macOS UI tests (H7); device checks (H2, H6, H10); App Store Connect entry (H11).
+
+## Phase 9 — Beta: agent deliverables (2026-09-26)
+
+Done:
+- **Owner decisions recorded:** the subtitle "HTTP & GraphQL, git-friendly" and the keywords without other apps'
+  names (ADR-0044; the metadata notes and the checklist are updated).
+- **Archives and exports** for version 1.0.0 (1): `scripts/archive.sh --platform all` → exit 0 (lint passed first).
+  Outputs:
+  - `build/ios-export/RequestPad.ipa` (9.6 MB)
+  - `build/macos-export/RequestPad.pkg` (10.1 MB)
+- **Upload prepared:** `scripts/upload.sh`, human-run. A dry run with a dummy key showed "ios: version 1.0.0 (1),
+  macos: version 1.0.0 (1)" and cancelled on "n" with nothing sent. The guards reject a missing key and a key inside
+  the repository.
+- **TestFlight plan:** `docs/AppStore/testflight.md` has the beta description, "What to Test", groups and triage.
+  HUMAN_HANDOFF H12 has the steps and exit criteria.
+
+Export inspection:
+```
+iOS  RequestPad.app   Authority=Apple Distribution: Eonix (Pvt) Ltd (835LNLUPAJ)
+                      entitlements: application-identifier, team-identifier, beta-reports-active=true,
+                      get-task-allow=false · PrivacyInfo.xcprivacy present · no .storekit file
+macOS RequestPad.pkg  signed by 3rd Party Mac Developer Installer: Eonix (Pvt) Ltd (835LNLUPAJ)
+      RequestPad.app  Authority=Apple Distribution: Eonix (Pvt) Ltd · hardened runtime · lipo: x86_64 arm64
+                      entitlements: app-sandbox, files.bookmarks.app-scope, files.user-selected.read-write,
+                      network.client, network.server, keychain-access-groups [835LNLUPAJ.lk.eonix.RequestPad]
+                      (matches ADR-0015/0033) · no .storekit file · codesign --verify --deep --strict: ok
+```
+
+Human-gated (H12): upload, internal and external TestFlight groups, Beta App Review, and the feedback loop. Exit
+criteria: external build approved, 0 crashes in Organizer, no open P1/P2 issues.

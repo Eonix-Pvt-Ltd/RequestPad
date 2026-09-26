@@ -25,7 +25,7 @@ account, no cloud, no telemetry.
 | `Package.swift`, `Sources/`, `Tests/` | Local Swift package `RequestPadKit`: `RPCore`, `RPData`, `RPServices`, `RPStore`, `RPUI` and their Swift Testing suites |
 | `Config/` | xcconfig files (`Base`, `Debug`, `Release`, `RequestPad-App`) |
 | `RequestPadTests/`, `RequestPadUITests/` | App-hosted unit tests and XCUITests (incl. accessibility audits) |
-| `scripts/` | `bootstrap.sh`, `lint.sh`, `test.sh`, `sync-strings.sh`, `archive.sh`, `screenshots.sh`, `check-metadata.py`, export options |
+| `scripts/` | `bootstrap.sh`, `lint.sh`, `test.sh`, `sync-strings.sh`, `archive.sh`, `upload.sh`, `screenshots.sh`, `check-metadata.py`, export options |
 | `docs/` | PRD, architecture, decisions, SDLC log, test plan, handoff, App Store material |
 
 ## Build and run
@@ -68,6 +68,7 @@ views, dynamic loading, arbitrary loads) and App Store metadata problems (`scrip
 
 ```bash
 scripts/archive.sh            # archives + exports iOS and macOS builds into build/*-export (no upload)
+scripts/upload.sh             # uploads them to App Store Connect after confirmation (needs an API key; human-run)
 ```
 
 App Store screenshots come from the real app on dedicated simulators and a Mac window (about 5 minutes; keep the
