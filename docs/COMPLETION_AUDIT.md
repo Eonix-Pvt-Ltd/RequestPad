@@ -68,7 +68,7 @@ Legend: ✅ done and verified by the agent · 👤 open, needs a human (handoff 
 - ✅ **Store material:** icon, 15 screenshots, 3 IAP review screenshots, metadata, review notes, privacy labels,
   review checklist, prepared review replies, TestFlight plan.
 - 👤 **Release steps:** upload and beta (H12), store listing (H11), in-app purchases (H8), submit and release
-  (H13), legal and support pages live (H1).
+  (H13). Legal and support pages are live and verified (H1, 2026-09-27).
 
 ## 2. File tree
 
