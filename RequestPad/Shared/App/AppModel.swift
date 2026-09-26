@@ -49,6 +49,9 @@ final class AppModel {
     private(set) var globals = Environment(id: SampleData.globalsID, name: String(localized: "Globals"))
     private(set) var history: [HistoryEntry] = []
     private(set) var isLoaded = false
+    /// The one in-flight or finished load. Windows, the menu bar item, Shortcuts and Services all call `load()`, often
+    /// at the same time on launch; they share this task so start-up work runs exactly once.
+    @ObservationIgnored private var loadTask: Task<Void, Never>?
     private(set) var echoPort: UInt16?
     /// Extracted variables per collection for this app session (F04.2 runtime scope).
     private(set) var runtimeVariables: [UUID: [String: String]] = [:]
@@ -61,6 +64,8 @@ final class AppModel {
     /// Something to show in a window, requested from outside one (menu bar, Services, Shortcuts). The frontmost
     /// window consumes it (`RootView`).
     var requestedOpen: OpenTarget?
+    /// The next runner sheet starts running as soon as it appears.
+    var runnerAutoStart = false
     /// macOS menu bar Quick Send (P09.1); mirrors ``Preferences/menuBarQuickSendEnabled``.
     var menuBarQuickSendEnabled: Bool {
         didSet { preferences.menuBarQuickSendEnabled = menuBarQuickSendEnabled }
@@ -90,7 +95,13 @@ final class AppModel {
     // MARK: Loading
 
     func load() async {
-        guard !isLoaded else { return }
+        if let loadTask { return await loadTask.value }
+        let task = Task { await performLoad() }
+        loadTask = task
+        await task.value
+    }
+
+    private func performLoad() async {
         purgeTemporaryBodies()
         environment.metrics.start()
         await store.start()

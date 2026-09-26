@@ -74,7 +74,13 @@ struct RunnerView: View {
                     app.presentedError = PresentedError(ExportFailure(reason: error.localizedDescription))
                 }
             }
-            .onAppear { items = app.runItems(collectionID: collectionID, folderKey: folderKey) }
+            .onAppear {
+                items = app.runItems(collectionID: collectionID, folderKey: folderKey)
+                if app.runnerAutoStart {
+                    app.runnerAutoStart = false
+                    run()
+                }
+            }
         }
         .sheetFrame(minWidth: 560, minHeight: 520)
     }

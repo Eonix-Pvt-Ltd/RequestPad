@@ -44,8 +44,7 @@ struct URLSessionHTTPClientTests {
                 auth: .bearer(token: "tkn"))
             let response = try await client.send(try resolved(request), files: PathFileResolver(baseDirectory: nil))
             #expect(response.statusCode == 200)
-            #expect(
-                response.reasonPhrase == "No Error" || response.reasonPhrase == "Ok" || !response.reasonPhrase.isEmpty)
+            #expect(response.reasonPhrase == "OK")
             #expect(response.contentType == "application/json")
             let echo = try JSONParser().parse(try #require(response.body.inMemoryData))
             #expect(echo["method"] == .string("POST"))

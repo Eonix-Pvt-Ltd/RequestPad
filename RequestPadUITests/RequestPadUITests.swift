@@ -184,7 +184,7 @@ final class RequestPadUITests: XCTestCase {
         attachScreenshot(app, named: "08-settings")
         try audit(app)
         let erase = element(app, "settings.erase")
-        scrollUntilExists(erase, in: app)
+        scrollUntilExists("settings.erase", in: app)
         XCTAssertTrue(erase.exists, "Erase All Data not found")
         erase.tap()
         app.buttons["Erase All Data"].firstMatch.tap()
@@ -216,12 +216,12 @@ final class RequestPadUITests: XCTestCase {
             XCTAssertTrue(element(app, "response.status").waitForExistence(timeout: Self.timeout))
             attachScreenshot(app, named: "ax5-response")
             goBackToSidebarIfNeeded(app)
-            scrollUntilExists(element(app, "sidebar.history"), in: app)
+            scrollUntilExists("sidebar.history", in: app)
             element(app, "sidebar.history").tap()
             XCTAssertTrue(element(app, "history.list").waitForExistence(timeout: Self.timeout))
             attachScreenshot(app, named: "ax5-history")
             goBackToSidebarIfNeeded(app)
-            scrollUntilExists(element(app, "sidebar.settings"), in: app)
+            scrollUntilExists("sidebar.settings", in: app)
             element(app, "sidebar.settings").tap()
             XCTAssertTrue(element(app, "settings.appearance").waitForExistence(timeout: Self.timeout))
             attachScreenshot(app, named: "ax5-settings")
@@ -286,10 +286,14 @@ final class RequestPadUITests: XCTestCase {
 
     /// Forms load rows lazily; scroll until `target` exists.
     @MainActor
-    private func scrollUntilExists(_ target: XCUIElement, in app: XCUIApplication) {
+    private func scrollUntilExists(_ identifier: String, in app: XCUIApplication) {
+        let target = element(app, identifier)
+        // Sidebar rows scroll with the sidebar: on iPad a swipe on the app lands in the detail pane.
+        let sidebar = element(app, "sidebar.list")
+        let inSidebar = identifier.hasPrefix("sidebar.") && sidebar.exists
         for _ in 0..<8 where !(target.exists && target.isHittable) {
             #if os(iOS)
-                app.swipeUp()
+                if inSidebar { sidebar.swipeUp() } else { app.swipeUp() }
             #else
                 app.windows.firstMatch.scroll(byDeltaX: 0, deltaY: -400)
             #endif

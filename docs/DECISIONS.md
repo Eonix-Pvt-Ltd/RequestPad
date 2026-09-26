@@ -384,3 +384,33 @@ collection folder.
   placeholder tokens in named parser fixtures, per rule. **SAST:** semgrep (Swift + secrets rules) finds nothing; a
   pinned semgrep job was added to CI.
 - **Settings (X02.2):** "Follow Redirects for New Requests" default and the tier's history size are shown.
+
+### ADR-0044 — App Store assets and metadata (Phase 8)
+- **Icon:** an Icon Composer bundle `RequestPad/AppIcon.icon` (two vector layers: braces and a paper plane on a
+  system blue gradient, Liquid Glass on both groups) replaces the asset-catalog icon. actool compiles it for every
+  platform (`AppIcon.icns` + `Assets.car` on macOS, the iOS icon set on iOS). Default, Dark, Clear and Tinted
+  renditions were rendered with `ictool` and reviewed. The brief's "Mono" is what Icon Composer calls Clear (and the
+  system derives Tinted from it); both come from the same layers, so no separate artwork is needed. The layers are
+  plain SVG, so the icon is reviewable in git.
+- **Screenshots from the real app:** a Debug-only `-ScreenshotScenario <name>` launch argument (with `-UITestMode
+  -UITestPro`) makes `ScreenshotDirector` stage a scene through the app's own flows — load sample data, select a
+  request, pick a tab, send, open the runner or environments sheet — so every image shows real UI and real Local Echo
+  responses (Guideline 2.3). iOS images come from a UI test on dedicated simulators with a fixed status bar; Mac images
+  are `screencapture` of a 1440×900-point window (2880×1800 pixels). The code is compiled out of Release.
+- **Metadata deviations from Part A (pending owner confirmation):** the subtitle "HTTP & GraphQL, Bruno-compatible"
+  is 32 characters (limit 30) and names another app; keywords "postman" and "bruno" name other apps (Guideline 2.3.7,
+  B10.2). Replaced by "HTTP & GraphQL, git-friendly" and neutral keywords. The description names Postman and Bruno
+  only as file formats the app imports/reads, which is factual.
+- **`scripts/check-metadata.py`** in `lint.sh` enforces the length limits and forbidden terms on every run; `lint.sh`
+  also rejects web-view, dynamic-loading and arbitrary-loads APIs.
+- **Defects found while staging screenshots and fixed:** (1) the "Welcome to RequestPad Pro" alert appeared at every
+  launch for existing Pro users — `didUnlockPro` now fires only for a change after the first entitlement read;
+  (2) the JSON tree opened fully collapsed at the root — the root's members are now the first level; (3) every
+  response read "200 No Error" (Foundation's status description) — now the IANA reason phrase (`HTTPReasonPhrase`),
+  and unregistered codes show the status class; (4) PRIVACY.md promised "Export Diagnostics" but Settings only
+  showed text — it now shares a `.txt` file; (5) opening a request inside a collapsed folder did not reveal it in the
+  sidebar — folders now expand to the selection; (6) `LSApplicationCategoryType` was missing (required for Mac
+  uploads) — set to Developer Tools; (7) on macOS the window, menu bar item and runtime loaded the app model
+  concurrently at launch (two store starts, two Local Echo starts) — `AppModel.load()` is now single-flight and the
+  entitlement first-read check is captured before its await, so overlapping reads are never an "unlock";
+  (8) the Environments footer was cut off on macOS (list footers are one line) — shortened.

@@ -47,14 +47,16 @@ public struct StatusBadge: View {
     public var body: some View {
         let statusClass = HTTPStatusClass(statusCode: code)
         let style = StatusBadgeStyle(statusClass: statusClass)
+        // Unregistered codes have no reason phrase; the class name keeps the badge readable.
+        let text = reason.isEmpty ? statusClass.localizedName : reason
         Label {
-            Text(verbatim: "\(code) \(reason)")
+            Text(verbatim: "\(code) \(text)")
                 .font(.headline.monospacedDigit())
         } icon: {
             Image(systemName: style.systemImage)
         }
         .foregroundStyle(style.tint)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("Status \(code), \(reason), \(statusClass.localizedName)"))
+        .accessibilityLabel(Text("Status \(code), \(text), \(statusClass.localizedName)"))
     }
 }

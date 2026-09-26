@@ -48,12 +48,10 @@ struct EnvironmentsView: View {
                     }
                     .foregroundStyle(Color.textSecondary)
                 } footer: {
-                    Group {
-                        Text(
-                            "Secret values are stored in the Keychain on this device and never written to collection files."
-                        )
-                    }
-                    .foregroundStyle(Color.textSecondary)
+                    Text("Secrets stay in the Keychain on this device, never in collection files.")
+                        .foregroundStyle(Color.textSecondary)
+                        // Kept short: macOS shows list section footers on a single line.
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 Section {
                     NavigationLink(value: EnvironmentTarget.globals) {

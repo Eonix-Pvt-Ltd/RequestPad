@@ -52,6 +52,14 @@ struct RequestEditorTabs: View {
             }
             .scrollDismissesKeyboard(.interactively)
         }
+        .onAppear(perform: applyRequestedTab)
+        .onChange(of: editor.requestedTab) { _, _ in applyRequestedTab() }
+    }
+
+    private func applyRequestedTab() {
+        guard let requested = editor.requestedTab.flatMap(Tab.init(rawValue:)) else { return }
+        tab = requested
+        editor.requestedTab = nil
     }
 
     private func tabButton(_ item: Tab) -> some View {

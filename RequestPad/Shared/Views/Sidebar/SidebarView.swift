@@ -83,7 +83,13 @@ struct SidebarView: View {
                 #endif
             }
         }
+        .accessibilityIdentifier("sidebar.list")
         .searchable(text: $searchText, prompt: Text("Search requests"))
+        .onChange(of: workspace.requestedSheet) { _, requested in
+            guard let requested else { return }
+            sheet = requested
+            workspace.requestedSheet = nil
+        }
         #if os(iOS)
             // Choosing a search result hides the keyboard so the request isn't half covered (iPad).
             .onChange(of: workspace.selection) { _, _ in
@@ -198,7 +204,8 @@ struct SidebarView: View {
         SidebarActions(
             prompt: { prompt = $0 }, sheet: { sheet = $0 }, delete: { pendingDeletion = $0 },
             regrant: { id in folderPicker = .regrant(id) }, convert: { id in folderPicker = .convert(id) },
-            select: { workspace.selection = $0 }, renamed: { workspace.followRename(to: $0) })
+            select: { workspace.selection = $0 }, renamed: { workspace.followRename(to: $0) },
+            selected: workspace.currentRequestReference)
     }
 
     private func submit(_ prompt: NamePrompt) {
@@ -255,7 +262,7 @@ enum FolderPickerPurpose {
     case convert(UUID)
 }
 
-enum SidebarSheet: Identifiable {
+enum SidebarSheet: Identifiable, Equatable {
     case collectionSettings(UUID)
     case folderSettings(UUID, String)
     case environments(UUID)
@@ -289,6 +296,8 @@ struct SidebarActions {
     var convert: (UUID) -> Void
     var select: (WorkspaceSelection) -> Void
     var renamed: (RequestReference) -> Void
+    /// The selected request, so folders containing it expand (reveal the selection).
+    var selected: RequestReference?
 }
 
 /// One collection with its folders and requests.
@@ -443,6 +452,24 @@ struct FolderRow: View {
                                 perform: { await app.deleteFolder(in: tree.id, key: folder.key) }))
                     }
                 }
+        }
+        .onAppear(perform: revealSelection)
+        .onChange(of: actions.selected) { _, _ in revealSelection() }
+    }
+
+    /// Expands when the selected request is inside this folder (at any depth).
+    private func revealSelection() {
+        guard let selected = actions.selected, selected.collectionID == tree.id,
+            let entry = tree.requests.first(where: { $0.key == selected.key })
+        else { return }
+        var current = entry.folderKey
+        var visited: Set<String> = []
+        while let key = current, visited.insert(key).inserted {
+            if key == folder.key {
+                isExpanded = true
+                return
+            }
+            current = tree.folders.first { $0.key == key }?.parentKey
         }
     }
 }

@@ -35,7 +35,7 @@ public actor FakeHTTPClient: HTTPClient {
         setCookies: [String] = []
     ) -> HTTPResponse {
         HTTPResponse(
-            statusCode: status, reasonPhrase: HTTPURLResponse.localizedString(forStatusCode: status).capitalized,
+            statusCode: status, reasonPhrase: HTTPReasonPhrase.phrase(for: status),
             headers: headers,
             setCookieHeaders: setCookies, body: .memory(body), url: request.url, redirects: [],
             timings: RequestTimings(

@@ -617,3 +617,35 @@ struct EndToEndSettingsTests {
         #expect(!report.contains("abc123"))
     }
 }
+
+@MainActor
+@Suite("Diagnostics export")
+struct DiagnosticsExportTests {
+    // AC: X04.3
+    @Test func reportIsWrittenAsATextFile() throws {
+        let url = try #require(DiagnosticsSheet.write("RequestPad diagnostics\nline 2"))
+        #expect(url.lastPathComponent == "RequestPad Diagnostics.txt")
+        #expect(try String(contentsOf: url, encoding: .utf8) == "RequestPad diagnostics\nline 2")
+    }
+}
+
+@MainActor
+@Suite("App launch")
+struct AppLaunchTests {
+    /// On macOS the window, the menu bar item, Shortcuts and Services all load the model at launch. Overlapping loads
+    /// must share one start-up (one Local Echo, one store start) and an existing purchase is not a new unlock.
+    @Test func overlappingLoadsShareOneStartupAndDoNotAnnounceExistingPro() async throws {
+        let app = try TestApp.makeLive(isPro: true)
+        async let first: Void = app.load()
+        async let second: Void = app.load()
+        async let third: Void = app.load()
+        _ = await (first, second, third)
+        #expect(app.isLoaded)
+        #expect(app.entitlements.isPro)
+        #expect(!app.store.didUnlockPro)
+        let port = app.echoPort
+        await app.load()
+        #expect(app.echoPort == port)
+        await app.stopEcho()
+    }
+}

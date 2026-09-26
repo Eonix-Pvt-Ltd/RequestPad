@@ -52,10 +52,10 @@ struct HistoryView: View {
                             .foregroundStyle(Color.textRed)
                             .accessibilityIdentifier("history.clear")
                     } footer: {
-                        Group {
-                            Text(limitFooter)
-                        }
-                        .foregroundStyle(Color.textSecondary)
+                        Text(limitFooter)
+                            .foregroundStyle(Color.textSecondary)
+                            // macOS list footers are one line unless allowed to grow.
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 .accessibilityIdentifier("history.list")

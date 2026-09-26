@@ -60,6 +60,11 @@ The same flows pass on iPhone and iPad, and macOS is covered by the app-hosted u
    file and a Postman export; run a folder (Pro via `-UITestPro` in a Debug build) and export results.
 Record results in `docs/SDLC_LOG.md`.
 
+**Phase 8 addition:** after the next restart of this Mac, run
+`scripts/test.sh --platform macos --skip-macos-ui --sanitizers --analyze` once and record the result in
+`docs/SDLC_LOG.md` — the xcodebuild macOS test runner stopped connecting after an automation-mode timeout on
+2026-09-26 (SDLC_LOG Phase 8).
+
 ### H8 — App Store Connect in-app purchases (before TestFlight, Phase 9)
 1. In App Store Connect → RequestPad → Monetization, create the subscription group **Pro** with
    `lk.eonix.requestpad.pro.yearly` ($19.99/year) and `lk.eonix.requestpad.pro.monthly` ($2.99/month), each with a
@@ -97,4 +102,16 @@ Record results in `docs/SDLC_LOG.md`.
    test overhead) — not representative, so the device number decides.
 Record results in `docs/SDLC_LOG.md`.
 
-_Further items (App Store Connect products, sandbox purchase test, TestFlight, submission) are added in Phases 5–10._
+### H11 — App Store Connect listing (Phase 8 assets; before submission)
+1. **Decide** the subtitle and keywords (`docs/AppStore/metadata.md` notes): the Part A subtitle is over the limit and
+   Part A's keywords name other apps. `python3 scripts/check-metadata.py` must pass after any edit.
+2. Create the app record (bundle ID `lk.eonix.RequestPad`, SKU of your choice, primary language English (U.S.)) and
+   enter every field from `docs/AppStore/metadata.md` for the iOS and macOS versions.
+3. Upload the screenshots in `docs/AppStore/screenshots/`: `iphone-6.9/` to iPhone 6.9", `ipad-13/` to iPad 13",
+   `mac/` to Mac, in file-name order.
+4. App Privacy: answer as in `docs/AppStore/privacy_labels.md`, then publish. Age rating: answer as in
+   `metadata.md` → 4+.
+5. App Review Information: sign-in not required; paste `docs/AppStore/review_notes.md`; add a contact name and phone.
+6. Work through `docs/APP_REVIEW_CHECKLIST.md` and `docs/RELEASE_RUNBOOK.md` sections 5–8.
+
+_Further items (App Store Connect products, sandbox purchase test, TestFlight, submission) are added in Phases 9–10._

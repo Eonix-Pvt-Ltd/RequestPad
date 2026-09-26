@@ -19,10 +19,18 @@ All notable changes to RequestPad are documented here. The format follows
 - Shortcuts "Send Request" action (Pro), macOS menu bar Quick Send (Pro), macOS Services "Send URL with
   RequestPad", and Open at Login on macOS.
 - Settings: follow redirects by default for new requests; the History limit is shown.
+- App icon in Icon Composer format with dark, clear and tinted appearances.
+- Settings → Export Diagnostics shares the report as a text file.
 
 ### Fixed
 - Saving a request that changed on disk since it was opened now reports a conflict instead of overwriting.
 - OpenAPI paths with undeclared `{parameters}` import as path parameters.
+- Existing Pro customers no longer see the "Welcome to RequestPad Pro" message at every launch.
+- Responses show the standard status text ("200 OK" instead of "200 No Error").
+- JSON responses open with the top-level members visible.
+- Selecting a request inside a collapsed folder expands the folder in the sidebar.
+- On Mac, start-up work runs once even when the window and the menu bar item open together.
+- The Environments note is no longer cut off on Mac.
 
 ## [1.0.0] — not yet released
 

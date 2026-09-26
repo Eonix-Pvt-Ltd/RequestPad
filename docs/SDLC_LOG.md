@@ -378,3 +378,54 @@ semgrep 1.170.0 (p/swift, p/secrets; Sources + RequestPad) → 0 findings, 0 err
 Not run in this phase, with reason: Xcode Organizer privacy report, distribution-signed export, device launch
 times (H10); macOS UI tests (H7); CI (H5); device checks (H6); VoiceOver (H3); App Store Connect products (H8);
 manual system integrations (H9).
+
+## Phase 8 — App Store assets & metadata (2026-09-26)
+
+Done:
+- **Icon:** Icon Composer bundle `RequestPad/AppIcon.icon` (braces + paper plane, Liquid Glass); Default, Dark,
+  Clear and Tinted renditions rendered with `ictool` and reviewed; Release builds contain `AppIcon.icns` +
+  `Assets.car` (macOS) and the iOS icon set.
+- **Screenshots:** `scripts/screenshots.sh` → `docs/AppStore/screenshots/` — 5 scenes each (response, extraction
+  rules, GraphQL, runner, environments) for iPhone 6.9" 1320×2868, iPad 13" 2064×2752 and Mac 2880×1800; real UI
+  staged by the Debug-only `ScreenshotDirector`; dedicated simulators, restored and shut down afterwards; every
+  image reviewed (no prices, no placeholder content).
+- **Metadata:** `docs/AppStore/metadata.md` (name 22, subtitle 28, promo 148, description 2,939, keywords 98
+  characters), claims table (41 cited tests/types verified to exist), `review_notes.md` (every path checked against
+  the source), `privacy_labels.md` (Data Not Collected). `scripts/check-metadata.py` and a forbidden-API check
+  (web views, dynamic loading, arbitrary loads) now run in `lint.sh`.
+- **Docs:** `docs/APP_REVIEW_CHECKLIST.md` (B10 1–17 with evidence), `docs/RELEASE_RUNBOOK.md` (B11 + Phase 11),
+  HUMAN_HANDOFF H11, ADR-0044.
+
+Defects found and fixed (ADR-0044): Pro welcome alert at every launch; concurrent `AppModel.load()` on macOS launch;
+"200 No Error" status text; JSON tree collapsed at the root; Export Diagnostics produced no file; selection not
+revealed in collapsed folders; Environments footer cut off on macOS; missing `LSApplicationCategoryType`.
+Regression tests added (TEST_PLAN "Regression tests from Phase 8"); the entitlement test was confirmed to fail on the
+old logic.
+
+Verification (local; Xcode 27.0, macOS 27.0; iOS 27.0 simulators):
+```
+scripts/lint.sh                                      → passed (incl. metadata and forbidden-API checks)
+scripts/test.sh --platform ios                       → package-iphone: passed 343, skipped 2* · app-iphone: passed 76
+                                                       · app-ipad: passed 76 · RPCore 96.84% · RPStore 99.47%
+scripts/test.sh --platform macos --skip-macos-ui \
+    --sanitizers --analyze (before the last UI-test   → package-macos: passed 345 · app-macos: passed 74 · ASan 338
+    helper and sidebar-identifier changes)              passed, 7 skipped† · TSan 338 passed, 7 skipped† · Analyze ×2
+xcodebuild test, app-macos on the final code         → 74 passed (the run's only failure was the UI runner, see below)
+swift test (plain, --sanitize=address, =thread)      → all suites passed on the final code
+xcodebuild analyze (macOS, iOS) on the final code    → succeeded, 0 warnings
+Release builds (macOS, iOS)                          → succeeded, 0 warnings; lipo: x86_64 arm64;
+                                                       LSApplicationCategoryType = public.app-category.developer-tools;
+                                                       no ScreenshotDirector symbols in Release
+scripts/screenshots.sh --platform all                → 15 images, exact sizes
+```
+\* Live-Keychain tests skipped on the simulator by design. † Performance tests skip under sanitizers.
+
+Test-infrastructure incident: a `test.sh` change briefly passed both a per-class skip and the whole-target skip for
+macOS UI tests, which made xcodebuild start the macOS UI runner; it timed out enabling automation mode (the H7 host
+limitation). Fixed in `test.sh`. After that timeout, xcodebuild-hosted macOS test runners on this Mac hung before
+connecting (also while the owner's other project was testing), so the final `test.sh --platform macos` could not
+complete; the system `testmanagerd` was not restarted to avoid disturbing the owner's other work. The final code is
+covered by the runs listed above; re-run `scripts/test.sh --platform macos --skip-macos-ui --sanitizers --analyze`
+after the next reboot (HUMAN_HANDOFF H7).
+
+Not run in this phase, with reason: macOS UI tests (H7); device checks (H2, H6, H10); App Store Connect entry (H11).

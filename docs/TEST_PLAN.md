@@ -130,7 +130,16 @@ itself is only marked **✅** once the services/UI path is verified end-to-end i
 | X03.3 | Pro features unlock immediately after purchase on all the user's devices (Universal Purchase). | Unit (EntitlementCalculator) + UI (StoreKit config) + manual sandbox | 5 | app ✅ `purchaseMadeElsewhereArrivesAsAnUpdate`; UI ✅ unlock after purchase; device check H8 |
 | X04.1 | Export App Data writes a versioned JSON of native collections, environments (secret values excluded), | Unit (export/import/erase) + UI | 3–4 | services ✅ `AppDataTransfer`; app ✅ `exportAndImportRoundTrip` |
 | X04.2 | Erase All Data removes SwiftData store, Keychain items, bookmarks, cookie jar, caches, MetricKit payloads | Unit (export/import/erase) + UI | 3–4 | services ✅ `DataEraser`; UI ✅ `testEraseAllDataReturnsToOnboarding` (iOS); app ✅ `eraseAllDataResetsEverything` |
-| X04.3 | Export Diagnostics produces a redacted text file (app/OS version, device class, settings, recent | Unit (export/import/erase) + UI | 3–4 | services ✅ `Diagnostics`; app E2E ✅ `diagnosticsReportHasNoPathsQueriesOrSecrets` |
+| X04.3 | Export Diagnostics produces a redacted text file (app/OS version, device class, settings, recent | Unit (export/import/erase) + UI | 3–4 | services ✅ `Diagnostics`; app E2E ✅ `diagnosticsReportHasNoPathsQueriesOrSecrets`, `reportIsWrittenAsATextFile` |
+
+## Regression tests from Phase 8 (App Store assets)
+
+| Defect | Test |
+|---|---|
+| "Welcome to RequestPad Pro" shown at every launch for existing Pro users | RPStore `existingEntitlementIsReadAtStart`, `overlappingStartsAtLaunchAreNotAnUnlock` (fails on the old logic — verified) |
+| Concurrent `AppModel.load()` at launch ran start-up twice | app `AppLaunchTests.overlappingLoadsShareOneStartupAndDoNotAnnounceExistingPro` |
+| "200 No Error" status text | RPCore `HTTPReasonPhraseTests`; RPServices `HTTPClientTests` expects "OK" from Local Echo |
+| Store screenshots | `RequestPadUITests/ScreenshotTests` (run only by `scripts/screenshots.sh`; each scene waits for a ready marker) |
 
 ## Manual checks (recorded in `docs/HUMAN_HANDOFF.md`)
 
