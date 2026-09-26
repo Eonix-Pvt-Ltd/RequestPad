@@ -492,3 +492,31 @@ Unchanged since Phase 9: app code outside the Debug-only screenshot scenario, an
 (`build/*-export`, build 1.0.0 (1)).
 
 Human-gated: H12 (beta), then H13 (submit, review, release). Exit (human-verified): "Ready for Sale".
+
+## Phase 11 — Post-launch definition (2026-09-26)
+
+Agent deliverables:
+- `docs/RELEASE_RUNBOOK.md` §10–14: weekly review, hotfix path, support SLA, pricing, 90-day roadmap (written in
+  Phase 8).
+- `docs/SUPPORT_REPLIES.md`: support templates, each checked against the app and `SECURITY.md`.
+- `docs/COMPLETION_AUDIT.md`: completion audit and handoff.
+- `SUPPORT.md` corrected: "Settings → Developer" and "Settings → About" do not exist. They are now
+  "Settings → Try It Out" and "shown at the bottom of Settings". Republish the page (H1).
+
+Ongoing work starts at "Ready for Sale" (HUMAN_HANDOFF H13) and is logged below.
+
+## Operations
+
+One entry per weekly review (`docs/RELEASE_RUNBOOK.md` §10), incident or release. Template:
+
+```
+### YYYY-MM-DD — weekly review (version x.y.z)
+Crashes/hangs (Organizer, 7 days): iOS n / macOS n — new signatures: … — actions: …
+Metrics vs budgets (launch < 1.0 s, memory): …
+Support: n conversations (P1 n, P2 n, P3 n) — recurring topics: …
+Reviews: average ★ …, replies sent: n
+Subscriptions (App Store Connect): trials n, conversions n, churn n
+Decisions / follow-ups: …
+```
+
+_No entries yet: the app has not been released._

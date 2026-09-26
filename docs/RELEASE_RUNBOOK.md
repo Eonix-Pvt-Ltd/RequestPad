@@ -159,7 +159,7 @@ A shipped binary cannot be pulled back to an earlier build. The options are:
 
 ### 12. Support
 
-- **Inbox:** support@eonix.lk. **SLA:** first reply within **2 business days**; P1 reports (crash, data loss, a
+- **Inbox:** support@eonix.lk (reply templates: `docs/SUPPORT_REPLIES.md`). **SLA:** first reply within **2 business days**; P1 reports (crash, data loss, a
   purchase not unlocking) the same business day.
 - Ask for the app version, device and OS, and optionally an exported diagnostics file. Never ask for secrets or
   request contents.

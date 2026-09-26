@@ -18,6 +18,8 @@ Publish these files as web pages at exactly these URLs (the app, paywall and App
 Confirm `support@eonix.lk` receives mail. Have the privacy policy and terms reviewed by someone qualified for your
 jurisdiction — they are written to match the app's behavior, not reviewed by a lawyer.
 
+**Phase 11 note:** `SUPPORT.md` was corrected on 2026-09-26. Publish the current version.
+
 ### H2 — Test on minimum OS versions
 The build Mac has only the iOS 27 simulator runtime. Install an iOS 17 runtime (Xcode → Settings → Components) or
 use a device on iOS/iPadOS 17, and a Mac on macOS 14, then run the app and `scripts/test.sh`. Record results in

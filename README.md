@@ -26,7 +26,7 @@ account, no cloud, no telemetry.
 | `Config/` | xcconfig files (`Base`, `Debug`, `Release`, `RequestPad-App`) |
 | `RequestPadTests/`, `RequestPadUITests/` | App-hosted unit tests and XCUITests (incl. accessibility audits) |
 | `scripts/` | `bootstrap.sh`, `lint.sh`, `test.sh`, `sync-strings.sh`, `archive.sh`, `upload.sh`, `screenshots.sh`, `check-metadata.py`, export options |
-| `docs/` | PRD, architecture, decisions, SDLC log, test plan, handoff, App Store material |
+| `docs/` | PRD, architecture, decisions, SDLC log, test plan, handoff, App Store material, release runbook, support replies, completion audit (`docs/COMPLETION_AUDIT.md`, start here for status) |
 
 ## Build and run
 

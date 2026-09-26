@@ -4,7 +4,7 @@ _Published at https://requestpad.eonix.lk/support._
 
 Email **support@eonix.lk**. We reply within two business days.
 
-When reporting a problem, please include your device, OS version and RequestPad version (Settings → About). If
+When reporting a problem, please include your device, OS version and RequestPad version (shown at the bottom of Settings). If
 asked, attach the file from Settings → Export Diagnostics — it contains no secrets, request bodies or file contents.
 
 ## FAQ
@@ -22,7 +22,7 @@ scripts in `.bru` files are preserved but not run.
 **Where are my secrets stored?** In your device's Keychain. Secret variables are never written to `.bru` files,
 exports or history.
 
-**How do I try RequestPad without a server?** Settings → Developer → Load Sample Data starts Local Echo, a test
+**How do I try RequestPad without a server?** Settings → Try It Out → Load Sample Data starts Local Echo, a test
 server inside the app, and creates a sample collection that targets it.
 
 **How do I restore my purchase on a new device?** Open the paywall or Settings and tap Restore Purchases.
