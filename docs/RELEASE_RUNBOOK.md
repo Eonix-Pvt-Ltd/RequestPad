@@ -76,14 +76,18 @@ Before uploading, check:
 ## 6. Upload (👤 human)
 
 Use Xcode Organizer (Distribute App → App Store Connect → Upload) or Transporter with the exported `.ipa` and `.pkg`.
-Alternatively, use an authenticated export with an App Store Connect API key kept **outside the repository**:
+Or run the upload script with an App Store Connect API key kept **outside the repository**:
 ```bash
-xcodebuild -exportArchive -archivePath build/ios.xcarchive -exportOptionsPlist scripts/exportOptions-upload.plist -exportPath build/ios-upload -authenticationKeyPath "$ASC_KEY_PATH" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+ASC_KEY_PATH=~/keys/AuthKey_XXXXXXXXXX.p8 ASC_KEY_ID=XXXXXXXXXX ASC_ISSUER_ID=<issuer-uuid> scripts/upload.sh --platform all
 ```
-- `exportOptions-upload.plist` is the App Store plist with `destination` set to `upload`; create it only on the
-  release machine.
-- Never commit the `.p8` key.
-- Never use `altool`.
+- `upload.sh` generates `build/exportOptions-upload.plist` (the App Store options with `destination` set to
+  `upload`). It shows the version and build of each archive and asks for confirmation before sending anything.
+- It refuses a key stored inside the repository. Never commit the `.p8` key.
+- It uses `xcodebuild -exportArchive`, never `altool`.
+- **Signing:** export uses automatic signing with cloud-managed distribution certificates, so no Apple Distribution
+  certificate needs to be installed. This was verified on 2026-09-26: iOS signed "Apple Distribution: Eonix (Pvt)
+  Ltd", the macOS pkg signed "3rd Party Mac Developer Installer". It requires the Xcode account to have the Admin
+  or App Manager role with access to cloud-managed certificates.
 
 ## 7. Verify before submitting (👤 human)
 

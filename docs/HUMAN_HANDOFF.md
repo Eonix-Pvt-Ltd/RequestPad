@@ -95,16 +95,15 @@ Record results in `docs/SDLC_LOG.md`.
 ### H10 — Release checks that need your certificates and devices (Phase 7)
 1. **Privacy report:** Xcode → Window → Organizer → Archives → select the archive → Generate Privacy Report. Expect
    UserDefaults (CA92.1) and File Timestamp (C617.1) only, no tracking, no collected data.
-2. **Distribution signing:** `scripts/archive.sh` (needs the Apple Distribution certificate). Then
-   `codesign -d --entitlements - build/ios-export/*.ipa` (unzip first) shows no `get-task-allow`.
+2. ~~**Distribution signing**~~ — done by the agent in Phase 9 with cloud-managed signing (ADR-0045).
+   `get-task-allow = false` on iOS, and the macOS entitlements are exact (SDLC_LOG Phase 9).
 3. **Launch time on devices:** Instruments › App Launch on an iPhone, an iPad and a Mac, cold launch. Budget < 1.0 s
    (TEST_PLAN). The iPhone simulator measured 2.83 s (Release, XCTest launch metric, which includes simulator and
    test overhead) — not representative, so the device number decides.
 Record results in `docs/SDLC_LOG.md`.
 
 ### H11 — App Store Connect listing (Phase 8 assets; before submission)
-1. **Decide** the subtitle and keywords (`docs/AppStore/metadata.md` notes): the Part A subtitle is over the limit and
-   Part A's keywords name other apps. `python3 scripts/check-metadata.py` must pass after any edit.
+1. Subtitle and keywords are decided (ADR-0044). `python3 scripts/check-metadata.py` must pass after any edit.
 2. Create the app record (bundle ID `lk.eonix.RequestPad`, SKU of your choice, primary language English (U.S.)) and
    enter every field from `docs/AppStore/metadata.md` for the iOS and macOS versions.
 3. Upload the screenshots in `docs/AppStore/screenshots/`: `iphone-6.9/` to iPhone 6.9", `ipad-13/` to iPad 13",
@@ -114,4 +113,28 @@ Record results in `docs/SDLC_LOG.md`.
 5. App Review Information: sign-in not required; paste `docs/AppStore/review_notes.md`; add a contact name and phone.
 6. Work through `docs/APP_REVIEW_CHECKLIST.md` and `docs/RELEASE_RUNBOOK.md` sections 5–8.
 
-_Further items (App Store Connect products, sandbox purchase test, TestFlight, submission) are added in Phases 9–10._
+### H12 — TestFlight beta (Phase 9)
+The archives and exports for build 1.0.0 (1) are ready in `build/` (`scripts/archive.sh`, verified in SDLC_LOG
+Phase 9). The TestFlight text and plan are in `docs/AppStore/testflight.md`.
+1. **Before the first upload:** do H11 step 2 (the app record), and do H8 steps 1–3 (in-app purchases, the Paid Apps
+   agreement, tax and banking). Without them, purchases cannot be tested in TestFlight.
+2. **Upload.** Create an App Store Connect API key (Users and Access → Integrations, role App Manager) and store the
+   `.p8` outside the repo. Then run
+   `ASC_KEY_PATH=… ASC_KEY_ID=… ASC_ISSUER_ID=… scripts/upload.sh --platform all` and answer `y`. Transporter or
+   Xcode Organizer with `build/ios-export/RequestPad.ipa` and `build/macos-export/RequestPad.pkg` also works.
+3. **Wait for processing** (5–30 min). Check the email for ITMS-9xxxx warnings. The export-compliance question is
+   already answered by `ITSAppUsesNonExemptEncryption = NO`.
+4. **Internal group** "Eonix Internal": add the builds and install via the TestFlight app on an iPhone, an iPad and a
+   Mac. Run the "What to Test" steps yourself first, including a purchase and Restore; this also covers H8 step 4 and
+   H9.
+5. **External group** "Public Beta": fill in the Test Information from `testflight.md`, add the build, and submit it
+   for Beta App Review (usually within 24–48 h). Invite 10–50 testers by email or public link.
+6. **Feedback:** TestFlight → Feedback and Crashes, plus support@eonix.lk. Send the reports to the agent. It fixes P1
+   and P2 issues with tests, bumps the build number and re-archives; you upload each new build with step 2.
+7. **Exit (human-verified):**
+   - the external build is approved;
+   - Xcode Organizer → Crashes shows **0 crashes** for the beta builds after at least a week of testing;
+   - there are no open P1 or P2 issues.
+   Record this in `docs/SDLC_LOG.md` under "Phase 9 — Beta".
+
+_Further items (submission, release) are added in Phase 10._

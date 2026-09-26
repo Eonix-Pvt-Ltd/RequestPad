@@ -397,7 +397,7 @@ collection folder.
   request, pick a tab, send, open the runner or environments sheet — so every image shows real UI and real Local Echo
   responses (Guideline 2.3). iOS images come from a UI test on dedicated simulators with a fixed status bar; Mac images
   are `screencapture` of a 1440×900-point window (2880×1800 pixels). The code is compiled out of Release.
-- **Metadata deviations from Part A (pending owner confirmation):** the subtitle "HTTP & GraphQL, Bruno-compatible"
+- **Metadata deviations from Part A (approved by the owner on 2026-09-26):** the subtitle "HTTP & GraphQL, Bruno-compatible"
   is 32 characters (limit 30) and names another app; keywords "postman" and "bruno" name other apps (Guideline 2.3.7,
   B10.2). Replaced by "HTTP & GraphQL, git-friendly" and neutral keywords. The description names Postman and Bruno
   only as file formats the app imports/reads, which is factual.
@@ -414,3 +414,15 @@ collection folder.
   concurrently at launch (two store starts, two Local Echo starts) — `AppModel.load()` is now single-flight and the
   entitlement first-read check is captured before its await, so overlapping reads are never an "unlock";
   (8) the Environments footer was cut off on macOS (list footers are one line) — shortened.
+
+### ADR-0045 — Distribution signing and upload (Phase 9)
+- **Cloud-managed signing:** no Apple Distribution certificate is installed on the build Mac. `archive.sh` exports
+  with automatic signing and `-allowProvisioningUpdates`, and Xcode signs with Apple's cloud-managed distribution
+  certificates. No private distribution key lives on a laptop, and nothing needs renewing locally. The one
+  requirement is an account role that may use cloud-managed certificates (Admin or App Manager with that access).
+- **Upload stays human:** `scripts/upload.sh` wraps `xcodebuild -exportArchive` with `destination=upload` and an
+  App Store Connect API key (never `altool`). It prints the version and build and asks for confirmation. The agent
+  never runs it (B9; uploading is outward-facing). The key must live outside the repository, and the script checks
+  this.
+- **Build numbers:** one `CURRENT_PROJECT_VERSION` for both platforms (Universal Purchase), bumped before every
+  upload, including beta fix builds.
