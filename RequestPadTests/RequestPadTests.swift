@@ -143,6 +143,21 @@ struct AppModelTests {
         #expect(app.collections.map(\.id) == [a, b, c])
     }
 
+    /// App Review crash on 1.0.0 (3), macOS: dragging a request row inside an expanded collection made `onMove` report
+    /// indices beyond the collection list, and `moveCollections` trapped on an out-of-range index.
+    @Test func collectionsReorderIgnoresOutOfRangeIndices() async throws {
+        let app = try TestApp.make(isPro: true)
+        await app.load()
+        let a = try #require(await app.createCollection(named: "A"))
+        let b = try #require(await app.createCollection(named: "B"))
+        await app.moveCollections(from: IndexSet(integer: 7), to: 0)
+        await app.moveCollections(from: IndexSet([0, 5]), to: 1)
+        await app.moveCollections(from: IndexSet(integer: 0), to: 9)
+        await app.moveCollections(from: IndexSet(integer: 0), to: -1)
+        await app.moveCollections(from: IndexSet(), to: 0)
+        #expect(app.collections.map(\.id) == [a, b])
+    }
+
     @Test func secretVariablesLiveInTheSecretStoreAndCanBeRevealed() async throws {
         let app = try TestApp.make()
         await app.load()

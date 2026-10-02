@@ -290,8 +290,14 @@ final class AppModel {
         runtimeVariables[id] = nil
     }
 
+    /// Reorders collections from a sidebar `onMove`. On macOS, expanded collections' child rows are flattened into the
+    /// outline, so SwiftUI can report indices past the collection list; such moves are ignored instead of trapping.
     func moveCollections(from source: IndexSet, to destination: Int) async {
         let all = collections.map(\.id)
+        guard !source.isEmpty, let last = source.last, last < all.count, (0...all.count).contains(destination) else {
+            log.notice("Ignored collection move with out-of-range indices")
+            return
+        }
         var ids = all.enumerated().filter { !source.contains($0.offset) }.map(\.element)
         let insertion = min(destination - source.filter { $0 < destination }.count, ids.count)
         ids.insert(contentsOf: source.map { all[$0] }, at: max(insertion, 0))

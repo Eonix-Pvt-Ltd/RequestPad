@@ -39,6 +39,16 @@ H13).
 *Then:* check the crash in Xcode Organizer (the review device's crash appears there). If it reproduces, fix it with
 a test, bump the build number and resubmit, replying with what was fixed.
 
+### 2.1(a) — macOS crash after Load Sample Data + sidebar (1.0.0 (3), 2026-10-02)
+
+Cause: the sidebar's collection reorder trusted SwiftUI `onMove` indices, which on macOS can point past the
+collection list when a row inside an expanded collection is dragged. Fixed in the next build. Reply when resubmitting:
+
+> Thank you for the crash logs. We symbolicated them and found the cause: on macOS, dragging a row inside an expanded
+> collection in the sidebar could pass an out-of-range position to the collection reorder code. The build we have
+> attached fixes this; such moves are now ignored safely, and an automated test covers this case. To check it: load
+> the sample data (Settings… → Try It Out → Load Sample Data), then click and drag rows in the sidebar.
+
 ## 2.5.2 / 2.5.4 — The app runs a server (Local Echo) or might execute code
 
 > RequestPad includes "Local Echo", a small built-in HTTP test server so that every feature can be tried without an
@@ -51,6 +61,26 @@ a test, bump the build number and resubmit, replying with what was fixed.
 >   filters are declarative).
 >
 > On macOS the com.apple.security.network.server entitlement is used only for this loopback listener.
+
+## 2.4.5 — macOS: automated check says network.server has no matching functionality
+
+Received for 1.0.0 (3) on 2026-09-28. The automated scan doesn't see the listener because Local Echo is off at launch.
+The entitlement is required: a sandboxed app cannot bind an `NWListener`, even on 127.0.0.1, without it. Reply
+(no new build), and keep the entitlement line in the App Review notes.
+
+> Thank you for the review. RequestPad needs com.apple.security.network.server for one feature: Local Echo, a
+> built-in HTTP test server that lets users try the app's request features offline without an external service.
+> It is implemented with Network.framework's NWListener (Sources/RPServices/Echo/LocalEchoServer.swift) bound
+> to 127.0.0.1 only, so no other device can reach it. The App Sandbox blocks binding a listening socket without this
+> entitlement, even on loopback.
+>
+> The listener is off at launch, which is probably why automated analysis didn't detect it. To see it:
+> 1. Open RequestPad → Settings… (⌘,) → Try It Out.
+> 2. Turn on "Local Echo Server" (or click "Load Sample Data"). The address http://127.0.0.1:<port> appears.
+> 3. Open Sample → Basics → "Echo a GET" and send it. The response comes from the local listener.
+>
+> It serves only fixed test responses and echoes the received request. It downloads and executes no code, and it
+> stops when the app quits. This is also described in the App Review Information notes.
 
 ## 2.4.5 — macOS: login item, menu bar, Services, entitlements
 
