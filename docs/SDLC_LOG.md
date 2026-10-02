@@ -544,3 +544,18 @@ The owner chose to submit 1.0.0 without the TestFlight beta (H12 exit criteria r
   notes, manual release, and Xcode Cloud build 1.0.0 (3). The owner entered the review contact name and phone.
 - **Submitted 2026-09-27 01:14–01:16 (owner confirmed):** macOS 1.0.0 (3), then iOS 1.0.0 (3) with 4 in-app purchase
   items. Both are "Waiting for Review", with manual release.
+
+### 2026-10-02 — macOS 1.0.0 (3) rejected: Guideline 2.1(a) crash
+- **Report:** MacBook Pro 14-inch, macOS 27.0. "Launched the app, loaded sample data, clicked on options on side
+  menu, crashed." Two crash logs (EXC_BREAKPOINT on the main thread, binary UUID 404AB515-…).
+- **Symbolicated** with the dSYM from the Xcode Cloud build 3 macOS archive: `AppModel.moveCollections(from:to:)`
+  (AppModel.swift:297, `all[$0]` out of range) called from the sidebar `.onMove` (SidebarView.swift:55). On macOS the
+  expanded collection's child rows are flattened into the outline, so `onMove` can report indices past
+  `app.collections`.
+- **Fix:** `moveCollections` ignores moves whose indices are out of range (logged at notice level). Regression test
+  `collectionsReorderIgnoresOutOfRangeIndices`.
+- **Checks:** `scripts/lint.sh` passed; app macOS unit tests 75/0 failed. Driving a real drag in the sidebar with
+  automation did not reach `onMove` (synthetic drags never start a SwiftUI drag session), so the crash was not
+  reproduced in the UI; the fix is verified by the symbolicated trace and the unit test.
+- **Next:** Xcode Cloud builds the merge; the owner attaches the new build to macOS 1.0.0 and resubmits with the
+  reply in `docs/AppStore/rejection_responses.md`. The iOS submission uses the same code (build 3).

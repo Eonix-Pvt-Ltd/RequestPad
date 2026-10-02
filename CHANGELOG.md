@@ -5,6 +5,10 @@ All notable changes to RequestPad are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+- macOS: dragging a row inside an expanded collection in the sidebar could crash the app (App Review, 1.0.0 (3)).
+  Collection reordering now ignores out-of-range move indices.
+
 ## [1.0.0] — pending submission (the date is set on release)
 
 The first release: everything below ships in 1.0.0. The full feature list with acceptance criteria is in
