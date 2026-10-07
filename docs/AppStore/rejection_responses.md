@@ -49,6 +49,37 @@ collection list when a row inside an expanded collection is dragged. Fixed in th
 > attached fixes this; such moves are now ignored safely, and an automated test covers this case. To check it: load
 > the sample data (Settings… → Try It Out → Load Sample Data), then click and drag rows in the sidebar.
 
+## 4.3(a) — Spam: "similar binary, metadata, and/or concept" (1.0.0 (6), iOS + macOS, 2026-10-06)
+
+Rejection came with an Extended Review warning. Do not resubmit unchanged. First reply (no new build) asking which
+apps were matched. Facts checked 2026-10-07: no Swift source file in RequestPad is identical to any file in DevKit,
+QueryPad, Shellbay, JSON Scope, HookCatcher or UptimeScout.
+
+> Hello, and thank you for the review.
+>
+> We'd like to understand this decision so we can address it properly. Could you tell us which app or apps
+> RequestPad was found to be similar to?
+>
+> RequestPad was written from scratch for this purpose. It is not built from a template or purchased code, and its
+> source is not shared with any of our other apps. Each of our apps does a different job: QueryPad is a database
+> client, Shellbay is an SSH terminal, JSON Scope opens large JSON files, DevKit is a set of offline converters and
+> decoders, and UptimeScout monitors site uptime. None of them lets you write, send and organize your own API
+> requests.
+>
+> RequestPad is a native HTTP and API client for iPhone, iPad and Mac that needs no account and works offline. What
+> it offers that other API clients on the App Store don't combine:
+> - Collections stored as plain Bruno (.bru) folders, so a team can edit the same files in git, from the iPad as well as
+>   the Mac.
+> - Local Echo, a built-in loopback test server, so every feature can be tried without any external service.
+> - A collection runner with assertions, and response values extracted into variables for request chaining.
+> - OpenAPI 3, Postman v2.1 and cURL import; GraphQL; OAuth 2.0; a cookie jar.
+> - A Shortcuts "Send Request" action and a macOS menu bar Quick Send.
+>
+> To see it quickly: Settings → Try It Out → Load Sample Data, then open the Sample collection and run it.
+>
+> If a specific part of the binary or metadata looks too close to another app, please point us to it and we will
+> change it. Thank you for your time.
+
 ## 2.5.2 / 2.5.4 — The app runs a server (Local Echo) or might execute code
 
 > RequestPad includes "Local Echo", a small built-in HTTP test server so that every feature can be tried without an

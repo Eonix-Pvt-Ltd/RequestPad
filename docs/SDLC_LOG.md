@@ -559,3 +559,13 @@ The owner chose to submit 1.0.0 without the TestFlight beta (H12 exit criteria r
   reproduced in the UI; the fix is verified by the symbolicated trace and the unit test.
 - **Next:** Xcode Cloud builds the merge; the owner attaches the new build to macOS 1.0.0 and resubmits with the
   reply in `docs/AppStore/rejection_responses.md`. The iOS submission uses the same code (build 3).
+
+### 2026-10-07 — 1.0.0 (6) rejected on iOS and macOS: Guideline 4.3(a) Spam
+- **Report (2026-10-06):** both platforms, "shares a similar binary, metadata, and/or concept as apps submitted …
+  by you or other developers". Extended Review warning on the account. The 2.1(a) crash was not raised again.
+- **Checked:** no Swift source file in RequestPad is identical to any file in DevKit, QueryPad, Shellbay, JSON Scope,
+  HookCatcher or UptimeScout.
+- **Sent (owner approved, 2026-10-07):** the 4.3(a) reply in `docs/AppStore/rejection_responses.md`, in both the iOS
+  and macOS threads, asking which apps were matched. No new build; nothing resubmitted.
+- **Next:** wait for Apple's answer. Do not resubmit unchanged. If Apple confirms the rejection, the options are an
+  App Review Board appeal, merging into DevKit, substantial product changes, or pausing RequestPad.
