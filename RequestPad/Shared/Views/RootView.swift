@@ -1,7 +1,6 @@
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import RPUI
 import SwiftUI
 
@@ -11,7 +10,6 @@ struct RootView: View {
     @State private var workspace: WorkspaceModel
     @SceneStorage("workspace.selection") private var storedSelection: Data?
     @State private var isSettingsPresented = false
-    @SwiftUI.Environment(\.scenePhase) private var scenePhase
     #if os(macOS)
         @SwiftUI.Environment(\.openWindow) private var openWindow
     #endif
@@ -50,19 +48,6 @@ struct RootView: View {
         .onChange(of: app.requestedOpen) { _, _ in openRequestedTarget() }
         .onChange(of: workspace.selection) { _, selection in
             storedSelection = try? JSONEncoder().encode(selection)
-        }
-        .presentsPaywall(app, level: 0)
-        .alert(
-            "Welcome to RequestPad Pro",
-            isPresented: Binding(get: { app.store.didUnlockPro }, set: { app.store.didUnlockPro = $0 })
-        ) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("All Pro features are unlocked on every device signed in with this Apple Account.")
-        }
-        .onChange(of: scenePhase) { _, phase in
-            // Subscriptions can expire or renew while the app is in the background.
-            if phase == .active { Task { await app.store.refreshEntitlements() } }
         }
         .sheet(isPresented: $isSettingsPresented) {
             NavigationStack { SettingsView(app: app) }

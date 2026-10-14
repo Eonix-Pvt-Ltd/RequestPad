@@ -1,7 +1,6 @@
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import RPUI
 import StoreKit
 import SwiftUI
@@ -20,13 +19,8 @@ struct SettingsView: View {
     @State private var isImportPickerPresented = false
     @State private var diagnostics: String?
     @State private var isWorking = false
-    @State private var isPaywallPresented = false
     #if os(macOS)
         @State private var loginItem = LoginItemModel()
-    #endif
-    @State private var restoreResult: EntitlementManager.RestoreResult?
-    #if os(iOS)
-        @State private var isRedeemingCode = false
     #endif
 
     var body: some View {
@@ -51,11 +45,7 @@ struct SettingsView: View {
                 Toggle("Follow Redirects for New Requests", isOn: $followRedirects)
                     .onChange(of: followRedirects) { _, newValue in app.preferences.followRedirects = newValue }
                     .accessibilityIdentifier("settings.followRedirects")
-                LabeledContent(
-                    "History",
-                    value: app.gate.isPro
-                        ? String(localized: "Last 1,000 requests") : String(localized: "Last 100 requests (Pro: 1,000)")
-                )
+                LabeledContent("History", value: String(localized: "Last 1,000 requests"))
             } header: {
                 Group {
                     Text("Requests")
@@ -71,29 +61,6 @@ struct SettingsView: View {
                 macSection
             #endif
             echoSection
-            Section {
-                LabeledContent("Status", value: PaywallCopy.statusLine(for: app.store.source))
-                    .accessibilityIdentifier("settings.proStatus")
-                if !app.store.source.isPro {
-                    Button("See Pro Features") { isPaywallPresented = true }
-                        .accessibilityIdentifier("settings.pro")
-                }
-                Button(app.store.isRestoring ? "Restoring…" : "Restore Purchases") {
-                    Task { restoreResult = await app.store.restore() }
-                }
-                .disabled(app.store.isRestoring)
-                .accessibilityIdentifier("settings.restore")
-                ManageSubscriptionButton(source: app.store.source)
-                #if os(iOS)
-                    Button("Redeem Offer Code") { isRedeemingCode = true }
-                        .offerCodeRedemption(isPresented: $isRedeemingCode) { _ in
-                            Task { await app.store.refreshEntitlements() }
-                        }
-                        .accessibilityIdentifier("settings.redeem")
-                #endif
-            } header: {
-                SectionHeader("RequestPad Pro")
-            }
             dataSection
             supportSection
             Section {
@@ -144,14 +111,6 @@ struct SettingsView: View {
                 app.present(DataError.fileReadFailed(name: url.lastPathComponent, reason: error.localizedDescription))
             }
         }
-        .sheet(isPresented: $isPaywallPresented) {
-            PaywallView(app: app, feature: nil)
-        }
-        .alert(
-            item: Binding(get: { restoreResult.map(RestoreAlert.init) }, set: { if $0 == nil { restoreResult = nil } })
-        ) { alert in
-            Alert(title: Text(alert.title), message: Text(alert.message))
-        }
         .sheet(isPresented: Binding(get: { diagnostics != nil }, set: { if !$0 { diagnostics = nil } })) {
             DiagnosticsSheet(text: diagnostics ?? "")
         }
@@ -178,22 +137,14 @@ struct SettingsView: View {
                 }
                 Toggle(
                     "Menu Bar Quick Send",
-                    isOn: Binding(
-                        get: { app.menuBarQuickSendEnabled && app.gate.isPro },
-                        set: { enabled in
-                            if enabled && !app.gate.isPro {
-                                isPaywallPresented = true
-                            } else {
-                                app.menuBarQuickSendEnabled = enabled
-                            }
-                        })
+                    isOn: Binding(get: { app.menuBarQuickSendEnabled }, set: { app.menuBarQuickSendEnabled = $0 })
                 )
                 .accessibilityIdentifier("settings.menuBar")
             } header: {
                 SectionHeader("Mac")
             } footer: {
                 Text(
-                    "Quick Send (Pro) adds a menu bar item for sending a saved request or a URL without opening a window."
+                    "Quick Send adds a menu bar item for sending a saved request or a URL without opening a window."
                 )
                 .foregroundStyle(Color.textSecondary)
             }

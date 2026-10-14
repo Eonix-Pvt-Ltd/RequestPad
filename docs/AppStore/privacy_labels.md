@@ -15,7 +15,7 @@ for longer than needed to service the request in real time. RequestPad transmits
 | Requests, collections, environments, history, cookies | Stored on the device (SwiftData) or in folders the user picks | No — never leaves the device except to servers the user chooses |
 | Secret values and OAuth tokens | Device Keychain, not synchronized (ADR-0031) | No |
 | Network requests | Sent directly to the addresses the user enters; Eonix never receives a copy | No |
-| Purchases | Processed by Apple (StoreKit); the app reads only entitlement state | No (Apple is the processor) |
+| Purchases | None: the app is free, with no in-app purchases and no StoreKit code (ADR-0046) | — |
 | MetricKit diagnostics | Kept in the app's container; shared only if the user exports diagnostics and sends them | No — user-initiated, optional support request |
 | Crash reports | Only Apple's opt-in crash reporting through App Store Connect | No (collected by Apple, not by the app) |
 | Analytics, advertising, tracking, third-party SDKs | None exist in the app (`Package.swift` has no dependencies; B13) | — |

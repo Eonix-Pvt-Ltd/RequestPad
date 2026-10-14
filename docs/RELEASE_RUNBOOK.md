@@ -94,7 +94,6 @@ ASC_KEY_PATH=~/keys/AuthKey_XXXXXXXXXX.p8 ASC_KEY_ID=XXXXXXXXXX ASC_ISSUER_ID=<i
 1. App Store Connect → the build is processed, with no ITMS-91xxx (privacy manifest) warnings in the email.
 2. TestFlight internal smoke test on an iPhone, an iPad and a Mac:
    - Load Sample Data, then send a request;
-   - buy Pro in the sandbox, then Restore;
    - run a Shortcut;
    - use the menu bar item.
 3. `docs/APP_REVIEW_CHECKLIST.md`: every row is ✅ or has its 👤 step done.
@@ -108,7 +107,8 @@ ASC_KEY_PATH=~/keys/AuthKey_XXXXXXXXXX.p8 ASC_KEY_ID=XXXXXXXXXX ASC_ISSUER_ID=<i
   rises.
 - **macOS:** submit with **Manually release this version**. Release it after the iOS version is approved, so the
   Universal Purchase launches together.
-- Attach the in-app purchases to the first submission (App Store Connect requires this for new IAPs).
+- The app has no in-app purchases (ADR-0046). The old Pro products must not be attached to the submission (see
+  `docs/HUMAN_HANDOFF.md` H8).
 - After approval: tag the submitted commit, then push the tag.
   ```bash
   git tag -a v1.0.0 -m "RequestPad 1.0.0"
@@ -124,8 +124,8 @@ A shipped binary cannot be pulled back to an earlier build. The options are:
 - **Remove from sale** (App Store Connect → Pricing and Availability) in a severe case; people who already have the
   app keep it.
 - **Ship a hotfix** (section 11).
-- If a failure is caused by server-side App Store data (products, prices), fix it in App Store Connect; no binary is
-  needed.
+- If a failure is caused by server-side App Store data (metadata, availability), fix it in App Store Connect; no
+  binary is needed.
 
 ---
 
@@ -143,8 +143,6 @@ A shipped binary cannot be pulled back to an earlier build. The options are:
   - Users' own diagnostic payloads arrive only when they send Settings → Export Diagnostics with a support email.
 - **App Store Connect → Ratings and Reviews:** reply to 1–2★ reviews that describe a bug, pointing to the fix or to
   support.
-- **Subscriptions:** App Store Connect → Sales and Trends / Subscriptions (trial conversion, churn). No analytics are
-  added to the app.
 
 ### 11. Hotfix path (1.0.1 in under 48 hours)
 
@@ -159,20 +157,15 @@ A shipped binary cannot be pulled back to an earlier build. The options are:
 
 ### 12. Support
 
-- **Inbox:** support@eonix.lk (reply templates: `docs/SUPPORT_REPLIES.md`). **SLA:** first reply within **2 business days**; P1 reports (crash, data loss, a
-  purchase not unlocking) the same business day.
+- **Inbox:** support@eonix.lk (reply templates: `docs/SUPPORT_REPLIES.md`). **SLA:** first reply within **2 business days**; P1 reports (crash, data loss) the same
+  business day.
 - Ask for the app version, device and OS, and optionally an exported diagnostics file. Never ask for secrets or
   request contents.
-- **Purchase problems:**
-  - first, Settings → Restore Purchases;
-  - refunds go through Apple (reportaproblem.apple.com); the developer cannot issue them.
 - Keep a list of recurring questions to feed `SUPPORT.md` and the 1.x roadmap.
 
 ### 13. Pricing
 
-- Change prices and run experiments **only in App Store Connect**: price schedules, introductory and promotional
-  offers, offer codes, and product page optimization.
-- The app reads everything from StoreKit and never hard-codes prices, so no build is needed.
+- RequestPad is free with every feature included: no in-app purchases, subscriptions or ads (ADR-0046).
 - Never add external purchase links or non-IAP unlocks (B13).
 
 ### 14. 90-day roadmap (V1.x; from PRD §5 "Out of scope" — not built in V1)

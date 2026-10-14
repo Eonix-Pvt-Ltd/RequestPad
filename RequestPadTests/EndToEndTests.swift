@@ -2,7 +2,6 @@ import Foundation
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import RPUI
 import SwiftUI
 import Testing
@@ -17,8 +16,8 @@ struct EchoApp {
     let base: String
     let collectionID: UUID
 
-    init(isPro: Bool = true) async throws {
-        app = try TestApp.makeLive(isPro: isPro)
+    init() async throws {
+        app = try TestApp.makeLive()
         await app.load()
         await app.startEcho()
         base = try #require(await app.environment.echo.baseURL?.absoluteString)
@@ -386,15 +385,15 @@ struct EndToEndContextTests {
     }
 
     // AC: P07.1, P07.2
-    @Test func cookiesPersistOnlyWithPro() async throws {
-        for isPro in [true, false] {
-            let echo = try await EchoApp(isPro: isPro)
-            _ = try await echo.send(RequestItem(name: "Set", url: "\(echo.base)/cookies/set?session=abc"))
-            let (_, next) = try await echo.send(RequestItem(name: "Next", url: "\(echo.base)/echo"))
-            let cookie = next?.at("$.headers.Cookie")?.stringValue
-            #expect(isPro ? cookie == "session=abc" : cookie == nil, "isPro \(isPro): \(String(describing: cookie))")
-            await echo.stop()
-        }
+    @Test func cookiesPersistUnlessTheCollectionTurnsTheJarOff() async throws {
+        let echo = try await EchoApp()
+        _ = try await echo.send(RequestItem(name: "Set", url: "\(echo.base)/cookies/set?session=abc"))
+        let (_, next) = try await echo.send(RequestItem(name: "Next", url: "\(echo.base)/echo"))
+        #expect(next?.at("$.headers.Cookie")?.stringValue == "session=abc")
+        await echo.app.setCookieJar(false, for: echo.collectionID)
+        let (_, withoutJar) = try await echo.send(RequestItem(name: "NoJar", url: "\(echo.base)/echo"))
+        #expect(withoutJar?.at("$.headers.Cookie")?.stringValue == nil)
+        await echo.stop()
     }
 
     // AC: P04.1, P04.2, P04.3
@@ -442,7 +441,7 @@ struct EndToEndCollectionTests {
 
     // AC: P01.1, P01.2, P01.3, P01.5, P01.6
     @Test func newFolderCollectionIsBrunoAndEditsAreWrittenBack() async throws {
-        let app = try TestApp.make(isPro: true)
+        let app = try TestApp.make()
         await app.load()
         let folder = try temporaryFolder()
         defer { try? FileManager.default.removeItem(at: folder) }
@@ -479,7 +478,7 @@ struct EndToEndCollectionTests {
 
     // AC: P01.4
     @Test func externalChangesReloadAndConflictWithUnsavedEdits() async throws {
-        let app = try TestApp.make(isPro: true)
+        let app = try TestApp.make()
         await app.load()
         let folder = try temporaryFolder()
         defer { try? FileManager.default.removeItem(at: folder) }
@@ -516,7 +515,7 @@ struct EndToEndCollectionTests {
 
     // AC: P01.7
     @Test func nativeCollectionConvertsToBruFiles() async throws {
-        let app = try TestApp.make(isPro: true)
+        let app = try TestApp.make()
         await app.load()
         let id = try #require(await app.createCollection(named: "Native"))
         _ = await app.createRequest(
@@ -532,7 +531,7 @@ struct EndToEndCollectionTests {
 
     // AC: P02.1, P02.2, P02.3
     @Test func openAPIImportsIntoFoldersPerTagAndFailsWholly() async throws {
-        let app = try TestApp.make(isPro: true)
+        let app = try TestApp.make()
         await app.load()
         let yaml = """
             openapi: 3.1.0
@@ -570,7 +569,7 @@ struct EndToEndCollectionTests {
 
     // AC: P03.1
     @Test func postmanImportKeepsFoldersAndRequests() async throws {
-        let app = try TestApp.make(isPro: true)
+        let app = try TestApp.make()
         await app.load()
         let json = """
             {"info":{"name":"Shop","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},
@@ -633,16 +632,14 @@ struct DiagnosticsExportTests {
 @Suite("App launch")
 struct AppLaunchTests {
     /// On macOS the window, the menu bar item, Shortcuts and Services all load the model at launch. Overlapping loads
-    /// must share one start-up (one Local Echo, one store start) and an existing purchase is not a new unlock.
-    @Test func overlappingLoadsShareOneStartupAndDoNotAnnounceExistingPro() async throws {
-        let app = try TestApp.makeLive(isPro: true)
+    /// must share one start-up (one Local Echo).
+    @Test func overlappingLoadsShareOneStartup() async throws {
+        let app = try TestApp.makeLive()
         async let first: Void = app.load()
         async let second: Void = app.load()
         async let third: Void = app.load()
         _ = await (first, second, third)
         #expect(app.isLoaded)
-        #expect(app.entitlements.isPro)
-        #expect(!app.store.didUnlockPro)
         let port = app.echoPort
         await app.load()
         #expect(app.echoPort == port)

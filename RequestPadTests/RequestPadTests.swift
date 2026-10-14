@@ -2,7 +2,6 @@ import Foundation
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import Testing
 
 @testable import RequestPad
@@ -10,25 +9,24 @@ import Testing
 /// Builds an isolated app: in-memory store and secrets, throwaway defaults, scripted HTTP.
 @MainActor
 enum TestApp {
-    static func make(
-        isPro: Bool = false, client: FakeHTTPClient = FakeHTTPClient(json: #"{"token":"abc","items":[1,2]}"#)
-    ) throws -> AppModel {
-        try make(isPro: isPro, client: client, transport: FakeTransport([]))
+    static func make(client: FakeHTTPClient = FakeHTTPClient(json: #"{"token":"abc","items":[1,2]}"#)) throws
+        -> AppModel
+    {
+        try make(client: client, transport: FakeTransport([]))
     }
 
     /// The real URLSession client and transport, for end-to-end tests against Local Echo.
-    static func makeLive(isPro: Bool = false) throws -> AppModel {
+    static func makeLive() throws -> AppModel {
         let root = FileManager.default.temporaryDirectory.appending(
             path: "app-tests-\(UUID().uuidString)", directoryHint: .isDirectory)
         return try make(
-            isPro: isPro,
             client: URLSessionHTTPClient(
                 configuration: HTTPClientConfiguration(temporaryDirectory: root.appending(path: "Bodies"))),
             transport: URLSessionTransport(), root: root)
     }
 
     static func make(
-        isPro: Bool, client: any HTTPClient, transport: any HTTPTransport,
+        client: any HTTPClient, transport: any HTTPTransport,
         root: URL = FileManager.default.temporaryDirectory.appending(
             path: "app-tests-\(UUID().uuidString)", directoryHint: .isDirectory)
     ) throws -> AppModel {
@@ -42,12 +40,8 @@ enum TestApp {
             secrets: InMemorySecretStore(),
             preferences: Preferences(defaults: defaults), folderAccess: PathBookmarks(),
             authenticator: FakeAuthenticator(),
-            httpClient: client, transport: transport, isUITesting: true,
-            storeClient: FakeStoreClient(
-                entitlements: isPro
-                    ? [TransactionSnapshot(id: 1, productID: ProductID.lifetime.rawValue, purchaseDate: Date())] : []))
-        let store = EntitlementManager(client: environment.storeClient, state: EntitlementState(isPro: isPro))
-        return AppModel(environment: environment, store: store)
+            httpClient: client, transport: transport, isUITesting: true)
+        return AppModel(environment: environment)
     }
 
     /// Waits for the editor's send task to finish.
@@ -92,17 +86,21 @@ struct LaunchModelTests {
 @MainActor
 @Suite("AppModel")
 struct AppModelTests {
-    @Test func freeTierAllowsOneCollectionAndAsksForPro() async throws {
+    @Test func collectionsAndRequestsAreUnlimited() async throws {
         let app = try TestApp.make()
         await app.load()
-        #expect(await app.createCollection(named: "  First  ") != nil)
-        #expect(app.userCollections.map(\.summary.name) == ["First"])
-        #expect(await app.createCollection(named: "Second") == nil)
-        #expect(app.requestedProFeature == .unlimitedCollections)
+        let first = try #require(await app.createCollection(named: "  First  "))
+        #expect(await app.createCollection(named: "Second") != nil)
+        #expect(await app.createCollection(named: "Third") != nil)
+        #expect(app.userCollections.map(\.summary.name) == ["First", "Second", "Third"])
         #expect(await app.createCollection(named: "   ") == nil)
+        for _ in 0..<31 {
+            #expect(await app.createRequest(in: first, folderKey: nil) != nil)
+        }
+        #expect(app.collection(first)?.tree?.requests.count == 31)
     }
 
-    @Test func sampleDataDoesNotCountTowardsTheLimit() async throws {
+    @Test func sampleDataLoadsWithItsEnvironmentAndGlobals() async throws {
         let app = try TestApp.make()
         await app.load()
         await app.loadSampleData()
@@ -132,7 +130,7 @@ struct AppModelTests {
     }
 
     @Test func collectionsReorder() async throws {
-        let app = try TestApp.make(isPro: true)
+        let app = try TestApp.make()
         await app.load()
         let a = try #require(await app.createCollection(named: "A"))
         let b = try #require(await app.createCollection(named: "B"))
@@ -146,7 +144,7 @@ struct AppModelTests {
     /// App Review crash on 1.0.0 (3), macOS: dragging a request row inside an expanded collection made `onMove` report
     /// indices beyond the collection list, and `moveCollections` trapped on an out-of-range index.
     @Test func collectionsReorderIgnoresOutOfRangeIndices() async throws {
-        let app = try TestApp.make(isPro: true)
+        let app = try TestApp.make()
         await app.load()
         let a = try #require(await app.createCollection(named: "A"))
         let b = try #require(await app.createCollection(named: "B"))
@@ -210,7 +208,7 @@ struct AppModelTests {
     }
 
     @Test func cookiesCanBeRemoved() async throws {
-        let app = try TestApp.make(isPro: true)
+        let app = try TestApp.make()
         let jar = CookieJar(cookies: [
             Cookie(name: "a", value: "1", domain: "example.com", path: "/", createdAt: Date()),
             Cookie(name: "b", value: "2", domain: "other.test", path: "/", createdAt: Date()),
@@ -225,10 +223,10 @@ struct AppModelTests {
 @MainActor
 @Suite("RequestEditorModel")
 struct RequestEditorModelTests {
-    private func makeEditor(isPro: Bool = false, client: FakeHTTPClient? = nil) async throws -> (
+    private func makeEditor(client: FakeHTTPClient? = nil) async throws -> (
         AppModel, WorkspaceModel, RequestEditorModel
     ) {
-        let app = try client.map { try TestApp.make(isPro: isPro, client: $0) } ?? TestApp.make(isPro: isPro)
+        let app = try client.map { try TestApp.make(client: $0) } ?? TestApp.make()
         await app.load()
         let collectionID = try #require(await app.createCollection(named: "API"))
         let reference = try #require(await app.createRequest(in: collectionID, folderKey: nil))
@@ -299,31 +297,33 @@ struct RequestEditorModelTests {
         #expect(sent.settings.timeoutMilliseconds == 45_000)
     }
 
-    @Test func freeTierDoesNotRunAssertionsButProDoes() async throws {
-        for isPro in [false, true] {
-            let (_, _, editor) = try await makeEditor(isPro: isPro)
-            editor.request.url = "https://api.example.com/items"
-            editor.request.assertions = [Assertion(source: .status, operation: .equals, operand: "200")]
-            editor.request.extractors = [Extractor(variableName: "token", source: .body(path: "$.token"))]
-            editor.send()
-            await TestApp.waitForSend(editor)
-            #expect(editor.result?.assertions.count == (isPro ? 1 : 0))
-            #expect(editor.result?.extractions.count == (isPro ? 1 : 0))
-        }
+    @Test func assertionsAndExtractionsRunOnEverySend() async throws {
+        let (_, _, editor) = try await makeEditor()
+        editor.request.url = "https://api.example.com/items"
+        editor.request.assertions = [Assertion(source: .status, operation: .equals, operand: "200")]
+        editor.request.extractors = [Extractor(variableName: "token", source: .body(path: "$.token"))]
+        editor.send()
+        await TestApp.waitForSend(editor)
+        #expect(editor.result?.assertions.count == 1)
+        #expect(editor.result?.extractions.count == 1)
     }
 
-    @Test func graphQLAndOAuthAskForProOnTheFreeTier() async throws {
+    @Test func graphQLRequestsSendAndOAuthRequestsSave() async throws {
         let (app, _, editor) = try await makeEditor()
         editor.request.body = .graphQL(GraphQLBody(query: "{ a }"))
         editor.request.url = "https://api.example.com/graphql"
         editor.send()
-        #expect(app.requestedProFeature == .graphQL)
-        #expect(!editor.isSending)
-        app.requestedProFeature = nil
+        await TestApp.waitForSend(editor)
+        #expect(editor.result?.response.statusCode == 200)
         editor.request.body = .none
         editor.request.auth = .oauth2(OAuth2Config(grantType: .clientCredentials))
         await editor.save()
-        #expect(app.requestedProFeature == .oauth2)
+        #expect(!editor.hasUnsavedChanges)
+        let reference = try #require(editor.reference)
+        guard case .oauth2 = app.request(reference)?.request.auth else {
+            Issue.record("OAuth 2.0 auth was not saved")
+            return
+        }
     }
 
     @Test func networkFailuresBecomeAPresentableError() async throws {
@@ -340,7 +340,7 @@ struct RequestEditorModelTests {
     }
 
     @Test func runnerRunsItemsInOrder() async throws {
-        let (app, _, editor) = try await makeEditor(isPro: true)
+        let (app, _, editor) = try await makeEditor()
         let reference = try #require(editor.reference)
         editor.request.url = "https://api.example.com/one"
         editor.request.assertions = [Assertion(source: .status, operation: .equals, operand: "200")]

@@ -47,12 +47,11 @@ is green.
 | Symptom | Where to look | Likely cause / fix |
 |---|---|---|
 | CI "Select newest Xcode" / build fails on the runner | Job log, `xcodebuild -version` | Runner lacks a compatible Xcode; update `runs-on` image |
-| Coverage gate fails | `scripts/test.sh` output, `build/test-results/package-macos.xcresult` | New untested code in RPCore/RPStore — add tests |
+| Coverage gate fails | `scripts/test.sh` output, `build/test-results/package-macos.xcresult` | New untested code in RPCore — add tests |
 | Accessibility audit fails | Test log shows element + issue | Fix the view; exemptions only per ADR-0019 with recorded evidence |
 | Crash reports | Xcode → Organizer → Crashes (weekly) | Symbolicated automatically for uploaded builds |
 | Hangs / launch regressions | Organizer → Hangs / Launch Time; MetricKit exports from users | Profile with Instruments (Time Profiler) |
 | "Can't open collection folder" reports | User diagnostics export | Stale security-scoped bookmark — user re-grants access (built-in flow) |
-| Purchase not unlocking | User: Restore Purchases; you: sandbox test (HUMAN_HANDOFF) | StoreKit verification or product ID mismatch |
 
 ## Alerts
 

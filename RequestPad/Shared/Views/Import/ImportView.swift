@@ -1,12 +1,11 @@
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import RPUI
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Import from cURL (free), OpenAPI 3 and Postman v2.1 (Pro) (F07, P02, P03).
+/// Import from cURL, OpenAPI 3 and Postman v2.1 (F07, P02, P03).
 struct ImportView: View {
     enum Source: String, CaseIterable, Identifiable {
         case curl, openAPI, postman
@@ -17,14 +16,6 @@ struct ImportView: View {
             case .curl: "cURL"
             case .openAPI: "OpenAPI"
             case .postman: "Postman"
-            }
-        }
-
-        var proFeature: ProFeature? {
-            switch self {
-            case .curl: nil
-            case .openAPI: .openAPIImport
-            case .postman: .postmanImport
             }
         }
     }
@@ -60,16 +51,8 @@ struct ImportView: View {
                     preview = nil
                     errorMessage = nil
                 }
-                if let feature = source.proFeature, !app.gate.isPro {
-                    Section {
-                        ProLockedView(
-                            app: app, feature: feature,
-                            message: "Turn API descriptions and Postman exports into collections.")
-                    }
-                } else {
-                    inputSection
-                    previewSection
-                }
+                inputSection
+                previewSection
             }
             .formStyle(.grouped)
             .navigationTitle("Import")
@@ -86,7 +69,6 @@ struct ImportView: View {
             }
         }
         .sheetFrame(minWidth: 480, minHeight: 480)
-        .presentsPaywall(app, level: 1)
     }
 
     private var allowedTypes: [UTType] {

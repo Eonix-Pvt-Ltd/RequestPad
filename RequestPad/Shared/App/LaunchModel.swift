@@ -4,7 +4,6 @@ import Observation
 import RPCore
 import RPData
 import RPServices
-import RPStore
 
 /// Prepares storage and the ``AppEnvironment`` before any feature UI appears, and exposes a recoverable failure.
 @Observable
@@ -34,8 +33,7 @@ final class LaunchModel {
         do {
             let environment = try makeEnvironment()
             Log.logger(.app).info("Launch preparation finished")
-            let store = EntitlementManager(client: environment.storeClient, state: EntitlementState())
-            return .ready(AppModel(environment: environment, store: store))
+            return .ready(AppModel(environment: environment))
         } catch {
             Log.logger(.app).error("Launch preparation failed: \(error.localizedDescription, privacy: .private)")
             return .failed(PresentedError(error))

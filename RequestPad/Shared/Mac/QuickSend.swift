@@ -2,7 +2,6 @@
     import Observation
     import RPCore
     import RPServices
-    import RPStore
     import RPUI
     import SwiftUI
 
@@ -133,15 +132,9 @@
         }
 
         var body: some View {
-            @Bindable var model = model
             VStack(alignment: .leading, spacing: Spacing.small) {
-                if app.gate.isPro {
-                    form
-                    resultView
-                } else {
-                    Text("Quick Send is part of RequestPad Pro.")
-                        .foregroundStyle(Color.textSecondary)
-                }
+                form
+                resultView
             }
             .padding(Spacing.medium)
             .frame(width: 380)

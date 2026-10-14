@@ -23,11 +23,6 @@ public enum AppConstants {
     public static let privacyPolicyURL = staticURL("https://requestpad.eonix.lk/privacy")
     public static let termsOfUseURL = staticURL("https://requestpad.eonix.lk/terms")
     public static let supportURL = staticURL("https://requestpad.eonix.lk/support")
-    /// Apple's standard EULA, linked from the paywall (B4.12).
-    public static let appleStandardEULAURL = staticURL(
-        "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
-    /// Subscription management page used on macOS (B4.8).
-    public static let manageSubscriptionsURL = staticURL("https://apps.apple.com/account/subscriptions")
 
     /// Builds a `mailto:` URL for the support address with an optional subject.
     public static func supportMailURL(subject: String? = nil) -> URL {

@@ -11,13 +11,11 @@ public struct CodeEditor: View {
     @Binding var text: String
     let label: LocalizedStringKey
     let identifier: String
-    let isReadOnly: Bool
 
-    public init(text: Binding<String>, label: LocalizedStringKey, identifier: String, isReadOnly: Bool = false) {
+    public init(text: Binding<String>, label: LocalizedStringKey, identifier: String) {
         _text = text
         self.label = label
         self.identifier = identifier
-        self.isReadOnly = isReadOnly
     }
 
     public var body: some View {
@@ -31,7 +29,6 @@ public struct CodeEditor: View {
             .padding(Spacing.xSmall)
             .background(.background.secondary, in: RoundedRectangle(cornerRadius: 8))
             .frame(minHeight: 120)
-            .disabled(isReadOnly)
             .accessibilityLabel(Text(label))
             .accessibilityIdentifier(identifier)
     }

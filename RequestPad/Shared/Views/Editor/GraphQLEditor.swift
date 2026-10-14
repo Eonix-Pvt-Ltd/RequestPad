@@ -1,7 +1,6 @@
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import RPUI
 import SwiftUI
 
@@ -20,7 +19,7 @@ struct GraphQLEditor: View {
     var body: some View {
         schemaBar
         FieldRow(title: "Query") {
-            QueryTextEditor(text: $body_.query, cursorOffset: $cursorOffset, isReadOnly: editor.isReadOnly)
+            QueryTextEditor(text: $body_.query, cursorOffset: $cursorOffset)
         }
         let diagnostics = GraphQLValidator.diagnostics(for: body_.query)
         if let first = diagnostics.first {
@@ -37,8 +36,7 @@ struct GraphQLEditor: View {
         }
         FieldRow(title: "Variables (JSON)") {
             CodeEditor(
-                text: $body_.variables, label: "GraphQL variables", identifier: "graphql.variables",
-                isReadOnly: editor.isReadOnly
+                text: $body_.variables, label: "GraphQL variables", identifier: "graphql.variables"
             )
             .frame(minHeight: 100)
         }
@@ -117,7 +115,6 @@ struct GraphQLEditor: View {
 private struct QueryTextEditor: View {
     @Binding var text: String
     @Binding var cursorOffset: Int?
-    let isReadOnly: Bool
 
     var body: some View {
         Group {
@@ -137,7 +134,6 @@ private struct QueryTextEditor: View {
         .padding(Spacing.xSmall)
         .background(.background.secondary, in: RoundedRectangle(cornerRadius: 8))
         .frame(minHeight: 180)
-        .disabled(isReadOnly)
         .accessibilityLabel(Text("GraphQL query"))
         .accessibilityIdentifier("graphql.query")
     }

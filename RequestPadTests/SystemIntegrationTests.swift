@@ -2,7 +2,6 @@ import Foundation
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import SwiftUI
 import Testing
 
@@ -16,11 +15,11 @@ import Testing
 /// A collection with one request and two environments, installed as the runtime's app (intents and handlers use it).
 @MainActor
 private func makeInstalledApp(
-    isPro: Bool, client: FakeHTTPClient = FakeHTTPClient(json: #"{"ok":true}"#), install: Bool = true
+    client: FakeHTTPClient = FakeHTTPClient(json: #"{"ok":true}"#), install: Bool = true
 ) async throws
     -> (AppModel, RequestReference)
 {
-    let app = try TestApp.make(isPro: isPro, client: client)
+    let app = try TestApp.make(client: client)
     await app.load()
     let collectionID = try #require(await app.createCollection(named: "API"))
     let reference = try #require(
@@ -45,7 +44,7 @@ struct SendRequestIntentTests {
     @Test func proSendsAndReturnsStatusTimeAndBody() async throws {
         defer { AppRuntime.shared.install(nil) }
         let client = FakeHTTPClient(json: #"{"ok":true}"#)
-        let (_, reference) = try await makeInstalledApp(isPro: true, client: client)
+        let (_, reference) = try await makeInstalledApp(client: client)
         let entity = try #require(try await RequestEntityQuery.all().first)
         #expect(entity.reference == reference)
         let response = try await SendRequestIntent.send(request: entity, environment: nil)
@@ -58,26 +57,16 @@ struct SendRequestIntentTests {
     @Test func chosenEnvironmentOverridesTheActiveOne() async throws {
         defer { AppRuntime.shared.install(nil) }
         let client = FakeHTTPClient(json: "{}")
-        _ = try await makeInstalledApp(isPro: true, client: client)
+        _ = try await makeInstalledApp(client: client)
         let request = try #require(try await RequestEntityQuery.all().first)
         let production = try #require(try await EnvironmentEntityQuery.all().first { $0.name == "Production" })
         _ = try await SendRequestIntent.send(request: request, environment: production)
         #expect(await client.requests.first?.url.host() == "api.example.com")
     }
 
-    @Test func freeTierGetsAClearProError() async throws {
-        defer { AppRuntime.shared.install(nil) }
-        _ = try await makeInstalledApp(isPro: false)
-        let request = try #require(try await RequestEntityQuery.all().first)
-        await #expect(throws: IntentFailure.proRequired) {
-            _ = try await SendRequestIntent.send(request: request, environment: nil)
-        }
-        #expect(String(localized: IntentFailure.proRequired.localizedStringResource).contains("Pro"))
-    }
-
     @Test func deletedRequestAndForeignEnvironmentAreReported() async throws {
         defer { AppRuntime.shared.install(nil) }
-        let (app, reference) = try await makeInstalledApp(isPro: true)
+        let (app, reference) = try await makeInstalledApp()
         let request = try #require(try await RequestEntityQuery.all().first)
         let otherCollection = try #require(await app.createCollection(named: "Other"))
         _ = await app.saveEnvironment(Environment(name: "Elsewhere"), key: nil, in: otherCollection, secretValues: [:])
@@ -93,7 +82,7 @@ struct SendRequestIntentTests {
 
     @Test func entityQueriesFindRequests() async throws {
         defer { AppRuntime.shared.install(nil) }
-        _ = try await makeInstalledApp(isPro: true)
+        _ = try await makeInstalledApp()
         let query = RequestEntityQuery()
         let suggested = try await query.suggestedEntities()
         #expect(suggested.map(\.name) == ["Status"])
@@ -180,7 +169,7 @@ struct SendRequestIntentTests {
         }
 
         @Test func quickSendSendsATypedURL() async throws {
-            let app = try TestApp.make(isPro: true, client: FakeHTTPClient(json: #"{"up":true}"#))
+            let app = try TestApp.make(client: FakeHTTPClient(json: #"{"up":true}"#))
             await app.load()
             let model = QuickSendModel(app: app)
             model.urlText = "not a url"
@@ -202,7 +191,7 @@ struct SendRequestIntentTests {
 
         @Test func quickSendCapsTheBodyAt64KB() async throws {
             let large = "\"" + String(repeating: "x", count: 100_000) + "\""
-            let app = try TestApp.make(isPro: true, client: FakeHTTPClient(json: large))
+            let app = try TestApp.make(client: FakeHTTPClient(json: large))
             await app.load()
             let model = QuickSendModel(app: app)
             model.urlText = "https://big.example.com"
@@ -218,7 +207,7 @@ struct SendRequestIntentTests {
 
         @Test func quickSendUsesTheChosenEnvironment() async throws {
             let client = FakeHTTPClient(json: "{}")
-            let (app, reference) = try await makeInstalledApp(isPro: true, client: client, install: false)
+            let (app, reference) = try await makeInstalledApp(client: client, install: false)
             let model = QuickSendModel(app: app)
             let saved = try #require(model.savedRequests.first { $0.reference == reference })
             model.source = .saved(saved.id)
@@ -234,7 +223,7 @@ struct SendRequestIntentTests {
 
         /// P09.2 proxy: the popover's content renders well under 100 ms with 300 saved requests.
         @Test func quickSendRendersQuickly() async throws {
-            let app = try TestApp.make(isPro: true)
+            let app = try TestApp.make()
             await app.load()
             let collectionID = try #require(await app.createCollection(named: "Big"))
             for index in 0..<300 {

@@ -1,7 +1,6 @@
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import RPUI
 import SwiftUI
 
@@ -96,7 +95,7 @@ private struct ResponseDetail: View {
             case .headers: HeadersList(headers: result.response.headers)
             case .cookies: CookiesList(setCookieHeaders: result.response.setCookieHeaders)
             case .timeline: TimelineList(response: result.response)
-            case .tests: TestsList(result: result, app: app)
+            case .tests: TestsList(result: result)
             }
         }
     }
@@ -249,18 +248,9 @@ private struct TimelineList: View {
 /// Assertion and extraction results (P05, P06).
 private struct TestsList: View {
     let result: SendResult
-    let app: AppModel
 
     var body: some View {
-        if !app.gate.isPro {
-            ScrollView {
-                ProLockedView(
-                    app: app, feature: .assertionsAndRunner,
-                    message: "Assertions and extraction rules run on every send with Pro."
-                )
-                .padding(Spacing.medium)
-            }
-        } else if result.assertions.isEmpty && result.extractions.isEmpty {
+        if result.assertions.isEmpty && result.extractions.isEmpty {
             EmptyStateView(
                 "No Tests", message: "Add assertions or extraction rules in the request's Assert and Extract tabs.",
                 systemImage: "checkmark.seal")

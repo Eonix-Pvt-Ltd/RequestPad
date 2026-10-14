@@ -1,7 +1,6 @@
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import RPUI
 import SwiftUI
 
@@ -46,10 +45,8 @@ struct AuthEditor: View {
         }
     }
 
-    let app: AppModel
     @Binding var auth: RequestAuth
     var inheritLabel: LocalizedStringKey = "Inherit from parent"
-    var isReadOnly = false
     /// OAuth token actions (only offered where a request can be resolved).
     var tokenActions: OAuthTokenActions?
 
@@ -66,7 +63,6 @@ struct AuthEditor: View {
             .accessibilityIdentifier("auth.mode")
             fields
         }
-        .disabled(isReadOnly)
     }
 
     private var modeBinding: Binding<Mode?> {
@@ -74,7 +70,6 @@ struct AuthEditor: View {
             get: { Mode(auth) },
             set: { newValue in
                 guard let newValue, newValue != Mode(auth) else { return }
-                if newValue == .oauth2, !app.require(.oauth2) { return }
                 auth = newValue.defaultAuth
             })
     }
@@ -112,13 +107,7 @@ struct AuthEditor: View {
         case .apiKey(let apiKey):
             APIKeyFields(apiKey: Binding(get: { apiKey }, set: { auth = .apiKey($0) }))
         case .oauth2(let config):
-            if app.gate.isPro {
-                OAuth2Fields(config: Binding(get: { config }, set: { auth = .oauth2($0) }), tokenActions: tokenActions)
-            } else {
-                ProLockedView(
-                    app: app, feature: .oauth2,
-                    message: "This request uses OAuth 2.0. Upgrade to fetch tokens and send it.")
-            }
+            OAuth2Fields(config: Binding(get: { config }, set: { auth = .oauth2($0) }), tokenActions: tokenActions)
         case .unsupported(let mode):
             Text("RequestPad doesn't support “\(mode)” authorization yet. The setting is kept when the file is saved.")
                 .foregroundStyle(Color.textSecondary)

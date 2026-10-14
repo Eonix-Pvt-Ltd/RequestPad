@@ -426,3 +426,22 @@ collection folder.
   this.
 - **Build numbers:** one `CURRENT_PROJECT_VERSION` for both platforms (Universal Purchase), bumped before every
   upload, including beta fix builds.
+
+### ADR-0046 — RequestPad is free; RPStore removed (2026-10-14)
+- **Decision (owner, 2026-10-14):** RequestPad is completely free. Every former Pro feature is available to
+  everyone, with no subscriptions, in-app purchases or ads. This supersedes the pricing parts of PRD §4, ADR-0002,
+  ADR-0008, ADR-0009, ADR-0012, ADR-0040 and ADR-0041.
+- **Removed, not disabled:** the `RPStore` module (`EntitlementManager`, `EntitlementResolver`, `FeatureGate`,
+  `ProductID`, `FreeTierLimits`, `StoreClient`), its tests, `LiveStoreClient`, `PaywallView`, `ProLockedView`,
+  `Products.storekit` and its scheme reference, the IAP review screenshots, and the Debug-only `-UITestPro` and
+  `paywall` screenshot scenario. Keeping dormant purchase code would be dead code in the binary and would confuse
+  App Review. The read-only mode for collections over the free limits (ADR-0012) existed only for a lapsed
+  subscription, so it is removed as well, along with the `isReadOnly` parameters it threaded through the editors.
+- **Behavior now:** unlimited collections and requests; folder collections, OpenAPI and Postman import, GraphQL,
+  OAuth 2.0, extraction rules, assertions and the runner, the cookie jar (still a per-collection toggle), Shortcuts
+  "Send Request" and Mac menu bar Quick Send work on a fresh install. History keeps the last 1,000 requests
+  (`HistoryLimits.entries` in RPServices replaces `FreeTierLimits`). `IntentFailure.proRequired` is gone.
+- **No migration:** 1.0.0 was never released, so no customer holds a purchase. If a build with Pro is ever
+  installed (TestFlight, review), the new build simply unlocks everything; nothing reads old entitlements.
+- **Kept:** `StoreKit` is still imported for `requestReview` (the rating prompt). The App Store price is Free and no
+  products are attached to a submission (HUMAN_HANDOFF H8). The coverage gate now covers RPCore only.

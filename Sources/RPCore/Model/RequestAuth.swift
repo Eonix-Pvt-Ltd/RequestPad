@@ -24,12 +24,6 @@ public enum RequestAuth: Hashable, Sendable, Codable {
         case .unsupported(let mode): mode
         }
     }
-
-    /// Whether this mode requires RequestPad Pro (OAuth 2.0 — PRD §4).
-    public var requiresPro: Bool {
-        if case .oauth2 = self { return true }
-        return false
-    }
 }
 
 public struct APIKeyAuth: Hashable, Sendable, Codable {

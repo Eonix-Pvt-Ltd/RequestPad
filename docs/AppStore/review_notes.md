@@ -5,7 +5,7 @@ macOS). Sign-in required: **No**.
 
 ---
 
-RequestPad is a native API client (HTTP and GraphQL) for developers. There is no account or login.
+RequestPad is a native API client (HTTP and GraphQL) for developers. It is free, with every feature included: there are no in-app purchases, subscriptions or ads, and no account or login.
 
 TRY EVERYTHING WITHOUT A SERVER
 The welcome screens end with "Load Sample Data" (later: Settings → Try It Out → Load Sample Data). This starts Local Echo, a small HTTP test server inside the app on 127.0.0.1 only, and adds a "Sample" collection whose requests target it. No internet or external service is needed. Local Echo only reflects requests back as JSON; it runs no user code and downloads nothing.
@@ -16,12 +16,10 @@ FEATURES (sample data)
 3. Environments: the toolbar environment menu (globe icon) selects "Local"; ⌘E manages environments. Secret variables are kept in the Keychain; revealing one asks for Face ID / Touch ID / passcode.
 4. Large and binary responses: "Large body (12 MB)" streams to disk and can be saved; "Image preview" shows an image.
 5. History: the History row in the sidebar.
-6. Import: sidebar + → Import… → cURL (free), OpenAPI or Postman (Pro).
+6. Import: sidebar + → Import… → cURL, OpenAPI or Postman.
 7. Local network: requests to LAN addresses show an explanation before iOS asks for Local Network permission. Local Echo uses loopback and needs no permission.
 
-PRO AND PURCHASES
-Pro is sold as auto-renewable subscriptions (monthly, yearly; 7-day free trial for eligible customers) in the "Pro" group, and a lifetime non-consumable. Open the paywall from any Pro feature, e.g. a request's Assert tab → "See RequestPad Pro", "Run Collection…" in a collection's context menu, or Settings → See Pro Features. The paywall shows price, period, trial terms, Restore Purchases, Terms of Use and Privacy Policy. Settings also has Restore Purchases, Manage Subscription and (iOS) Redeem Offer Code. The free version stays usable (one collection, up to 30 requests).
-With Pro, on the sample data:
+MORE FEATURES (sample data)
 - GraphQL: "GraphQL query" → Body → Fetch Schema, then type to see completions.
 - Chaining: Chaining → "1. Get a token" (Extract tab), then "2. Use the token".
 - Runner: long-press or right-click Sample → Run Collection… → Run; export results as JSON.
@@ -29,11 +27,11 @@ With Pro, on the sample data:
 - Folder collections: sidebar + → Open Collection Folder… / New Collection in Folder… stores .bru text files in a user-picked folder (security-scoped bookmark).
 - Cookie jar: sidebar + → Cookie Jar.
 
-SHORTCUTS (Pro)
-Shortcuts → + → "RequestPad" → "Send Request", choose a saved request. It runs without opening the app and returns status and body. Without Pro it says the action is part of RequestPad Pro.
+SHORTCUTS
+Shortcuts → + → "RequestPad" → "Send Request", choose a saved request. It runs without opening the app and returns status and body.
 
 MAC ONLY
-- Menu bar Quick Send (Pro, off by default): Settings (⌘,) → Mac → Menu Bar Quick Send.
+- Menu bar Quick Send (off by default): Settings (⌘,) → Mac → Menu Bar Quick Send.
 - Services: select a URL in any app → app menu → Services → "Send URL with RequestPad".
 - Open at Login (off by default): Settings → Mac → Open at Login (SMAppService).
 - The network.server entitlement is used only by Local Echo on 127.0.0.1, unreachable from other devices. The app is sandboxed and uses user-selected file access and app-scoped bookmarks.
@@ -46,4 +44,4 @@ Contact: support@eonix.lk
 ---
 
 Checked against the build: every path above exists (sample request names from `SampleData.swift`; Settings
-sections "Try It Out" and "Mac"; paywall triggers from `FeatureGate`). Re-check after any UI change.
+sections "Try It Out" and "Mac"). Re-check after any UI change.

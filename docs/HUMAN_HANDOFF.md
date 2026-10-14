@@ -7,7 +7,7 @@ confirms it.
 ## Open items
 
 ### H1 — Publish legal and support pages (needed before TestFlight external testing)
-Publish these files as web pages at exactly these URLs (the app, paywall and App Store metadata link to them):
+Publish these files as web pages at exactly these URLs (the app and App Store metadata link to them):
 
 | Source file | URL |
 |---|---|
@@ -33,6 +33,10 @@ jurisdiction — they are written to match the app's behavior, not reviewed by a
 - The source files' "_Published at …_" line appears as visible text on the published pages. Harmless; hide it on
   the site if you prefer.
 - At release (H13 step 7), replace "Coming soon to the App Store" with the App Store link.
+- **RequestPad is now free (ADR-0046, 2026-10-14):** republish `/terms`, `/privacy` and `/support` from the updated
+  `TERMS.md`, `PRIVACY.md` and `SUPPORT.md`. On the home page, remove the free-tier limits, Pro, prices, trial and
+  renewal terms, and remove or redirect `/pricing` (for example to the home page, which says "free, every feature
+  included").
 
 ### H2 — Test on minimum OS versions
 The build Mac has only the iOS 27 simulator runtime. Install an iOS 17 runtime (Xcode → Settings → Components) or
@@ -73,7 +77,7 @@ The same flows pass on iPhone and iPad, and macOS is covered by the app-hosted u
    If they still find no window, run them on another Mac or on CI and record the result.
 2. Manually on macOS: onboarding → Load Sample Data; open "Echo a GET" and press ⌘↩; ⌘N (New Request), ⌥⌘N (New
    Window), ⌘S, ⌘E (environment picker), ⌘L; Settings (⌘,) → Export/Import/Erase; import a cURL command, an OpenAPI
-   file and a Postman export; run a folder (Pro via `-UITestPro` in a Debug build) and export results.
+   file and a Postman export; run a folder and export results.
 Record results in `docs/SDLC_LOG.md`.
 
 **Phase 8 addition:** after the next restart of this Mac, run
@@ -81,27 +85,22 @@ Record results in `docs/SDLC_LOG.md`.
 `docs/SDLC_LOG.md` — the xcodebuild macOS test runner stopped connecting after an automation-mode timeout on
 2026-09-26 (SDLC_LOG Phase 8).
 
-### H8 — App Store Connect in-app purchases (before TestFlight, Phase 9)
-1. In App Store Connect → RequestPad → Monetization, create the subscription group **Pro** with
-   `lk.eonix.requestpad.pro.yearly` ($19.99/year) and `lk.eonix.requestpad.pro.monthly` ($2.99/month), each with a
-   7-day free trial introductory offer, and the non-consumable `lk.eonix.requestpad.pro.lifetime` ($39.99). Match the
-   IDs exactly (`ProductID`); prices, periods and the trial should match `RequestPadTests/StoreKit/Products.storekit`.
-2. Add display names and descriptions (`docs/AppStore/metadata.md` → "In-app purchase display names") and the
-   review screenshot for each product from `docs/AppStore/iap-review/` (`yearly.png`, `monthly.png`,
-   `lifetime.png`: the real paywall with that product selected, made by `scripts/screenshots.sh`). If you set
-   different prices, change them in `RequestPadTests/StoreKit/Products.storekit` and the fake store
-   (`Sources/RPStore/StoreClient.swift`) first, then recapture. Submit the products with the first app version.
-3. Accept the Paid Apps agreement and complete tax and banking (purchases do not work in TestFlight otherwise).
-4. With a Sandbox Apple Account on a device: buy each product, cancel, restore on a second device (Pro unlocks
-   there, X03.3), use Ask to Buy with a family sandbox account, and refund via the Sandbox account settings. Record
-   results in `docs/SDLC_LOG.md`.
+### H8 — Remove the Pro in-app purchases from App Store Connect (RequestPad is free, ADR-0046)
+The build no longer contains StoreKit code, so the Pro products must not ship with it. Before the next submission:
+1. App Store Connect → RequestPad → the iOS version page → In-App Purchases and Subscriptions: remove the three
+   products (`lk.eonix.requestpad.pro.yearly`, `.monthly`, `.lifetime`) from the submission. Nothing may be attached.
+2. Monetization → Subscriptions / In-App Purchases: leave the products unsubmitted, or delete them. Deleting is
+   permanent and a product ID can never be reused; leaving them unsubmitted costs nothing.
+3. Pricing and Availability: price **Free** (unchanged).
+4. Optional: the Paid Apps agreement, tax and banking are no longer needed for RequestPad (other apps on the account
+   may still need them).
+5. Answer App Privacy as in `docs/AppStore/privacy_labels.md` (unchanged: Data Not Collected).
 
 ### H9 — Shortcuts, menu bar, Services and login item (Phase 6, manual)
-1. **Shortcuts** (iPhone and Mac, with Pro): in the Shortcuts app add "Send Request", pick a saved request (and
+1. **Shortcuts** (iPhone and Mac): in the Shortcuts app add "Send Request", pick a saved request (and
    optionally an environment), run it with RequestPad closed; expect a dialog like "200 OK · 42 ms" and the Response
-   properties (Status Code, Body) available to the next action. Without Pro, expect the "part of RequestPad Pro"
-   error. Try the App Shortcut phrase "Send a request with RequestPad" with Siri.
-2. **Menu bar Quick Send** (Mac, Pro): Settings › Mac › Menu Bar Quick Send; click the paper-plane item. Measure the
+   properties (Status Code, Body) available to the next action. Try the App Shortcut phrase "Send a request with RequestPad" with Siri.
+2. **Menu bar Quick Send** (Mac): Settings › Mac › Menu Bar Quick Send; click the paper-plane item. Measure the
    popover opening with Instruments (SwiftUI / Time Profiler) — target < 100 ms (P09.2). Send a saved request with a
    chosen environment and a typed URL; use "Open in RequestPad" with all windows closed.
 3. **Services** (Mac): select a URL in TextEdit or Safari → app menu › Services › "Send URL with RequestPad"; a new
@@ -135,8 +134,7 @@ Record results in `docs/SDLC_LOG.md`.
 ### H12 — TestFlight beta (Phase 9)
 The archives and exports for build 1.0.0 (1) are ready in `build/` (`scripts/archive.sh`, verified in SDLC_LOG
 Phase 9). The TestFlight text and plan are in `docs/AppStore/testflight.md`.
-1. **Before the first upload:** do H11 step 2 (the app record), and do H8 steps 1–3 (in-app purchases, the Paid Apps
-   agreement, tax and banking). Without them, purchases cannot be tested in TestFlight.
+1. **Before the first upload:** do H11 step 2 (the app record) and H8 (no in-app purchases attached).
 2. **Upload.** Create an App Store Connect API key (Users and Access → Integrations, role App Manager) and store the
    `.p8` outside the repo. Then run
    `ASC_KEY_PATH=… ASC_KEY_ID=… ASC_ISSUER_ID=… scripts/upload.sh --platform all` and answer `y`. Transporter or
@@ -144,8 +142,7 @@ Phase 9). The TestFlight text and plan are in `docs/AppStore/testflight.md`.
 3. **Wait for processing** (5–30 min). Check the email for ITMS-9xxxx warnings. The export-compliance question is
    already answered by `ITSAppUsesNonExemptEncryption = NO`.
 4. **Internal group** "Eonix Internal": add the builds and install via the TestFlight app on an iPhone, an iPad and a
-   Mac. Run the "What to Test" steps yourself first, including a purchase and Restore; this also covers H8 step 4 and
-   H9.
+   Mac. Run the "What to Test" steps yourself first; this also covers H9.
 5. **External group** "Public Beta": fill in the Test Information from `testflight.md`, add the build, and submit it
    for Beta App Review (usually within 24–48 h). Invite 10–50 testers by email or public link.
 6. **Feedback:** TestFlight → Feedback and Crashes, plus support@eonix.lk. Send the reports to the agent. It fixes P1
@@ -162,9 +159,16 @@ Phase 9). The TestFlight text and plan are in `docs/AppStore/testflight.md`.
   `8104b5c`. Tag that commit at release (step 7), not `main`. Build 4 has no code changes.
 - The iOS submission includes the "Pro" subscription group (yearly $19.99 and monthly $2.99, each with a 1-week free
   trial) and the lifetime purchase ($39.99). Both versions are set to manual release.
-- Steps 1–5 are done. H8 steps 1–2 and H11 are done in App Store Connect. H8 step 4 (sandbox purchase tests) and the
-  H12 beta were not run.
+- Steps 1–5 are done. The former H8 steps 1–2 (Pro products) and H11 are done in App Store Connect. The former H8
+  step 4 (sandbox purchase tests) and the H12 beta were not run.
 - Next: step 6 (forward any App Review message), then step 7.
+
+**Update 2026-10-14 — RequestPad is free (ADR-0046):** the Pro subscriptions and lifetime purchase are removed from
+the app (branch `free-app`). The next submission is a changed binary and changed metadata, so it is not an
+"unchanged resubmission" after the 4.3(a) rejection. Before submitting: wait for Apple's answer to the 2026-10-07
+reply (`docs/AppStore/rejection_responses.md`), do H8, paste the new description and review notes from
+`docs/AppStore/metadata.md` and `review_notes.md`, republish the web pages (H1), and attach the Xcode Cloud build made
+from the merge commit.
 
 **Prerequisite:** H12 is complete — the external TestFlight build is approved, there are 0 crashes in Organizer and
 no open P1/P2 issues. Submitting before that is possible but skips the beta's safety net.
@@ -174,7 +178,7 @@ no open P1/P2 issues. Submitting before that is possible but skips the beta's sa
    - everything from H11 (metadata, screenshots, privacy, age rating, review information with
      `docs/AppStore/review_notes.md`);
    - select the build;
-   - attach the three in-app purchases (In-App Purchases and Subscriptions → select all);
+   - attach **no** in-app purchases (H8);
    - set pricing: Free, all territories you choose.
 3. **Release options:**
    - **iOS:** "Automatically release this version" is off; use **Manually release**, and turn on **Phased Release for

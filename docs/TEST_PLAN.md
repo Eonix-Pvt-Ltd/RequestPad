@@ -8,14 +8,15 @@ exit criteria. Test code references ACs with `// AC: <id>` comments.
 
 | Suite | Framework | Command | Runs on |
 |---|---|---|---|
-| Package (RPCore, RPData, RPServices, RPStore, RPUI) | Swift Testing | `scripts/test.sh` (scheme `RequestPadKit-Package`) | macOS, iOS simulator |
+| Package (RPCore, RPData, RPServices, RPUI) | Swift Testing | `scripts/test.sh` (scheme `RequestPadKit-Package`) | macOS, iOS simulator |
 | App unit tests (`RequestPadTests`) | Swift Testing | `scripts/test.sh` (scheme `RequestPad`) | macOS, iPhone & iPad simulators |
 | UI tests (`RequestPadUITests`) incl. accessibility audits | XCTest / XCUITest | `scripts/test.sh` | macOS, iPhone & iPad simulators |
 | Sanitizers | ASan, TSan (separate runs) | `scripts/test.sh --sanitizers` | macOS |
 | Static analysis | Clang analyzer | `scripts/test.sh --analyze` | macOS, iOS |
 | Secret scan | gitleaks 8.30.1 | CI `secret-scan` job | Linux |
 
-Coverage gate: RPCore and RPStore ≥ 80 % line coverage (xccov), enforced by `scripts/test.sh`.
+Coverage gate: RPCore ≥ 80 % line coverage (xccov), enforced by `scripts/test.sh`. The `RPStore` module and its suites
+(`RPStoreTests`, app `StoreKitTests`) were removed with the move to a free app (ADR-0046).
 
 Performance tests skip themselves under ASan/TSan (budgets are enforced in regular runs). `DeepNestingTests` run the
 parsers at maximum nesting on a 512 KB-stack thread (ADR-0030).
@@ -30,7 +31,7 @@ parsers at maximum nesting on a 512 KB-stack thread (ADR-0030).
 | Request limits (F01.6, F02.7 groundwork) | `RPCoreTests/RequestDefaultsTests` | ✅ pass |
 | Storage locations (X04.2 groundwork) | `RPDataTests/StorageLocationsTests` | ✅ pass |
 | Log redaction (X04.3 groundwork) | `RPServicesTests/LogTests` | ✅ pass |
-| Product IDs & free limits (X03, F03.2 groundwork) | `RPStoreTests/ProductIDTests` | ✅ pass |
+| Product IDs & free limits (X03, F03.2 groundwork) | `RPStoreTests/ProductIDTests` | Removed (ADR-0046) |
 | Launch preparation & recovery | `RequestPadTests/LaunchModelTests` | ✅ pass |
 | App launches (smoke), launch accessibility audit, launch performance | `RequestPadUITests` | ✅ pass |
 
@@ -70,10 +71,10 @@ itself is only marked **✅** once the services/UI path is verified end-to-end i
 | F02.6 | Body "Preview" renders PNG/JPEG/GIF/HEIC/WebP images; other types show "No preview for <type>". | Unit (viewer models, JSONPath, streaming) + UI | 2–4 | core ✅ `ResponseBody`; app E2E ✅ `imagesPreview` |
 | F02.7 | Bodies > 10 MB are not rendered: the viewer shows size + "Save to File…" and the body is streamed to a | Unit (viewer models, JSONPath, streaming) + UI | 2–4 | services ✅ `URLSessionHTTPClient (disk spooling)`; app E2E ✅ `largeBodiesAreSpooledShownInPartAndSavedWhole` |
 | F02.8 | "Save Response…" writes the body to a user-chosen location on every platform. | Unit (viewer models, JSONPath, streaming) + UI | 2–4 | app E2E ✅ `largeBodiesAreSpooledShownInPartAndSavedWhole` (document writer); save panel: manual H3 |
-| F03.1 | Create, rename, delete (with confirmation) collections, folders and requests; duplicate a request; | Unit (RPData stores, FeatureGate) + UI | 3–5 | services ✅ `LocalStore`; UI ✅ `testCreateCollectionEditAndSaveRequest` (iOS); app ✅ `requestsCanBeCreatedRenamedMovedAndDeleted` |
-| F03.2 | Free tier: creating a 2nd non-sample collection or a 31st request in the free collection opens the paywall; | Unit (RPData stores, FeatureGate) + UI | 3–5 | app ✅ `freeTierAllowsOneCollectionAndAsksForPro` |
-| F03.3 | A collection can define default headers and default auth that requests inherit. | Unit (RPData stores, FeatureGate) + UI | 3–5 | app E2E ✅ `collectionAndFolderDefaultsAreInherited` |
-| F03.4 | Search filters requests by name, method and URL across the sidebar. | Unit (RPData stores, FeatureGate) + UI | 3–5 | services ✅ `LocalStore`; UI ✅ sidebar search in every UI flow (`openRequest`) |
+| F03.1 | Create, rename, delete (with confirmation) collections, folders and requests; duplicate a request; | Unit (RPData stores) + UI | 3–5 | services ✅ `LocalStore`; UI ✅ `testCreateCollectionEditAndSaveRequest` (iOS); app ✅ `requestsCanBeCreatedRenamedMovedAndDeleted` |
+| F03.2 | Removed (ADR-0046). Was: free-tier collection/request limits. | — | — | Removed (ADR-0046); app ✅ `collectionsAndRequestsAreUnlimited` guards against a limit coming back |
+| F03.3 | A collection can define default headers and default auth that requests inherit. | Unit (RPData stores) + UI | 3–5 | app E2E ✅ `collectionAndFolderDefaultsAreInherited` |
+| F03.4 | Search filters requests by name, method and URL across the sidebar. | Unit (RPData stores) + UI | 3–5 | services ✅ `LocalStore`; UI ✅ sidebar search in every UI flow (`openRequest`) |
 | F04.1 | Create/rename/duplicate/delete environments per collection plus one set of global variables. | Unit (interpolation, Keychain) + UI | 2–4 | services ✅ `LocalStore`; UI ✅ `testEnvironmentSwitchResolvesVariables` (iOS); app ✅ `secretVariablesLive…` |
 | F04.2 | `{{name}}` interpolation in URL, params, headers, body, auth fields. Precedence (highest first): | Unit (interpolation, Keychain) + UI | 2–4 | core ✅ `Interpolator`; app E2E ✅ `variablePrecedenceAndUnresolvedWarnings` |
 | F04.3 | Unresolved variables are highlighted in the editor and listed in a pre-send warning; sending is still | Unit (interpolation, Keychain) + UI | 2–4 | core ✅ `Interpolator`, `RequestResolver`; app E2E ✅ `variablePrecedenceAndUnresolvedWarnings`; UI ✅ `testEnvironmentSwitchResolvesVariables` |
@@ -82,7 +83,7 @@ itself is only marked **✅** once the services/UI path is verified end-to-end i
 | F04.6 | The environment switcher is reachable from the request toolbar on every platform and via ⌘E. | Unit (interpolation, Keychain) + UI | 2–4 | UI ✅ `testEnvironmentSwitchResolvesVariables` (toolbar); ⌘E menu command manual (H7) |
 | F05.1 | Bearer adds `Authorization: Bearer <token>`; Basic adds RFC 7617 Base64 `user:pass`; API key adds a | Unit (auth builders, OAuth state machine w/ fake server) + UI | 2–4 | core ✅ `RequestResolver`; app E2E ✅ `bearerBasicAndAPIKeyAuth` |
 | F05.2 | "Inherit" resolves auth from folder → collection. | Unit (auth builders, OAuth state machine w/ fake server) + UI | 2–4 | core ✅ `RequestResolver`; app E2E ✅ `collectionAndFolderDefaultsAreInherited` |
-| F05.3 | OAuth 2.0 client credentials: token endpoint, client ID, client secret (secret var), scope; | Unit (auth builders, OAuth state machine w/ fake server) + UI | 2–4 | services ✅ `OAuth2Service`; app E2E ✅ `oauthClientCredentialsFetchesAndSendsAToken` |
+| F05.3 | OAuth 2.0 client credentials: token endpoint, client ID, client secret (secret var), scope; | Unit (auth builders, OAuth state machine w/ fake server) + UI | 2–4 | services ✅ `OAuth2Service`; app E2E ✅ `oauthClientCredentialsFetchesAndSendsAToken`; app ✅ `graphQLRequestsSendAndOAuthRequestsSave` |
 | F05.4 | OAuth 2.0 authorization code + PKCE (S256): authorize & token endpoints, client ID, optional secret, | Unit (auth builders, OAuth state machine w/ fake server) + UI | 2–4 | services ✅ `OAuth2Service (PKCE state machine, fake auth server)`; real provider sign-in on device H6 |
 | F05.5 | Auth errors (invalid_client, invalid_grant, user cancelled, state mismatch, network) show specific messages. | Unit (auth builders, OAuth state machine w/ fake server) + UI | 2–4 | services ✅ `OAuth2Service`, `OAuth2`; app E2E ✅ `oauthClientCredentialsFetchesAndSendsAToken` (invalid_client) |
 | F06.1 | Every sent request records a snapshot of the **unresolved** request (so secrets are not stored) and a | Unit (history store/pruning) + UI | 3–4 | services ✅ `LocalStore, RequestExecutor`; UI ✅ `testHistoryListsSentRequests` (iOS) |
@@ -91,7 +92,7 @@ itself is only marked **✅** once the services/UI path is verified end-to-end i
 | F07.2 | Export a request as a single-line and a multi-line cURL command, variables resolved and secrets masked by | Unit (cURL parser/exporter, property tests) | 2 | core ✅ `CurlExporter (property test)`; app E2E ✅ `curlExportResolvesVariablesAndMasksSecrets` |
 | F08.1 | Settings → Developer → Local Echo toggle starts an in-process HTTP/1.1 server bound to 127.0.0.1 on a | Integration (Local Echo) + UI | 3–4 | services ✅ `LocalEchoServer`; UI ✅ sample flows start Local Echo (iOS) |
 | F08.2 | Echo returns JSON describing the received method, path, query, headers, body (UTF-8 or Base64), and | Integration (Local Echo) + UI | 3–4 | services ✅ `EchoRouter`, `LocalEchoServer`; app E2E ✅  (every E2E test reads Local Echo's JSON) |
-| F08.3 | Settings → Developer → Load Sample Data creates the Sample collection (targets `{{echoBaseURL}}`), a | Integration (Local Echo) + UI | 3–4 | UI ✅ onboarding → Load Sample Data (iOS); app ✅ `sampleDataDoesNotCountTowardsTheLimit` |
+| F08.3 | Settings → Developer → Load Sample Data creates the Sample collection (targets `{{echoBaseURL}}`), a | Integration (Local Echo) + UI | 3–4 | UI ✅ onboarding → Load Sample Data (iOS); app ✅ `sampleDataLoadsWithItsEnvironmentAndGlobals` |
 | F08.4 | Echo caps request size at 20 MB, 16 concurrent connections, 30 s idle timeout; stops when toggled off and | Integration (Local Echo) + UI | 3–4 | services ✅ `EchoRequestParser`, `LocalEchoServer`; unit ✅ echo parser fuzzing |
 | P01.1 | "Open Collection Folder…" picks a folder (Files on iOS — including iCloud Drive and other providers; | Unit (.bru codec fixtures, folder repo) + UI | 2–4 | services ✅ `FolderAccess`, `PlatformIntegration (sandbox bookmarks)`; app E2E ✅ `newFolderCollectionIsBrunoAndEditsAreWrittenBack`; Files/iCloud picker manual H3 |
 | P01.2 | Reads Bruno collection layout: `bruno.json`, `collection.bru`, `folder.bru`, `*.bru` requests, | Unit (.bru codec fixtures, folder repo) + UI | 2–4 | services ✅ `FolderCollectionRepository`; app E2E ✅ `newFolderCollectionIsBrunoAndEditsAreWrittenBack` |
@@ -104,18 +105,18 @@ itself is only marked **✅** once the services/UI path is verified end-to-end i
 | P02.2 | Local `$ref`s (`#/components/...`) resolve; external refs and cycles are reported, not followed. | Unit (OpenAPI/YAML fixtures) | 2 | core ✅ `OpenAPIImporter`; app E2E ✅ `openAPIImportsIntoFoldersPerTagAndFailsWholly` |
 | P02.3 | Malformed input shows the line/column (YAML) or key path of the failure; nothing partial is saved. | Unit (OpenAPI/YAML fixtures) | 2 | core ✅ `OpenAPIImporter`, `YAMLParser`; app E2E ✅ `openAPIImportsIntoFoldersPerTagAndFailsWholly` |
 | P03.1 | Imports Postman Collection v2.1 JSON: folders, requests, headers, query, body modes (raw, urlencoded, | Unit (Postman fixtures) | 2 | core ✅ `PostmanImporter`; app E2E ✅ `postmanImportKeepsFoldersAndRequests` |
-| P04.1 | GraphQL body kind with query editor and variables (JSON) editor; sent as `application/json` POST. | Unit (GraphQL lexer/completion, introspection) + UI | 2–4 | core ✅ `RequestResolver`; app E2E ✅ `graphQLSendsJSONPostAndFetchesACachedSchema` |
+| P04.1 | GraphQL body kind with query editor and variables (JSON) editor; sent as `application/json` POST. | Unit (GraphQL lexer/completion, introspection) + UI | 2–4 | core ✅ `RequestResolver`; app E2E ✅ `graphQLSendsJSONPostAndFetchesACachedSchema`; app ✅ `graphQLRequestsSendAndOAuthRequestsSave` |
 | P04.2 | "Fetch Schema" runs the standard introspection query; the schema is cached per endpoint URL. | Unit (GraphQL lexer/completion, introspection) + UI | 2–4 | services ✅ `GraphQLSchemaService`; app E2E ✅ `graphQLSendsJSONPostAndFetchesACachedSchema` |
 | P04.3 | Editor offers completion for fields, arguments and types at the cursor based on the cached schema, and | Unit (GraphQL lexer/completion, introspection) + UI | 2–4 | core ✅ `GraphQL`; app E2E ✅ `graphQLSendsJSONPostAndFetchesACachedSchema` |
 | P05.1 | Per request, define rules `variable ← source` where source is status, a header name, or a JSON path in the | Unit (extractors, .bru round trip) | 2–3 | services ✅ `RequestExecutor`; app E2E ✅ `extractedValuesFeedTheNextRequestAndPersist` |
 | P05.2 | Rules round-trip to `.bru` as `vars:post-response` using Bruno's `res.body.path` / `res.headers.name` / | Unit (extractors, .bru round trip) | 2–3 | core ✅ `BruRequestCodec`, `BruExpression`; unit ✅ .bru fuzzing round-trip |
-| P06.1 | Per request assertions: status equals; JSON path equals / not equals / contains / exists; header equals. | Unit (assertions, runner) + UI | 2–4 | core ✅ `ResponseEvaluator`, `BruRequestCodec`; app ✅ `freeTierDoesNotRunAssertionsButProDoes` |
+| P06.1 | Per request assertions: status equals; JSON path equals / not equals / contains / exists; header equals. | Unit (assertions, runner) + UI | 2–4 | core ✅ `ResponseEvaluator`, `BruRequestCodec`; app ✅ `assertionsAndExtractionsRunOnEverySend`; UI ✅ `testAssertionsAreAvailableOnAFreshInstall` |
 | P06.2 | "Run Folder" (or collection) sends requests sequentially in sort order, applying extraction rules so later | Unit (assertions, runner) + UI | 2–4 | services ✅ `CollectionRunner`; app ✅ `runnerRunsItemsInOrder` |
 | P06.3 | Run results can be exported as JSON. | Unit (assertions, runner) + UI | 2–4 | services ✅ `CollectionRunner`; app E2E ✅ `runResultsExportAsJSON` |
-| P07.1 | Cookies from `Set-Cookie` are stored per domain (RFC 6265 domain/path/secure/expiry rules) and sent on | Unit (RFC 6265 matching, jar store) + UI | 2–4 | services ✅ `CookieJar`, `RequestExecutor`; app E2E ✅ `cookiesPersistOnlyWithPro` |
-| P07.2 | Free tier: cookies are not persisted between requests (ephemeral). | Unit (RFC 6265 matching, jar store) + UI | 2–4 | core ✅ `CookieJar`; app E2E ✅ `cookiesPersistOnlyWithPro` |
+| P07.1 | Cookies from `Set-Cookie` are stored per domain (RFC 6265 domain/path/secure/expiry rules) and sent on | Unit (RFC 6265 matching, jar store) + UI | 2–4 | services ✅ `CookieJar`, `RequestExecutor`; app E2E ✅ `cookiesPersistUnlessTheCollectionTurnsTheJarOff` |
+| P07.2 | With the jar turned off for a collection, cookies are not persisted between requests (ephemeral). | Unit (RFC 6265 matching, jar store) + UI | 2–4 | core ✅ `CookieJar`; app E2E ✅ `cookiesPersistUnlessTheCollectionTurnsTheJarOff` |
 | P08.1 | App Intent "Send Request" with parameters Request (entity query over saved requests) and optional | Unit (intent perform) + manual Shortcuts check | 6 | app ✅ `SendRequestIntentTests` (send, environment override, entity queries); manual Shortcuts run H9 |
-| P08.2 | Without Pro, the intent returns a clear error telling the user Pro is required. | Unit (intent perform) + manual Shortcuts check | 6 | app ✅ `freeTierGetsAClearProError` |
+| P08.2 | Removed (ADR-0046). Was: "Pro required" error from the intent. | — | — | Removed (ADR-0046); `freeTierGetsAClearProError` deleted |
 | P09.1 | Optional `MenuBarExtra` (Settings toggle, default off) with a popover: pick a saved request or type a URL, | UI (macOS) + Instruments measurement | 6 | app ✅ `quickSendSendsATypedURL`, `quickSendCapsTheBodyAt64KB`, `quickSendUsesTheChosenEnvironment`; manual H9 |
 | P09.2 | Popover opens in < 100 ms. | UI (macOS) + Instruments measurement | 6 | app ✅ `quickSendRendersQuickly` (render < 100 ms, 300 requests); Instruments check H9 |
 | X01.1 | iPad: three-column `NavigationSplitView` (collections / request / response), Split View & Stage Manager, | UI (iPad/iPhone/macOS) + manual | 4, 6 | UI ✅ all flows on iPad (regular width, side-by-side split); Split View / Stage Manager / pointer manual H3 |
@@ -125,9 +126,9 @@ itself is only marked **✅** once the services/UI path is verified end-to-end i
 | X02.1 | First launch shows ≤ 3 skippable onboarding screens; no permission prompts during onboarding. | UI + unit | 4 | UI ✅ `testOnboardingCanBeSkipped` (iOS) |
 | X02.2 | Settings: appearance, default timeout, follow redirects, history size, Local Echo, Load Sample Data, | UI + unit | 4 | app E2E ✅ `followRedirectsDefaultAppliesToNewRequests`; UI ✅ Settings audit in `testEraseAllDataReturnsToOnboarding`; Mac section tested in `MacIntegrationTests` |
 | X02.3 | "Rate RequestPad" review prompt only after the 5th successful request and never more than the system | UI + unit | 4 | app: `AppPolicies` unit ✅ (services); prompt wired after successful send |
-| X03.1 | Paywall shows the subscription group (monthly, yearly) with price, period, 7-day trial terms and what | Unit (EntitlementCalculator) + UI (StoreKit config) + manual sandbox | 5 | app ✅ `StoreKitTests.productsMatchTheConfiguration`; unit ✅ `PaywallCopy`; UI ✅ `testPaywallPurchaseUnlocksPro` |
-| X03.2 | Purchase / cancel / pending (Ask to Buy) / failed / restore / refund-revocation flows each produce the | Unit (EntitlementCalculator) + UI (StoreKit config) + manual sandbox | 5 | app ✅ `StoreKitTests` (purchase, Ask to Buy, refund, expiry, failure, restore); unit ✅ `EntitlementManager`, `EntitlementResolver` |
-| X03.3 | Pro features unlock immediately after purchase on all the user's devices (Universal Purchase). | Unit (EntitlementCalculator) + UI (StoreKit config) + manual sandbox | 5 | app ✅ `purchaseMadeElsewhereArrivesAsAnUpdate`; UI ✅ unlock after purchase; device check H8 |
+| X03.1 | Removed (ADR-0046). Was: paywall content. | — | — | Removed (ADR-0046); `StoreKitTests`, `PaywallCopy`, `testPaywallPurchaseUnlocksPro` deleted |
+| X03.2 | Removed (ADR-0046). Was: purchase / restore / refund-revocation flows. | — | — | Removed (ADR-0046); `StoreKitTests`, `RPStoreTests` deleted |
+| X03.3 | Removed (ADR-0046). Was: unlock on all devices after purchase. | — | — | Removed (ADR-0046); `purchaseMadeElsewhereArrivesAsAnUpdate` deleted |
 | X04.1 | Export App Data writes a versioned JSON of native collections, environments (secret values excluded), | Unit (export/import/erase) + UI | 3–4 | services ✅ `AppDataTransfer`; app ✅ `exportAndImportRoundTrip` |
 | X04.2 | Erase All Data removes SwiftData store, Keychain items, bookmarks, cookie jar, caches, MetricKit payloads | Unit (export/import/erase) + UI | 3–4 | services ✅ `DataEraser`; UI ✅ `testEraseAllDataReturnsToOnboarding` (iOS); app ✅ `eraseAllDataResetsEverything` |
 | X04.3 | Export Diagnostics produces a redacted text file (app/OS version, device class, settings, recent | Unit (export/import/erase) + UI | 3–4 | services ✅ `Diagnostics`; app E2E ✅ `diagnosticsReportHasNoPathsQueriesOrSecrets`, `reportIsWrittenAsATextFile` |
@@ -136,14 +137,13 @@ itself is only marked **✅** once the services/UI path is verified end-to-end i
 
 | Defect | Test |
 |---|---|
-| "Welcome to RequestPad Pro" shown at every launch for existing Pro users | RPStore `existingEntitlementIsReadAtStart`, `overlappingStartsAtLaunchAreNotAnUnlock` (fails on the old logic — verified) |
-| Concurrent `AppModel.load()` at launch ran start-up twice | app `AppLaunchTests.overlappingLoadsShareOneStartupAndDoNotAnnounceExistingPro` |
+| "Welcome to RequestPad Pro" shown at every launch for existing Pro users | Removed with RPStore and the alert (ADR-0046) |
+| Concurrent `AppModel.load()` at launch ran start-up twice | app `AppLaunchTests.overlappingLoadsShareOneStartup` |
 | "200 No Error" status text | RPCore `HTTPReasonPhraseTests`; RPServices `HTTPClientTests` expects "OK" from Local Echo |
 | Store screenshots | `RequestPadUITests/ScreenshotTests` (run only by `scripts/screenshots.sh`; each scene waits for a ready marker) |
 
 ## Manual checks (recorded in `docs/HUMAN_HANDOFF.md`)
 
 - VoiceOver full pass and Accessibility Inspector review on iPhone, iPad and Mac (B8); includes macOS sidebar contrast (ADR-0019).
-- StoreKit sandbox purchase with a Sandbox Apple Account on a device (B4.10).
 - Instruments: cold launch < 1.0 s, menu bar popover < 100 ms, scrolling, memory (B3).
 - Testing on iOS 17 / macOS 14 (minimum OS; only iOS 27 runtime installed on the build Mac — ADR-0004).

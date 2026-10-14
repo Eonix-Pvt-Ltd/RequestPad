@@ -36,7 +36,7 @@ Legend: ✅ done and verified by the agent · 👤 open, needs a human (handoff 
 ### Tests (last results: `docs/SDLC_LOG.md` Phase 8)
 - ✅ **iOS:** package 343 passed (2 skipped by design), app on iPhone 76/76, app on iPad 76/76.
 - ✅ **macOS:** package 345, app 74. ASan and TSan 338 each (7 skipped by design); fuzzing 15 parsers.
-- ✅ **Coverage:** RPCore 96.84%, RPData 93.47%, RPServices 91.88%, RPStore 99.47% (gate 80%).
+- ✅ **Coverage:** RPCore 96.84%, RPData 93.47%, RPServices 91.88%, RPStore 99.47% (gate 80%; RPStore was removed in ADR-0046).
 - ✅ Automated accessibility audits run on every screen (iOS).
 - ⚠️ **macOS UI tests** can't drive the app on the build Mac (ADR-0037). They need another Mac or CI (H7).
 - 👤 **Full macOS `test.sh` re-run** once after a restart (H7, Phase 8 addition).
@@ -65,10 +65,10 @@ Legend: ✅ done and verified by the agent · 👤 open, needs a human (handoff 
 
 ### Release
 - ✅ Release builds with 0 warnings. The macOS binary is universal. Distribution-signed exports for version 1.0.0 (1).
-- ✅ **Store material:** icon, 15 screenshots, 3 IAP review screenshots, metadata, review notes, privacy labels,
+- ✅ **Store material:** icon, 15 screenshots, metadata, review notes, privacy labels,
   review checklist, prepared review replies, TestFlight plan.
-- 👤 **Release steps:** upload and beta (H12), store listing (H11), in-app purchases (H8), submit and release
-  (H13). Legal and support pages are live and verified (H1, 2026-09-27).
+- 👤 **Release steps:** upload and beta (H12), store listing (H11), removing the old Pro products (H8), submit
+  and release (H13). Legal and support pages are live and verified (H1, 2026-09-27).
 
 ## 2. File tree
 
@@ -79,15 +79,14 @@ Legend: ✅ done and verified by the agent · 👤 open, needs a human (handoff 
 | `Sources/RPCore` (45) | Models, parsers (JSON, YAML, `.bru`, cURL, OpenAPI, Postman, GraphQL, JSONPath), variables, assertions, cookies, OAuth |
 | `Sources/RPData` (12) | SwiftData store, Keychain secret store, preferences, bookmarks |
 | `Sources/RPServices` (18) | HTTP client, folder collections and file watching, Local Echo, sample data, diagnostics, export/import/erase |
-| `Sources/RPStore` (7) | StoreKit 2 entitlements, feature gate, paywall copy, product IDs |
 | `Sources/RPUI` (8) | Shared SwiftUI components (JSON tree, badges, colours) |
 | `Tests/` (65) | Swift Testing suites for the package: unit, fuzzing, performance, fixtures |
-| `RequestPadTests/`, `RequestPadUITests/` | App-hosted tests (end-to-end against Local Echo, StoreKit, system integrations) and XCUITests (flows, accessibility audits, store screenshots) |
+| `RequestPadTests/`, `RequestPadUITests/` | App-hosted tests (end-to-end against Local Echo, system integrations) and XCUITests (flows, accessibility audits, store screenshots) |
 | `Config/` | xcconfig files: version, build number, deployment targets, warnings as errors |
 | `scripts/` | `bootstrap`, `lint`, `test`, `sync-strings`, `archive`, `upload` (human-run), `screenshots`, `check-metadata.py`, export options |
 | `.github/workflows/ci.yml` | CI: lint, tests, build, secret scan, SAST |
-| `docs/` | PRD, architecture, decisions (ADR-0001–0045), SDLC log, test plan, handoff, review checklist, release runbook, support replies, this audit |
-| `docs/AppStore/` | Metadata, review notes, privacy labels, TestFlight plan, prepared review replies, screenshots, IAP review screenshots |
+| `docs/` | PRD, architecture, decisions (ADR-0001–0046), SDLC log, test plan, handoff, review checklist, release runbook, support replies, this audit |
+| `docs/AppStore/` | Metadata, review notes, privacy labels, TestFlight plan, prepared review replies, screenshots |
 | Root `*.md` | README, `SECURITY.md`, `RUNBOOK.md` (operations and secrets), `PRIVACY.md`, `TERMS.md`, `SUPPORT.md` (the last three are published at requestpad.eonix.lk), `CHANGELOG.md`, `LICENSE` |
 
 ## 3. Run locally
@@ -98,8 +97,8 @@ scripts/bootstrap.sh
 ```bash
 open RequestPad.xcodeproj
 ```
-Choose the RequestPad scheme and a destination (My Mac, or an iPhone or iPad simulator), then Run. Purchases use the
-local StoreKit configuration. Checks:
+Choose the RequestPad scheme and a destination (My Mac, or an iPhone or iPad simulator), then Run. RequestPad is free,
+with no in-app purchases. Checks:
 ```bash
 scripts/lint.sh
 ```
