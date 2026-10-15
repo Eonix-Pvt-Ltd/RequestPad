@@ -80,6 +80,13 @@ The same flows pass on iPhone and iPad, and macOS is covered by the app-hosted u
    file and a Postman export; run a folder and export results.
 Record results in `docs/SDLC_LOG.md`.
 
+**2026-10-15 update (ADR-0047):** on this Mac with Xcode 27 / macOS 27 the app window now appears for XCUITest, and
+`testOnboardingCanBeSkipped` passes when run on its own. The remaining macOS UI failures ("Last onboarding page did
+not appear", "Import…"/menu items not found, paywall not shown) came from another project's macOS UI tests running
+at the same time: their window stayed in front of RequestPad's, so synthesized clicks landed on the other app (seen
+in the failure screenshots). App code cannot fix that. Run the macOS UI tests only when no other UI test or
+automation is driving the Mac, and keep the Mac awake and unlocked while they run.
+
 **Phase 8 addition:** after the next restart of this Mac, run
 `scripts/test.sh --platform macos --skip-macos-ui --sanitizers --analyze` once and record the result in
 `docs/SDLC_LOG.md` — the xcodebuild macOS test runner stopped connecting after an automation-mode timeout on

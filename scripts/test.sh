@@ -43,14 +43,18 @@ format() {
 }
 
 first_simulator() {
-    # Prints the name of the first available simulator whose name starts with $1.
+    # Prints the name of the first available simulator whose name starts with $1, on the newest iOS runtime
+    # (a newer Xcode refuses to test on runtimes older than its minimum, which a dictionary-order pick can land on).
     xcrun simctl list devices available -j | python3 -c '
-import json, sys
+import json, re, sys
 prefix = sys.argv[1]
-for runtime, devices in json.load(sys.stdin)["devices"].items():
-    if "iOS" not in runtime:
-        continue
-    for device in devices:
+def version(runtime):
+    # Runtime identifiers look like com.apple.CoreSimulator.SimRuntime.iOS-27-0.
+    match = re.search(r"iOS-([0-9-]+)$", runtime)
+    return tuple(int(part) for part in match.group(1).split("-")) if match else ()
+runtimes = json.load(sys.stdin)["devices"]
+for runtime in sorted((r for r in runtimes if "iOS" in r), key=version, reverse=True):
+    for device in runtimes[runtime]:
         if device["name"].startswith(prefix):
             print(device["name"]); sys.exit(0)
 sys.exit(1)' "$1"
