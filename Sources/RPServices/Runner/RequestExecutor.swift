@@ -32,7 +32,7 @@ public struct SendContext: Sendable {
         folders: [FolderSettings] = [], collection: FolderSettings = FolderSettings(), environment: Environment? = nil,
         globals: Environment? = nil, runtimeVariables: [String: String] = [:], useCookieJar: Bool = false,
         recordHistory: Bool = true,
-        historyLimit: Int = FreeTierLimitsBridge.historyEntries,
+        historyLimit: Int = HistoryLimits.entries,
         files: any FileReferenceResolver = PathFileResolver(baseDirectory: nil)
     ) {
         self.folders = folders
@@ -47,9 +47,9 @@ public struct SendContext: Sendable {
     }
 }
 
-/// Default history size without importing RPStore (the app passes the tier's limit).
-public enum FreeTierLimitsBridge {
-    public static let historyEntries = 100
+/// How many sent requests history keeps on this device.
+public enum HistoryLimits {
+    public static let entries = 1_000
 }
 
 /// The outcome of sending one request.

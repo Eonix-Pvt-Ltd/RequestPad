@@ -3,7 +3,6 @@ import Observation
 import RPCore
 import RPData
 import RPServices
-import RPStore
 
 /// What a window shows in its detail area.
 enum WorkspaceSelection: Hashable, Codable {
@@ -113,7 +112,6 @@ final class RequestEditorModel: Identifiable {
 
     var hasUnsavedChanges: Bool { !request.hasSameContent(as: saved) }
     var isSending: Bool { if case .sending = sendState { return true } else { return false } }
-    var isReadOnly: Bool { reference.map { app.isReadOnly($0.collectionID) } ?? false }
 
     var collectionTree: CollectionTree? { reference.flatMap { app.collection($0.collectionID)?.tree } }
 
@@ -182,7 +180,7 @@ final class RequestEditorModel: Identifiable {
     /// Replaces the request's contents with a parsed cURL command, keeping its identity, name and docs.
     @discardableResult
     func applyCurl(_ command: String) -> Bool {
-        guard !isReadOnly, let imported = try? CurlParser.parse(command) else { return false }
+        guard let imported = try? CurlParser.parse(command) else { return false }
         var item = imported.request
         item.id = request.id
         item.name = request.name
@@ -198,8 +196,7 @@ final class RequestEditorModel: Identifiable {
     // MARK: Save (F03, P01.4)
 
     func save(overwrite: Bool = false) async {
-        guard let reference, !isReadOnly else { return }
-        if request.auth.requiresPro, !app.require(.oauth2) { return }
+        guard let reference else { return }
         // The stored version changed since this editor loaded it (another window, or a file changed on disk and
         // was reloaded): saving would silently discard that change (P01.4).
         if !overwrite, let stored = app.request(reference)?.request, !stored.hasSameContent(as: saved) {
@@ -277,8 +274,6 @@ final class RequestEditorModel: Identifiable {
 
     func send() {
         guard !isSending else { return }
-        if request.body.bruMode == "graphql", !app.require(.graphQL) { return }
-        if request.auth.requiresPro, !app.require(.oauth2) { return }
         if let url = try? previewResolved().url,
             AppPolicies.needsLocalNetworkExplainer(for: url, preferences: app.preferences)
         {
@@ -334,7 +329,6 @@ final class RequestEditorModel: Identifiable {
     }
 
     func fetchSchema() async {
-        guard app.require(.graphQL) else { return }
         isFetchingSchema = true
         defer { isFetchingSchema = false }
         do {
@@ -369,7 +363,7 @@ final class RequestEditorModel: Identifiable {
     }
 
     func getNewToken() async {
-        guard app.require(.oauth2), let config = oauthConfiguration() else { return }
+        guard let config = oauthConfiguration() else { return }
         let resolved = await app.resolvedOAuthConfig(config, context: variableContext)
         do {
             let token = try await app.environment.oauth.fetchNewToken(for: resolved)

@@ -22,7 +22,7 @@ RequestPad has no backend and no accounts. The full threat model is in `docs/ARC
 - **Sandbox**: App Sandbox on macOS, user-selected file access through security-scoped bookmarks only. No
   executables are spawned and no code is downloaded or interpreted.
 - **Local Echo** binds to 127.0.0.1 only, is off by default and evaluates nothing.
-- **Purchases** are granted only from StoreKit-verified transactions.
+- **No purchases**: RequestPad is free, with no in-app purchases and no StoreKit code.
 - **Supply chain**: zero third-party dependencies. CI runs a pinned gitleaks secret scan, the Clang static analyzer,
   Address and Thread Sanitizer runs, and treats compiler warnings as errors.
 

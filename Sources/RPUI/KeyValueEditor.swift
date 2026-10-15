@@ -8,18 +8,16 @@ public struct KeyValueEditor: View {
     @Binding var rows: [KeyValue]
     let namePlaceholder: LocalizedStringKey
     let valuePlaceholder: LocalizedStringKey
-    let isReadOnly: Bool
     let identifier: String
 
     public init(
         rows: Binding<[KeyValue]>, namePlaceholder: LocalizedStringKey = "Name",
         valuePlaceholder: LocalizedStringKey = "Value",
-        isReadOnly: Bool = false, identifier: String
+        identifier: String
     ) {
         _rows = rows
         self.namePlaceholder = namePlaceholder
         self.valuePlaceholder = valuePlaceholder
-        self.isReadOnly = isReadOnly
         self.identifier = identifier
     }
 
@@ -61,7 +59,6 @@ public struct KeyValueEditor: View {
             .buttonStyle(.borderless)
             .accessibilityIdentifier("\(identifier).add")
         }
-        .disabled(isReadOnly)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(identifier)
     }

@@ -4,14 +4,13 @@ Reply templates for the support inbox (`docs/RELEASE_RUNBOOK.md` §12).
 
 **Targets:**
 - First reply within **2 business days**.
-- P1 reports (crash, data loss, a purchase not unlocking) the same business day.
+- P1 reports (crash, data loss) the same business day.
 
 **Rules for every reply:**
 - Personalise it, and answer the actual question first.
 - Never ask for passwords, tokens, API keys or request contents.
 - If a user sends secrets anyway, tell them to rotate those credentials, and delete the email after the issue is
   resolved.
-- Refunds are handled only by Apple; the developer cannot issue them.
 - Check every statement against the current version before sending.
 
 Log each conversation in one line under "Operations" in `docs/SDLC_LOG.md`: date, category, P-level, outcome — no
@@ -30,36 +29,11 @@ personal details. Recurring questions go into `SUPPORT.md` (FAQ) and the roadmap
 >
 > Please don't include passwords, tokens or API keys.
 
-## Pro isn't unlocked after purchase, or on a new device
+## Is RequestPad free?
 
-> Thanks for purchasing RequestPad Pro! Pro unlocks on every iPhone, iPad and Mac signed in to the same Apple
-> Account. If it isn't showing yet:
-> 1. Open RequestPad → Settings → RequestPad Pro → Restore Purchases.
-> 2. Make sure the device is signed in to the Apple Account used for the purchase (Settings → [your name] on iPhone
->    and iPad; App Store → Account on Mac).
-> 3. If the purchase needed approval (Ask to Buy), Pro unlocks as soon as it is approved.
->
-> If it still doesn't unlock, reply with the device and OS version and we'll investigate.
-
-*Note:* Family Sharing is **not** enabled for RequestPad Pro (the products are not family-shareable), so family
-members need their own purchase.
-
-## Cancel a subscription
-
-> You can cancel at any time; Pro stays active until the end of the period you've paid for.
-> - iPhone or iPad: Settings → [your name] → Subscriptions → RequestPad Pro.
-> - Mac: App Store → your account → Account Settings → Subscriptions → Manage.
-> - Or in RequestPad: Settings → RequestPad Pro → Manage Subscription.
->
-> Cancel at least 24 hours before the renewal date to avoid being charged for the next period.
-
-## Refund request
-
-> We're sorry RequestPad didn't work out for you. Purchases are processed by Apple, so refunds are requested
-> directly from Apple at https://reportaproblem.apple.com. Sign in, find RequestPad, choose "Request a refund" and
-> pick a reason. Apple usually replies within 48 hours.
->
-> If something wasn't working, we'd really like to know what happened so we can fix it.
+> Yes. RequestPad is free and every feature is included: unlimited collections, folder (`.bru`) collections,
+> OpenAPI and Postman import, GraphQL, OAuth 2.0, the collection runner and more. There are no in-app purchases, no
+> subscriptions and no ads.
 
 ## Plain `http://` request fails
 
@@ -77,7 +51,7 @@ members need their own purchase.
 
 ## Bruno collection or `.bru` file questions
 
-> RequestPad Pro opens Bruno collection folders directly: choose sidebar + → Open Collection Folder… and select the
+> RequestPad opens Bruno collection folders directly: choose sidebar + → Open Collection Folder… and select the
 > folder that contains `bruno.json`. RequestPad reads and writes the `.bru` files in place, so git keeps working.
 > JavaScript in `.bru` files (scripts and tests) is kept unchanged but is not run: RequestPad has no script engine.
 > Its assertions and extraction rules cover the most common uses.

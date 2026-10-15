@@ -1,7 +1,6 @@
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import RPUI
 import SwiftUI
 import UniformTypeIdentifiers
@@ -49,7 +48,6 @@ struct BodyEditor: View {
                 Text("Unsupported (\(editor.request.body.bruMode))").tag(Mode?.none)
             }
         }
-        .disabled(editor.isReadOnly)
         .accessibilityIdentifier("editor.body.mode")
         content
     }
@@ -60,7 +58,6 @@ struct BodyEditor: View {
             get: { Mode(editor.request.body) },
             set: { newValue in
                 guard let newValue, newValue != Mode(editor.request.body) else { return }
-                if newValue == .graphQL, !editor.app.require(.graphQL) { return }
                 let text = Self.text(of: editor.request.body)
                 switch newValue {
                 case .none: editor.request.body = .none
@@ -91,37 +88,28 @@ struct BodyEditor: View {
                 .foregroundStyle(Color.textSecondary)
         case .json(let text):
             JSONBodyEditor(
-                text: Binding(get: { text }, set: { editor.request.body = .json($0) }), isReadOnly: editor.isReadOnly)
+                text: Binding(get: { text }, set: { editor.request.body = .json($0) }))
         case .text(let text):
             CodeEditor(
                 text: Binding(get: { text }, set: { editor.request.body = .text($0) }), label: "Body",
-                identifier: "editor.body.text",
-                isReadOnly: editor.isReadOnly
+                identifier: "editor.body.text"
             )
             .frame(minHeight: 240)
         case .xml(let text):
             CodeEditor(
                 text: Binding(get: { text }, set: { editor.request.body = .xml($0) }), label: "XML body",
-                identifier: "editor.body.xml",
-                isReadOnly: editor.isReadOnly
+                identifier: "editor.body.xml"
             )
             .frame(minHeight: 240)
         case .formURLEncoded(let rows):
             KeyValueEditor(
                 rows: Binding(get: { rows }, set: { editor.request.body = .formURLEncoded($0) }),
-                isReadOnly: editor.isReadOnly,
                 identifier: "editor.body.form")
         case .multipart(let fields):
             MultipartEditor(
                 fields: Binding(get: { fields }, set: { editor.request.body = .multipart($0) }), editor: editor)
         case .graphQL(let body):
-            if editor.app.gate.isPro {
-                GraphQLEditor(body: Binding(get: { body }, set: { editor.request.body = .graphQL($0) }), editor: editor)
-            } else {
-                ProLockedView(
-                    app: editor.app, feature: .graphQL, message: "Write queries with schema autocomplete and send them."
-                )
-            }
+            GraphQLEditor(body: Binding(get: { body }, set: { editor.request.body = .graphQL($0) }), editor: editor)
         case .unsupported(let mode):
             Text("RequestPad can't edit “\(mode)” bodies. The body is kept when the file is saved.")
                 .foregroundStyle(Color.textSecondary)
@@ -132,7 +120,6 @@ struct BodyEditor: View {
 /// JSON text with validation and formatting.
 private struct JSONBodyEditor: View {
     @Binding var text: String
-    let isReadOnly: Bool
 
     var body: some View {
         let problem = validationMessage
@@ -152,10 +139,10 @@ private struct JSONBodyEditor: View {
                 if let value = try? JSONParser().parse(text) { text = JSONSerializer.string(from: value) }
             }
             .buttonStyle(.bordered)
-            .disabled(isReadOnly || problem != nil || text.isEmpty)
+            .disabled(problem != nil || text.isEmpty)
             .accessibilityIdentifier("editor.body.format")
         }
-        CodeEditor(text: $text, label: "JSON body", identifier: "editor.body.json", isReadOnly: isReadOnly)
+        CodeEditor(text: $text, label: "JSON body", identifier: "editor.body.json")
             .frame(minHeight: 240)
     }
 
@@ -204,7 +191,6 @@ private struct MultipartEditor: View {
             }
             .buttonStyle(.borderless)
         }
-        .disabled(editor.isReadOnly)
         .fileImporter(
             isPresented: Binding(get: { pickingFor != nil }, set: { if !$0 { pickingFor = nil } }),
             allowedContentTypes: [.item],

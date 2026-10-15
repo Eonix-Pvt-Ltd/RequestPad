@@ -71,9 +71,6 @@
                ReferencedContainer = "container:RequestPad.xcodeproj">
             </BuildableReference>
       </BuildableProductRunnable>
-      <StoreKitConfigurationFileReference
-         identifier = "../../RequestPadTests/StoreKit/Products.storekit">
-      </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

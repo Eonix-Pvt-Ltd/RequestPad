@@ -1,7 +1,6 @@
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import RPUI
 import StoreKit
 import SwiftUI
@@ -140,16 +139,6 @@ private struct WorkspaceBanners: View {
             }
             .buttonStyle(.bordered)
         }
-        if editor.isReadOnly {
-            NoticeBanner(
-                systemImage: "lock.fill",
-                message: Text("This collection is read-only on the free plan. You can still send its requests."),
-                tint: .textSecondary
-            ) {
-                Button("Upgrade") { editor.app.requestedProFeature = .unlimitedCollections }
-                    .buttonStyle(.bordered)
-            }
-        }
         if editor.request.hasUnsupportedScripts {
             NoticeBanner(
                 systemImage: "curlybraces",
@@ -186,7 +175,7 @@ private struct WorkspaceToolbar: ToolbarContent {
                         "Save",
                         systemImage: editor.hasUnsavedChanges ? "square.and.arrow.down.fill" : "square.and.arrow.down")
                 }
-                .disabled(!editor.hasUnsavedChanges || editor.isReadOnly)
+                .disabled(!editor.hasUnsavedChanges)
                 .accessibilityIdentifier("workspace.save")
             } else {
                 SaveToCollectionMenu(editor: editor, workspace: workspace)
@@ -218,7 +207,7 @@ private struct SaveToCollectionMenu: View {
     let workspace: WorkspaceModel
 
     var body: some View {
-        let targets = editor.app.userCollections.filter { $0.session != nil && !editor.app.isReadOnly($0.id) }
+        let targets = editor.app.userCollections.filter { $0.session != nil }
         Menu {
             ForEach(targets) { state in
                 Button(state.summary.name) {

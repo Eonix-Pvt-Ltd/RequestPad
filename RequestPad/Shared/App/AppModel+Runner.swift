@@ -2,7 +2,6 @@ import Foundation
 import RPCore
 import RPData
 import RPServices
-import RPStore
 
 /// Collection runner (P06) and cookie jar (P07) operations.
 extension AppModel {

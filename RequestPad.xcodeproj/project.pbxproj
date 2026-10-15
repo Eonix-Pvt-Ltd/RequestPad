@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		285FF30F6EA5D5741ED7B18D /* RPUI in Frameworks */ = {isa = PBXBuildFile; productRef = A7D0E0CCEDCC0D160DFA1E42 /* RPUI */; };
-		513CC5473EC99D0FA3A552B7 /* RPStore in Frameworks */ = {isa = PBXBuildFile; productRef = D0971DA4F1FDD0A282614345 /* RPStore */; };
 		6D5A4D10CBF37101A575FCB8 /* RPServices in Frameworks */ = {isa = PBXBuildFile; productRef = 4E1AF5A0D2E8E046EB5C8A47 /* RPServices */; };
 		97025110C40C08504A391EE8 /* RPData in Frameworks */ = {isa = PBXBuildFile; productRef = 312CAF95510DA88B7DBAC09A /* RPData */; };
 		BBE53B7992F26ECF65E9D56E /* RPCore in Frameworks */ = {isa = PBXBuildFile; productRef = 35A744E87F52F85E5C4FADD6 /* RPCore */; };
@@ -79,7 +78,6 @@
 				BBE53B7992F26ECF65E9D56E /* RPCore in Frameworks */,
 				97025110C40C08504A391EE8 /* RPData in Frameworks */,
 				6D5A4D10CBF37101A575FCB8 /* RPServices in Frameworks */,
-				513CC5473EC99D0FA3A552B7 /* RPStore in Frameworks */,
 				285FF30F6EA5D5741ED7B18D /* RPUI in Frameworks */,
 			);
 		};
@@ -149,7 +147,6 @@
 				35A744E87F52F85E5C4FADD6 /* RPCore */,
 				312CAF95510DA88B7DBAC09A /* RPData */,
 				4E1AF5A0D2E8E046EB5C8A47 /* RPServices */,
-				D0971DA4F1FDD0A282614345 /* RPStore */,
 				A7D0E0CCEDCC0D160DFA1E42 /* RPUI */,
 			);
 			productName = RequestPad;
@@ -603,11 +600,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 01568FBFEF49462C45F55477 /* XCLocalSwiftPackageReference "." */;
 			productName = RPUI;
-		};
-		D0971DA4F1FDD0A282614345 /* RPStore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 01568FBFEF49462C45F55477 /* XCLocalSwiftPackageReference "." */;
-			productName = RPStore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -23,7 +23,7 @@ RequestPad stores the following locally so the app works:
 | Collections you save as `.bru` files | The folder you choose (which may be synced by iCloud Drive, another file provider, or git — under that service's own terms) |
 | Secret variables, tokens, passwords and API keys | Your device's Keychain, encrypted by the operating system; not synced |
 | Request history (the request as written and a response summary: status, time, size, content type) | The app's private storage. Response bodies are not kept in history. |
-| Cookies received from servers (Pro cookie jar) | The app's private storage |
+| Cookies received from servers (cookie jar) | The app's private storage |
 | Diagnostic reports from Apple's MetricKit (performance and crash statistics, no personal content) | The app's private storage |
 
 ## Network connections
@@ -36,8 +36,8 @@ RequestPad stores the following locally so the app works:
   network. RequestPad uses it only for the requests you send.
 - **Local Echo** is a test server that runs inside the app on your device (127.0.0.1) and is never reachable from
   other devices.
-- **Purchases** are processed by Apple through the App Store. We do not receive your payment details or Apple
-  Account information.
+- **No purchases.** RequestPad is free and has no in-app purchases, so it never handles payment or Apple Account
+  information.
 
 ## Diagnostics you choose to share
 

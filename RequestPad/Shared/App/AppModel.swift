@@ -4,7 +4,6 @@ import Observation
 import RPCore
 import RPData
 import RPServices
-import RPStore
 
 /// Identifies a saved request (collection + storage key).
 struct RequestReference: Hashable, Codable, Sendable {
@@ -41,9 +40,6 @@ struct PresentedError: Identifiable, Equatable {
 @Observable
 final class AppModel {
     let environment: AppEnvironment
-    let entitlements: EntitlementState
-    /// Purchases, restore and live entitlement updates (Phase 5).
-    let store: EntitlementManager
 
     private(set) var collections: [CollectionState] = []
     private(set) var globals = Environment(id: SampleData.globalsID, name: String(localized: "Globals"))
@@ -57,10 +53,6 @@ final class AppModel {
     private(set) var runtimeVariables: [UUID: [String: String]] = [:]
     /// Active environment key per collection.
     private(set) var activeEnvironmentKeys: [UUID: String] = [:]
-    /// Pro feature the user tried to use (drives the upgrade sheet).
-    var requestedProFeature: ProFeature?
-    /// 0 when no sheet is shown; sheets that can show Pro prompts set 1 (see `PaywallPresenter`).
-    var presentationLevel = 0
     /// Something to show in a window, requested from outside one (menu bar, Services, Shortcuts). The frontmost
     /// window consumes it (`RootView`).
     var requestedOpen: OpenTarget?
@@ -80,16 +72,13 @@ final class AppModel {
     private var watchTasks: [UUID: Task<Void, Never>] = [:]
     private let log = Log.logger(.app)
 
-    init(environment: AppEnvironment, store: EntitlementManager) {
+    init(environment: AppEnvironment) {
         self.environment = environment
-        self.store = store
-        entitlements = store.state
         onboardingCompleted = environment.preferences.onboardingCompleted
         appearance = environment.preferences.appearance
         menuBarQuickSendEnabled = environment.preferences.menuBarQuickSendEnabled
     }
 
-    var gate: FeatureGate { entitlements.gate }
     var preferences: Preferences { environment.preferences }
 
     // MARK: Loading
@@ -104,7 +93,6 @@ final class AppModel {
     private func performLoad() async {
         purgeTemporaryBodies()
         environment.metrics.start()
-        await store.start()
         if preferences.localEchoEnabled { await startEcho() }
         await reloadCollections()
         await reloadGlobals()
@@ -197,30 +185,8 @@ final class AppModel {
         collection(reference.collectionID)?.tree?.requests.first { $0.key == reference.key }
     }
 
-    /// Non-sample collections, in sidebar order (free-tier counting, F03.2).
+    /// Non-sample collections, in sidebar order.
     var userCollections: [CollectionState] { collections.filter { $0.summary.storage != .sample } }
-
-    // MARK: Gating
-
-    /// Returns true when allowed; otherwise shows the upgrade sheet.
-    @discardableResult
-    func require(_ decision: GateDecision) -> Bool {
-        switch decision {
-        case .allowed:
-            return true
-        case .requiresPro(let feature):
-            requestedProFeature = feature
-            return false
-        }
-    }
-
-    func require(_ feature: ProFeature) -> Bool { require(gate.check(feature)) }
-
-    func isReadOnly(_ collectionID: UUID) -> Bool {
-        guard let state = collection(collectionID), state.summary.storage == .native else { return false }
-        let index = userCollections.filter { $0.summary.storage == .native }.firstIndex { $0.id == collectionID } ?? 0
-        return gate.isReadOnly(collectionIndexAmongNonSample: index, requestCount: state.tree?.requests.count ?? 0)
-    }
 
     // MARK: Collections
 
@@ -228,7 +194,6 @@ final class AppModel {
     func createCollection(named name: String) async -> UUID? {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
-        guard require(gate.canCreateCollection(existingNonSampleCount: userCollections.count)) else { return nil }
         do {
             let summary = try await environment.store.createCollection(name: trimmed, storage: .native)
             await reloadCollections()
@@ -239,10 +204,9 @@ final class AppModel {
         }
     }
 
-    /// Adds a Bruno folder the user picked (Pro, P01.1). Creates a new collection if the folder is empty.
+    /// Adds a Bruno folder the user picked (P01.1). Creates a new collection if the folder is empty.
     @discardableResult
     func openFolderCollection(at url: URL, createIfEmpty name: String?) async -> UUID? {
-        guard require(.folderCollections) else { return nil }
         let access = environment.folderAccess.beginAccess(to: url)
         defer { access.stop() }
         do {
@@ -305,19 +269,17 @@ final class AppModel {
     }
 
     func setCookieJar(_ enabled: Bool, for id: UUID) async {
-        if enabled, !require(.cookieJar) { return }
         await perform { try await self.environment.store.setCookieJarEnabled(enabled, for: id) }
     }
 
     func saveCollectionSettings(_ settings: FolderSettings, for id: UUID) async {
         guard let session = collection(id)?.session else { return }
-        if settings.auth.requiresPro, !require(.oauth2) { return }
         await perform(reloading: id) { try await session.saveCollectionSettings(settings) }
     }
 
     /// Writes a native collection to a Bruno folder and adds it as a folder collection (P01.7).
     func convertToFolder(_ id: UUID, destination: URL) async {
-        guard require(.folderCollections), let tree = collection(id)?.tree else { return }
+        guard let tree = collection(id)?.tree else { return }
         let access = environment.folderAccess.beginAccess(to: destination)
         defer { access.stop() }
         do {
@@ -357,20 +319,14 @@ final class AppModel {
 
     func saveFolderSettings(_ settings: FolderSettings, in collectionID: UUID, key: String) async {
         guard let session = collection(collectionID)?.session else { return }
-        if settings.auth.requiresPro, !require(.oauth2) { return }
         await perform(reloading: collectionID) { try await session.saveFolderSettings(settings, key: key) }
     }
 
-    /// Creates a new request and returns its reference (F03.1, F03.2 limits).
+    /// Creates a new request and returns its reference (F03.1).
     func createRequest(in collectionID: UUID, folderKey: String?, request: RequestItem? = nil) async
         -> RequestReference?
     {
         guard let state = collection(collectionID), let session = state.session else { return nil }
-        if state.summary.storage == .native,
-            !require(gate.canAddRequest(toCollectionWith: state.tree?.requests.count ?? 0))
-        {
-            return nil
-        }
         var item = request ?? RequestItem(name: String(localized: "New Request"), url: "https://")
         if request == nil { item.settings.followRedirects = preferences.followRedirects }
         item.id = UUID()
@@ -574,12 +530,7 @@ final class AppModel {
         let context = sendContext(
             collectionID: collectionID, folderKey: reference.flatMap { self.request($0)?.folderKey },
             environment: choice)
-        var effective = applyingDefaults(to: request)
-        if !gate.isPro {
-            // Free tier: extraction and assertions are Pro (P05, P06); they don't run.
-            effective.extractors = []
-            effective.assertions = []
-        }
+        let effective = applyingDefaults(to: request)
         let result = try await environment.executor.send(effective, context: context)
         if let collectionID {
             runtimeVariables[collectionID] = result.runtimeVariables
@@ -614,8 +565,8 @@ final class AppModel {
             environment: collectionID.flatMap { environmentEntry(for: $0, choice: choice)?.environment },
             globals: globals,
             runtimeVariables: collectionID.flatMap { runtimeVariables[$0] } ?? [:],
-            useCookieJar: gate.isPro && (state?.summary.useCookieJar ?? true), recordHistory: true,
-            historyLimit: gate.historyLimit)
+            useCookieJar: state?.summary.useCookieJar ?? true, recordHistory: true,
+            historyLimit: HistoryLimits.entries)
         context.files =
             state?.session?.files ?? BookmarkFileResolver(baseDirectory: nil, folderAccess: environment.folderAccess)
         return context
@@ -665,7 +616,7 @@ final class AppModel {
     // MARK: History (F06)
 
     func reloadHistory() async {
-        history = (try? await environment.store.history(limit: gate.historyLimit)) ?? []
+        history = (try? await environment.store.history(limit: HistoryLimits.entries)) ?? []
     }
 
     func clearHistory() async {
@@ -682,7 +633,6 @@ final class AppModel {
 
     /// Creates a native collection from an imported document (OpenAPI/Postman). Returns its id.
     func importCollection(_ imported: ImportedCollection) async -> UUID? {
-        guard require(gate.canCreateCollection(existingNonSampleCount: userCollections.count)) else { return nil }
         do {
             let summary = try await environment.store.createCollection(
                 name: imported.name, storage: .native, settings: imported.settings)

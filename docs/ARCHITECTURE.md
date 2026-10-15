@@ -3,7 +3,7 @@
 ## 1. Overview
 
 RequestPad is a native, offline-first HTTP/GraphQL client. There is no backend: every trust boundary is on the device
-(app ↔ user's servers, app ↔ user's files, app ↔ Keychain, app ↔ App Store).
+(app ↔ user's servers, app ↔ user's files, app ↔ Keychain).
 
 ```mermaid
 flowchart LR
@@ -14,11 +14,10 @@ flowchart LR
       Core["RPCore\nmodels · .bru codec · cURL · OpenAPI · Postman\nYAML subset · JSONPath · interpolation\nassertions · extractors · cookie rules"]
       Data["RPData\nSwiftData store · Keychain · bookmarks\nfolder collections (actor) · file watcher"]
       Svc["RPServices\nHTTP client (actor) · OAuth2 · GraphQL introspection\nLocal Echo (NWListener actor) · runner · MetricKit"]
-      Store["RPStore\nEntitlementManager · paywall models"]
       RPUI["RPUI\ncomponents · tokens · accessibility · editors"]
     end
   end
-  UI --> ENV --> Data & Svc & Store
+  UI --> ENV --> Data & Svc
   Data --> Core
   Svc --> Core
   UI --> RPUI --> Core
@@ -27,7 +26,6 @@ flowchart LR
   Svc -- "127.0.0.1 only" --> Echo[["Local Echo"]]
   Data -- "security-scoped bookmark" --> Folder[("User folder: *.bru\n(Files / iCloud Drive / git)")]
   Data -- "SecItem" --> KC[("Keychain")]
-  Store -- "StoreKit 2" --> AS[("App Store")]
 ```
 
 ## 2. Modules
@@ -37,13 +35,13 @@ flowchart LR
 | `RPCore` | — | Value-type domain models (`Collection`, `RequestItem`, `Environment`, `Variable`, `Auth`, `Body`, `Extractor`, `Assertion`, `HistoryEntry`, `Cookie`), `.bru` lexer/parser/serializer, env-file codec, cURL parser/exporter, YAML subset parser, OpenAPI & Postman importers, JSONPath evaluator, `{{var}}` interpolator, assertion & extraction engine, RFC 6265 cookie matching, GraphQL lexer/introspection schema model/completion engine, PKCE helpers | Foundation, CryptoKit (SHA-256 only) |
 | `RPData` | RPCore | SwiftData `SchemaV1` models + `SchemaMigrationPlan`, stores (upsert by natural key), `KeychainStore`, `BookmarkStore`, `FolderCollectionRepository` actor, file watcher, export/import, erase-all | SwiftData, Security, LocalAuthentication |
 | `RPServices` | RPCore, RPData | `HTTPClient` actor (URLSession + delegate metrics/redirect/streaming), `OAuth2Service`, `GraphQLSchemaService`, `LocalEchoServer` actor (Network.framework), `CollectionRunner`, `DiagnosticsService`, `MetricsSubscriber` (MetricKit), `LocalNetworkPermissionProbe` | Foundation, Network, AuthenticationServices, MetricKit, OSLog |
-| `RPStore` | RPCore | `EntitlementManager`, `EntitlementCalculator` (pure, fixture-tested), `ProductCatalog`, `FeatureGate` | StoreKit |
 | `RPUI` | RPCore | Design tokens, status badges, key-value table editor, code/text editors (`UITextView`/`NSTextView` representables for large text and GraphQL completion), JSON tree view, accessibility helpers | SwiftUI, UIKit/AppKit bridging only where needed |
 | App target | all | `RequestPadApp`, scenes, feature views, App Intents, MenuBarExtra, Services provider, onboarding, settings | SwiftUI |
 
 One Xcode app target builds for iOS/iPadOS and macOS (multiplatform, `SUPPORTED_PLATFORMS = iphoneos iphonesimulator
 macosx`), which yields one bundle ID for Universal Purchase. The package lives at the repo root (`Package.swift`) and is
-added to the supplied project as a local package (ADR-0003).
+added to the supplied project as a local package (ADR-0003). The former `RPStore` module (StoreKit, entitlements,
+feature gate) was removed with the move to a free app (ADR-0046).
 
 ## 3. Data model
 
@@ -52,7 +50,7 @@ added to the supplied project as a local package (ADR-0003).
 | Data | Where | Why |
 |---|---|---|
 | Native collections, folders, requests, environments (non-secret values), globals, history, cookie jar, GraphQL schema cache, drafts, OAuth token metadata (not the token) | SwiftData (`SchemaV1`, local only, `cloudKitDatabase: .none`) | Structured, queryable, versioned |
-| Folder collections (Pro) | `.bru` files in the user's folder; an in-memory index + SwiftData `FolderCollectionRef` row holding the bookmark | Files are the source of truth — git-friendly |
+| Folder collections | `.bru` files in the user's folder; an in-memory index + SwiftData `FolderCollectionRef` row holding the bookmark | Files are the source of truth — git-friendly |
 | Secret variable values, OAuth access/refresh tokens, client secrets, Basic/Bearer/API-key literals when the user marks them secret | Keychain (`kSecClassGenericPassword`, service `lk.eonix.RequestPad`, `AfterFirstUnlockThisDeviceOnly`, not synchronizable) | B5 |
 | Preferences (timeout, redirects, onboarding done, menu bar toggle, review counter) | `UserDefaults.standard` | No widgets → no app group (ADR-0006) |
 | Large response bodies (> 10 MB) | Temp file in `FileManager.temporaryDirectory/Responses`, purged on launch and on Erase | Memory ceiling |
@@ -94,7 +92,7 @@ sequenceDiagram
   H->>S: dataTask / bytes, delegate metrics, redirect policy
   S-->>H: headers, body stream (≤10 MB memory, else temp file), metrics
   H-->>V: HTTPResponse(status, headers, body storage, timings, TLS)
-  V->>V: extraction rules, cookie jar (Pro), history (unresolved snapshot)
+  V->>V: extraction rules, cookie jar (unless off for the collection), history (unresolved snapshot)
 ```
 
 ### 4.2 Folder collection sync
@@ -106,15 +104,13 @@ sequenceDiagram
 hash; our own writes are ignored by hash.
 
 ### 4.3 Purchases
-`EntitlementManager` starts at launch (before any gated UI): listens to `Transaction.updates`, drains
-`Transaction.unfinished`, recomputes from `Transaction.currentEntitlements` using the pure `EntitlementCalculator`
-(verified only, `revocationDate == nil`, not expired). `FeatureGate` reads `isPro` and the free limits.
+None. The app is free with every feature included; there is no StoreKit code (ADR-0046).
 
 ## 5. Concurrency model
 
 - Swift 6 language mode, `SWIFT_STRICT_CONCURRENCY = complete`, no `@unchecked Sendable` without a justification
   comment, no `DispatchQueue.main.async`.
-- View models and `EntitlementManager` are `@MainActor @Observable`.
+- View models are `@MainActor @Observable`.
 - Stateful services are actors: `HTTPClient`, `LocalEchoServer`, `FolderCollectionRepository`, `OAuth2Service`,
   `CollectionRunner`, `KeychainStore` (serializes SecItem mutations so delete-and-re-add is atomic).
 - SwiftData: the UI uses the main `ModelContext`; background writes (history pruning, imports) use a `@ModelActor`.
@@ -127,9 +123,9 @@ hash; our own writes are ignored by hash.
 
 ## 6. Networking rules
 
-- `URLSession` with an ephemeral configuration per send (Free: no cookie storage; Pro: cookies applied manually from
-  the RPCore jar, `httpShouldSetCookies = false`) so the OS never persists cookies or caches outside our control;
-  `urlCache = nil`.
+- `URLSession` with an ephemeral configuration per send (cookies applied manually from the RPCore jar,
+  `httpShouldSetCookies = false`; none stored when the collection turns the jar off) so the OS never persists cookies
+  or caches outside our control; `urlCache = nil`.
 - Timeouts: per-request (default 30 s). Redirects handled in `willPerformHTTPRedirection` (follow/stop, max 10,
   `Authorization` stripped on cross-origin redirect).
 - ATS stays on: no `NSAllowsArbitraryLoads`. `NSAllowsLocalNetworking = YES` plus `NSExceptionDomains` entries for
@@ -147,18 +143,16 @@ hash; our own writes are ignored by hash.
 2. User's API collections (may embed internal hostnames, sample payloads).
 3. Response bodies (may contain PII from the user's systems).
 4. The user's files in granted folders.
-5. Pro entitlement integrity.
 
 ### Trust boundaries
 App ↔ user's servers (network, untrusted responses) · App ↔ OAuth provider (browser session) · App ↔ files on disk /
 iCloud Drive / git (untrusted input) · App ↔ imported documents (cURL, OpenAPI, Postman — untrusted) · App ↔ other
-local processes (Local Echo port, URL scheme) · App ↔ Keychain · App ↔ App Store.
+local processes (Local Echo port, URL scheme) · App ↔ Keychain.
 
 ### STRIDE-lite
 | | Threat | Mitigation |
 |---|---|---|
 | Spoofing | Another app registers `requestpad://` and intercepts the OAuth code | PKCE S256 (code useless without verifier); `state` check; `ASWebAuthenticationSession` returns the callback directly to the session, not via the global URL scheme handler |
-| Spoofing | Forged StoreKit transaction | Only `.verified` `VerificationResult`s grant entitlements |
 | Tampering | Malicious `.bru` / OpenAPI / Postman / cURL input crafted to crash or hang the parser | Hand-written parsers with size caps (10 MB docs, 1 MB per `.bru`), nesting depth caps (YAML/JSON 64, schema synthesis 8), YAML anchors/aliases limited (≤ 100 alias expansions, ADR-0014), no recursion on untrusted depth without a counter; fuzz tests |
 | Tampering | Git pull replaces files while editing | Hash-based change detection + conflict prompt |
 | Repudiation | N/A — single-user local app; history records what was sent | — |
@@ -169,7 +163,7 @@ local processes (Local Echo port, URL scheme) · App ↔ Keychain · App ↔ App
 | Info disclosure | Local Echo readable by other local processes | Bound to 127.0.0.1 only, off by default, only echoes what the caller sent, no state |
 | DoS | Huge/slow response exhausts memory or freezes UI | Stream to disk above 10 MB, render cap, off-main parsing, cancellable, 30 s default timeout |
 | DoS | Local Echo flooded | 16-connection cap, 20 MB request cap, 30 s idle timeout |
-| Elevation | Free-tier limits bypassed by editing files/defaults | Gate decisions come from StoreKit entitlements, not preferences; limits are UX, not security-critical |
+| Elevation | Paid features unlocked without paying | N/A — no purchases or gated features (ADR-0046) |
 | Elevation | App reads files outside granted scope | App Sandbox + user-selected read-write + security-scoped bookmarks only |
 
 ### Highest-risk surfaces
@@ -185,7 +179,7 @@ local processes (Local Echo port, URL scheme) · App ↔ Keychain · App ↔ App
 ## 8. Error handling
 
 Each module defines one `AppError`-style enum conforming to `LocalizedError` (`CoreError`, `DataError`,
-`ServiceError`, `StoreError`) with `errorDescription` + `recoverySuggestion`. Views render errors with retry / open
+`ServiceError`) with `errorDescription` + `recoverySuggestion`. Views render errors with retry / open
 settings / contact support actions. No `try?` on user-initiated actions; no force unwraps or `try!` outside tests.
 
 ## 9. Observability (on-device only)
@@ -200,11 +194,11 @@ analytics, no third-party SDKs.
 | Phase | Deliverable | Exit evidence |
 |---|---|---|
 | 0 | PRD, Architecture (+ threat model), Decisions, SDLC log | Every feature has ≥ 1 AC |
-| 1 | Repo layout, Package with 5 modules, project settings (Swift 6, targets, platforms), entitlements, Info.plist keys, privacy manifest, StoreKit config, String Catalog, scripts, CI, README/SECURITY/RUNBOOK skeleton content, placeholder lint | `scripts/test.sh` green; CI green |
+| 1 | Repo layout, Package with 5 modules (RPStore removed in ADR-0046), project settings (Swift 6, targets, platforms), entitlements, Info.plist keys, privacy manifest, StoreKit config (removed in ADR-0046), String Catalog, scripts, CI, README/SECURITY/RUNBOOK skeleton content, placeholder lint | `scripts/test.sh` green; CI green |
 | 2 | RPCore: models, `.bru` codec, env codec, interpolation, JSONPath, cURL, YAML subset, OpenAPI/Postman importers, assertions/extractors, cookies, GraphQL lexer/completion, PKCE | ≥ 80 % Core coverage; parse perf tests |
 | 3 | RPData + RPServices: SwiftData stores, Keychain, bookmarks, folder repo + watcher, HTTP client, OAuth2, introspection, Local Echo, runner, diagnostics | Live + fake for every protocol; ASan/TSan clean |
 | 4 | All UI, onboarding, settings, sample data, accessibility, localization | Accessibility-audit UI test on every screen |
-| 5 | StoreKit 2, paywall, gating | Purchase/restore/revocation tests |
+| 5 | StoreKit 2, paywall, gating (removed in ADR-0046) | Purchase/restore/revocation tests (removed in ADR-0046) |
 | 6 | App Intents, menu bar, Services, launch at login, state restoration | Each integration tested |
 | 7 | Hardening, fuzzing, profiling, privacy report | TEST_PLAN all pass |
 | 8 | Icon, screenshots, metadata, review notes | `docs/AppStore/*` complete |

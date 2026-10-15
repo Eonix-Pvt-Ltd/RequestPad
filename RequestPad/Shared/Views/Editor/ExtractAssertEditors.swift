@@ -1,7 +1,6 @@
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import RPUI
 import SwiftUI
 
@@ -82,7 +81,6 @@ private struct SourceFields: View {
 /// Extraction rules: response value → variable (P05).
 struct ExtractorsEditor: View {
     @Binding var extractors: [Extractor]
-    let isReadOnly: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.medium) {
@@ -134,14 +132,12 @@ struct ExtractorsEditor: View {
                 .font(.footnote)
                 .foregroundStyle(Color.textSecondary)
         }
-        .disabled(isReadOnly)
     }
 }
 
 /// Assertions checked after every send (P06.1).
 struct AssertionsEditor: View {
     @Binding var assertions: [Assertion]
-    let isReadOnly: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.medium) {
@@ -205,7 +201,6 @@ struct AssertionsEditor: View {
             .buttonStyle(.borderless)
             .accessibilityIdentifier("assert.add")
         }
-        .disabled(isReadOnly)
     }
 
     private func update(

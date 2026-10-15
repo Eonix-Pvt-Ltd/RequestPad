@@ -1,7 +1,6 @@
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import RPUI
 import SwiftUI
 
@@ -69,7 +68,6 @@ struct URLBar: View {
             #endif
             .focused($isURLFocused)
             .onSubmit { editor.send() }
-            .disabled(editor.isReadOnly)
             .accessibilityLabel(Text("URL"))
             .accessibilityIdentifier("editor.url")
     }
@@ -95,7 +93,6 @@ struct URLBar: View {
         }
         .menuIndicator(.visible)
         .fixedSize()
-        .disabled(editor.isReadOnly)
         .accessibilityLabel(Text("Method \(editor.request.method.rawValue)"))
         .accessibilityIdentifier("editor.method")
     }

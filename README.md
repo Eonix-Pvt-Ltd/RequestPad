@@ -22,7 +22,7 @@ account, no cloud, no telemetry.
 |---|---|
 | `RequestPad.xcodeproj` | The Xcode project (single multiplatform app target + unit and UI test targets). Extend it in Xcode; never regenerate it. |
 | `RequestPad/` | App target sources (folder-synchronized): `Shared/`, `iOS/`, `macOS/`, `Intents/`, `Resources/`, entitlements, `Info.plist` |
-| `Package.swift`, `Sources/`, `Tests/` | Local Swift package `RequestPadKit`: `RPCore`, `RPData`, `RPServices`, `RPStore`, `RPUI` and their Swift Testing suites |
+| `Package.swift`, `Sources/`, `Tests/` | Local Swift package `RequestPadKit`: `RPCore`, `RPData`, `RPServices`, `RPUI` and their Swift Testing suites |
 | `Config/` | xcconfig files (`Base`, `Debug`, `Release`, `RequestPad-App`) |
 | `RequestPadTests/`, `RequestPadUITests/` | App-hosted unit tests and XCUITests (incl. accessibility audits) |
 | `scripts/` | `bootstrap.sh`, `lint.sh`, `test.sh`, `sync-strings.sh`, `archive.sh`, `upload.sh`, `screenshots.sh`, `check-metadata.py`, export options |
@@ -35,8 +35,8 @@ scripts/bootstrap.sh
 open RequestPad.xcodeproj
 ```
 
-Select the **RequestPad** scheme and a destination (My Mac, an iPhone or iPad simulator), then Run. The scheme's
-Run action uses `RequestPadTests/StoreKit/Products.storekit`, so purchases work locally without App Store Connect.
+Select the **RequestPad** scheme and a destination (My Mac, an iPhone or iPad simulator), then Run. RequestPad is
+free, with no in-app purchases, so nothing needs App Store Connect to run locally.
 
 ## Test
 
@@ -49,8 +49,7 @@ scripts/sync-strings.sh                    # after a command-line build: add new
 ```
 
 Package suites run through `.swiftpm/xcode/package.xcworkspace` (scheme `RequestPadKit-Package`); app suites run
-through the project's shared `RequestPad` scheme. The coverage gate fails below 80 % line coverage for `RPCore` or
-`RPStore`. Result bundles are written to `build/test-results/`.
+through the project's shared `RequestPad` scheme. The coverage gate fails below 80 % line coverage for `RPCore`. Result bundles are written to `build/test-results/`.
 
 `swift build` / `swift test` also work for the package alone on macOS.
 
@@ -75,7 +74,7 @@ App Store screenshots come from the real app on dedicated simulators and a Mac w
 Mac unlocked and don't move windows during the Mac part):
 
 ```bash
-scripts/screenshots.sh --platform all   # → docs/AppStore/screenshots/{iphone-6.9,ipad-13,mac} and iap-review/
+scripts/screenshots.sh --platform all   # → docs/AppStore/screenshots/{iphone-6.9,ipad-13,mac}
 ```
 
 Store listing text, review notes and privacy answers live in `docs/AppStore/`; `docs/APP_REVIEW_CHECKLIST.md` holds

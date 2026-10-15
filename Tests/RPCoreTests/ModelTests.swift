@@ -51,15 +51,14 @@ struct ModelTests {
 
     @Test(
         arguments: [
-            (RequestAuth.inherit, "inherit", false), (.none, "none", false), (.bearer(token: ""), "bearer", false),
-            (.basic(username: "", password: ""), "basic", false),
-            (.apiKey(APIKeyAuth(key: "", value: "")), "apikey", false),
-            (.oauth2(OAuth2Config(grantType: .clientCredentials)), "oauth2", true),
-            (.unsupported(mode: "digest"), "digest", false),
-        ] as [(RequestAuth, String, Bool)])
-    func authModes(auth: RequestAuth, mode: String, requiresPro: Bool) {
+            (RequestAuth.inherit, "inherit"), (.none, "none"), (.bearer(token: ""), "bearer"),
+            (.basic(username: "", password: ""), "basic"),
+            (.apiKey(APIKeyAuth(key: "", value: "")), "apikey"),
+            (.oauth2(OAuth2Config(grantType: .clientCredentials)), "oauth2"),
+            (.unsupported(mode: "digest"), "digest"),
+        ] as [(RequestAuth, String)])
+    func authModes(auth: RequestAuth, mode: String) {
         #expect(auth.bruMode == mode)
-        #expect(auth.requiresPro == requiresPro)
     }
 
     @Test func requestContentComparisonAndCodable() throws {

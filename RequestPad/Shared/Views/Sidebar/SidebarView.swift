@@ -1,7 +1,6 @@
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import RPUI
 import SwiftUI
 import UniformTypeIdentifiers
@@ -151,24 +150,18 @@ struct SidebarView: View {
             Menu {
                 Button("New Request", systemImage: "square.and.pencil") { workspace.newRequest() }
                 Button("New Collection", systemImage: "folder.badge.plus") {
-                    guard app.require(app.gate.canCreateCollection(existingNonSampleCount: app.userCollections.count))
-                    else { return }
                     prompt = NamePrompt(purpose: .newCollection, title: "New Collection", text: "")
                 }
                 Divider()
                 Button("Open Collection Folder…", systemImage: "folder") {
-                    if app.require(.folderCollections) { folderPicker = .openExisting }
+                    folderPicker = .openExisting
                 }
                 Button("New Collection in Folder…", systemImage: "folder.badge.gearshape") {
-                    if app.require(.folderCollections) {
-                        prompt = NamePrompt(purpose: .newFolderCollection, title: "Collection Name", text: "")
-                    }
+                    prompt = NamePrompt(purpose: .newFolderCollection, title: "Collection Name", text: "")
                 }
                 Divider()
                 Button("Import…", systemImage: "square.and.arrow.down") { isImportPresented = true }
-                Button("Cookie Jar", systemImage: "birthday.cake") {
-                    if app.require(.cookieJar) { sheet = .cookies }
-                }
+                Button("Cookie Jar", systemImage: "birthday.cake") { sheet = .cookies }
             } label: {
                 Label("Add", systemImage: "plus")
             }
@@ -361,14 +354,14 @@ struct CollectionRow: View {
         Divider()
         Button("Environments…") { actions.sheet(.environments(state.id)) }
         Button("Collection Settings…") { actions.sheet(.collectionSettings(state.id)) }
-        Button("Run Collection…") { if app.require(.assertionsAndRunner) { actions.sheet(.runner(state.id, nil)) } }
+        Button("Run Collection…") { actions.sheet(.runner(state.id, nil)) }
         Divider()
         Button("Rename…") {
             actions.prompt(
                 NamePrompt(purpose: .renameCollection(state.id), title: "Rename Collection", text: state.summary.name))
         }
         if state.summary.storage == .native {
-            Button("Convert to Folder Collection…") { if app.require(.folderCollections) { actions.convert(state.id) } }
+            Button("Convert to Folder Collection…") { actions.convert(state.id) }
         }
         Button(state.summary.storage == .folder ? "Remove from RequestPad…" : "Delete Collection…", role: .destructive)
         {
@@ -433,9 +426,7 @@ struct FolderRow: View {
                                 text: ""))
                     }
                     Button("Folder Settings…") { actions.sheet(.folderSettings(tree.id, folder.key)) }
-                    Button("Run Folder…") {
-                        if app.require(.assertionsAndRunner) { actions.sheet(.runner(tree.id, folder.key)) }
-                    }
+                    Button("Run Folder…") { actions.sheet(.runner(tree.id, folder.key)) }
                     Divider()
                     Button("Rename…") {
                         actions.prompt(

@@ -3,7 +3,6 @@ import OSLog
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import SwiftData
 
 #if os(iOS)
@@ -28,13 +27,12 @@ final class AppEnvironment: Sendable {
     let echo: LocalEchoServer
     let metrics: MetricsSubscriber
     let isUITesting: Bool
-    let storeClient: any StoreClient
 
     init(
         locations: StorageLocations, store: LocalStore, secrets: any SecretStore, preferences: Preferences,
         folderAccess: any FolderAccess,
         authenticator: any UserAuthenticator, httpClient: any HTTPClient, transport: any HTTPTransport,
-        isUITesting: Bool, storeClient: any StoreClient
+        isUITesting: Bool
     ) {
         self.locations = locations
         self.store = store
@@ -45,7 +43,6 @@ final class AppEnvironment: Sendable {
         self.httpClient = httpClient
         self.transport = transport
         self.isUITesting = isUITesting
-        self.storeClient = storeClient
         oauth = OAuth2Service(
             transport: transport, secrets: secrets,
             authenticator: SystemWebAuthenticator(anchor: { AppEnvironment.presentationAnchor() }))
@@ -100,19 +97,7 @@ final class AppEnvironment: Sendable {
             folderAccess: SecurityScopedBookmarks(), authenticator: authenticator,
             httpClient: URLSessionHTTPClient(
                 configuration: HTTPClientConfiguration(temporaryDirectory: locations.responseBodiesDirectory)),
-            transport: URLSessionTransport(), isUITesting: uiTesting,
-            storeClient: uiTesting ? makeUITestStore() : LiveStoreClient())
-    }
-
-    /// UI tests use a scripted store; `-UITestPro` starts with a lifetime purchase so Pro screens can be tested.
-    private static func makeUITestStore() -> FakeStoreClient {
-        #if DEBUG
-            let pro = ProcessInfo.processInfo.arguments.contains("-UITestPro")
-            let lifetime = TransactionSnapshot(id: 1, productID: ProductID.lifetime.rawValue, purchaseDate: Date())
-            return FakeStoreClient(entitlements: pro ? [lifetime] : [])
-        #else
-            return FakeStoreClient()
-        #endif
+            transport: URLSessionTransport(), isUITesting: uiTesting)
     }
 
     /// The window to present the OAuth sign-in sheet from.

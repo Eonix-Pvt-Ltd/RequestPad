@@ -13,7 +13,6 @@ struct AppConstantsTests {
 
     @Test(arguments: [
         AppConstants.privacyPolicyURL, AppConstants.termsOfUseURL, AppConstants.supportURL,
-        AppConstants.appleStandardEULAURL, AppConstants.manageSubscriptionsURL,
     ])
     func legalURLsAreHTTPS(url: URL) {
         #expect(url.scheme == "https")

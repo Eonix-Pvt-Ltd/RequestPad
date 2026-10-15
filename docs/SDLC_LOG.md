@@ -569,3 +569,22 @@ The owner chose to submit 1.0.0 without the TestFlight beta (H12 exit criteria r
   and macOS threads, asking which apps were matched. No new build; nothing resubmitted.
 - **Next:** wait for Apple's answer. Do not resubmit unchanged. If Apple confirms the rejection, the options are an
   App Review Board appeal, merging into DevKit, substantial product changes, or pausing RequestPad.
+
+### 2026-10-14 — RequestPad made free (ADR-0046, branch `free-app`)
+- **Change (owner request):** removed RequestPad Pro entirely. Deleted `RPStore`, its tests, `LiveStoreClient`,
+  `PaywallView`, `ProLockedView`, `Products.storekit` (and the scheme reference), the IAP review screenshots and the
+  `-UITestPro` / `paywall` debug paths. Every former Pro feature works on a fresh install; history keeps 1,000
+  entries; the lapsed-Pro read-only mode is gone. Store metadata, review notes, privacy labels, legal/support pages,
+  PRD, architecture, test plan, runbooks and HUMAN_HANDOFF (H1, H8, H12, H13) updated; 29 Pro strings removed from the
+  String Catalog.
+- **Checks:** `scripts/lint.sh` passed (swift-format strict, markers, forbidden APIs, metadata). `swift test`
+  209/0 failed. Package macOS and iPhone suites passed. App unit tests macOS 65/0 failed. App iPhone (iPhone 17e,
+  iOS 27) 67/0 failed. App iPad (iPad Air 13-inch M4, iOS 27) 65/2 failed. macOS build: no warnings. RPCore line
+  coverage 96.85 % (gate 80 %).
+- **Pre-existing UI-test failures (not caused by this change):** the 2 iPad failures are accessibility-audit findings
+  on three unlabeled buttons at the bottom of the screen (`testSampleRequestSendsToLocalEcho`,
+  `testAssertionsAreAvailableOnAFreshInstall`); 8 macOS UI tests fail at onboarding or menu lookup (H7), plus an
+  unlabeled onboarding window element. The same iPad and macOS tests fail identically on `main` (bef92c7) on this
+  Mac, verified in a separate checkout.
+- **Next:** owner removes the Pro products from the submission (H8), republishes the web pages (H1), and waits for
+  Apple's 4.3(a) answer before submitting the Xcode Cloud build of the merge.

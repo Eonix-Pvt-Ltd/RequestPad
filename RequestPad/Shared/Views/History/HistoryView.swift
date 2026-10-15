@@ -1,7 +1,6 @@
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import RPUI
 import SwiftUI
 
@@ -90,9 +89,7 @@ struct HistoryView: View {
     }
 
     private var limitFooter: String {
-        app.gate.isPro
-            ? String(localized: "RequestPad keeps your last \(app.gate.historyLimit) requests on this device.")
-            : String(localized: "The free plan keeps your last \(app.gate.historyLimit) requests. Pro keeps 1,000.")
+        String(localized: "RequestPad keeps your last \(HistoryLimits.entries) requests on this device.")
     }
 }
 

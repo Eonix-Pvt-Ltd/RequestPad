@@ -1,7 +1,6 @@
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import RPUI
 import SwiftUI
 
@@ -28,7 +27,7 @@ struct RequestPadApp: App {
             #endif
         }
         #if os(macOS)
-            // Menu bar Quick Send (P09): off by default, Pro only.
+            // Menu bar Quick Send (P09): off by default.
             MenuBarExtra(isInserted: menuBarBinding) {
                 if let app = launch.appModel {
                     QuickSendView(app: app)
@@ -51,10 +50,10 @@ struct RequestPadApp: App {
 
 #if os(macOS)
     extension RequestPadApp {
-        /// Shown while enabled in Settings and Pro is active; removing the item from the menu bar turns it off.
+        /// Shown while enabled in Settings; removing the item from the menu bar turns it off.
         fileprivate var menuBarBinding: Binding<Bool> {
             Binding(
-                get: { launch.appModel.map { $0.menuBarQuickSendEnabled && $0.gate.isPro } ?? false },
+                get: { launch.appModel.map { $0.menuBarQuickSendEnabled } ?? false },
                 set: { launch.appModel?.menuBarQuickSendEnabled = $0 })
         }
     }

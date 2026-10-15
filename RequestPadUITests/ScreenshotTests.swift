@@ -21,7 +21,7 @@ final class ScreenshotTests: XCTestCase {
         for (index, scene) in Self.scenes.enumerated() {
             let app = XCUIApplication()
             app.launchArguments = [
-                "-UITestMode", "-UITestPro", "-ScreenshotScenario", scene.name, "-ApplePersistenceIgnoreState", "YES",
+                "-UITestMode", "-ScreenshotScenario", scene.name, "-ApplePersistenceIgnoreState", "YES",
             ]
             app.launch()
             let ready = app.descendants(matching: .any)[scene.ready].firstMatch
@@ -34,25 +34,5 @@ final class ScreenshotTests: XCTestCase {
             add(attachment)
             app.terminate()
         }
-    }
-
-    /// In-app purchase review screenshots (one per product, that product selected on the paywall). App Store Connect
-    /// requires one for every product's review information; they are not shown on the product page.
-    @MainActor
-    func testCaptureInAppPurchaseReviewScreenshots() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-UITestMode", "-ScreenshotScenario", "paywall", "-ApplePersistenceIgnoreState", "YES"]
-        app.launch()
-        for product in ["yearly", "monthly", "lifetime"] {
-            let row = app.descendants(matching: .any)["paywall.product.lk.eonix.requestpad.pro.\(product)"].firstMatch
-            XCTAssertTrue(row.waitForExistence(timeout: 30), "Paywall product \(product) not shown")
-            row.tap()
-            RunLoop.current.run(until: Date().addingTimeInterval(1))
-            let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
-            attachment.name = "iapreview-\(product)"
-            attachment.lifetime = .keepAlways
-            add(attachment)
-        }
-        app.terminate()
     }
 }

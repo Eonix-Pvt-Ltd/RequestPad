@@ -30,12 +30,12 @@ support@eonix.lk
 ## What to Test (build 1)
 
 ```text
-Thank you for testing RequestPad! Purchases in TestFlight are free and never charged.
+Thank you for testing RequestPad!
 
 1. Start: finish the welcome screens with "Load Sample Data" (or Settings → Try It Out → Load Sample Data).
 2. Send: open Sample → Basics → "Echo a GET" and tap Send. Check the status, timing, headers and JSON tree. Try the other Basics requests: the 12 MB body, image preview, redirects, 404.
 3. Your own API: create a collection and a request against a server you use. Try environments ({{name}} variables, a secret value), cURL import (sidebar + → Import…) and Copy as cURL.
-4. Pro: open Settings → See Pro Features and "buy" any option (TestFlight purchases are free). Then try GraphQL (Fetch Schema), extraction rules (Chaining folder), Run Collection…, OAuth 2.0 and a folder collection (sidebar + → Open Collection Folder…). Delete and reinstall the app, then use Restore Purchases.
+4. More features: try GraphQL (Fetch Schema), extraction rules (Chaining folder), Run Collection…, OAuth 2.0 and a folder collection (sidebar + → Open Collection Folder…). Everything is free; there is nothing to buy.
 5. iPhone and iPad: rotation, Split View, a hardware keyboard (⌘↩ sends), Dynamic Type, VoiceOver, dark mode.
 6. Mac: menus and shortcuts, Settings → Mac (Menu Bar Quick Send, Open at Login), Services → "Send URL with RequestPad".
 7. Shortcuts: add the "Send Request" action and run it with the app closed.
@@ -54,7 +54,7 @@ Report problems with a screenshot (TestFlight → Send Beta Feedback) or email s
 
 | Severity | Examples | Response |
 |---|---|---|
-| P1 | Crash, data loss, a purchase not unlocking, a secret shown or written in plain text | Fix before the next build; new build within 2 days |
+| P1 | Crash, data loss, a secret shown or written in plain text | Fix before the next build; new build within 2 days |
 | P2 | Wrong result, broken flow with a workaround, accessibility blocker | Fix in the next build |
 | P3 | Cosmetic, wording, a feature request | Log for 1.x (`docs/RELEASE_RUNBOOK.md` roadmap) |
 

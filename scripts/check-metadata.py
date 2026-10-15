@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Checks docs/AppStore/metadata.md against App Store Connect limits and the App Review rules the project follows
-(Guideline 2.3.7, B4.11, B10.2): field lengths, no other apps' names in keywords or subtitle, no prices outside the
-pricing paragraph, and URLs that match AppConstants. Exits non-zero with a list of problems."""
+(Guideline 2.3.7, B4.11, B10.2): field lengths, no other apps' names in keywords or subtitle, no price amounts, and URLs that match AppConstants. Exits non-zero with a list of problems."""
 
 import pathlib
 import re
@@ -78,7 +77,7 @@ def main():
     for word in words:
         if word in name_words:
             problems.append(f"Keywords: '{word}' is already in the name (wasted characters)")
-    # Prices may only appear in the paragraph that describes the purchase terms, never as amounts.
+    # RequestPad is free: no field may mention a price amount.
     for name, value in values.items():
         if re.search(r"[$€£¥]\s?\d|\d+[.,]\d{2}\s?(usd|eur)", value, flags=re.I):
             problems.append(f"{name} mentions a price amount (prices come from the App Store)")

@@ -2,9 +2,8 @@ import AppIntents
 import Foundation
 import RPCore
 import RPServices
-import RPStore
 
-/// Shortcuts "Send Request" (P08, Pro): sends a saved request without opening the app and returns the status,
+/// Shortcuts "Send Request" (P08): sends a saved request without opening the app and returns the status,
 /// time and body.
 struct SendRequestIntent: AppIntent {
     static let title: LocalizedStringResource = "Send Request"
@@ -48,8 +47,6 @@ struct SendRequestIntent: AppIntent {
         } catch {
             throw .unavailable(error.errorDescription ?? "")
         }
-        await model.store.refreshEntitlements()
-        guard model.gate.isPro else { throw .proRequired }
         guard let reference = request.reference, let entry = model.request(reference) else { throw .requestNotFound }
         var choice = EnvironmentChoice.active
         if let environment {
@@ -114,7 +111,6 @@ struct SentResponse: TransientAppEntity {
 
 /// Why "Send Request" could not run, in words a Shortcuts user can act on (P08.2).
 enum IntentFailure: Error, Equatable, CustomLocalizedStringResourceConvertible {
-    case proRequired
     case requestNotFound
     case environmentMismatch
     case sendFailed(String)
@@ -122,8 +118,6 @@ enum IntentFailure: Error, Equatable, CustomLocalizedStringResourceConvertible {
 
     var localizedStringResource: LocalizedStringResource {
         switch self {
-        case .proRequired:
-            "Sending requests from Shortcuts is part of RequestPad Pro. Open RequestPad to upgrade."
         case .requestNotFound:
             "The request no longer exists in RequestPad. Choose it again in the shortcut."
         case .environmentMismatch:

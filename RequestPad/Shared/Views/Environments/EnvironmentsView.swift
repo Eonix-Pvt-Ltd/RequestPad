@@ -1,7 +1,6 @@
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import RPUI
 import SwiftUI
 
@@ -40,7 +39,6 @@ struct EnvironmentsView: View {
                     } label: {
                         Label("Add Environment", systemImage: "plus")
                     }
-                    .disabled(app.isReadOnly(collectionID))
                     .accessibilityIdentifier("environments.add")
                 } header: {
                     Group {
@@ -162,7 +160,7 @@ private struct EnvironmentEditor: View {
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") { save() }
-                    .disabled(!isValid || isSaving || (target != .globals && app.isReadOnly(collectionID)))
+                    .disabled(!isValid || isSaving)
                     .accessibilityIdentifier("environment.save")
             }
         }

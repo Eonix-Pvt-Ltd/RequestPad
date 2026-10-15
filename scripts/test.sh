@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs lint, the Swift package test suites and the app's unit + UI tests on every platform, with coverage.
-# Fails when RPCore or RPStore line coverage is below 80 % (B8).
+# Fails when RPCore line coverage is below 80 % (B8).
 #
 # Usage: scripts/test.sh [--platform all|macos|ios] [--sanitizers] [--analyze]
 #   --platform     which destinations to run (default: all = macOS, iPhone simulator, iPad simulator)
@@ -14,7 +14,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 COVERAGE_MINIMUM=80
-GATED_MODULES=(RPCore RPStore)
+GATED_MODULES=(RPCore)
 PROJECT=RequestPad.xcodeproj
 APP_SCHEME=RequestPad
 PACKAGE_WORKSPACE=.swiftpm/xcode/package.xcworkspace

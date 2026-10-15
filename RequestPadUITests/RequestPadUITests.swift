@@ -129,34 +129,16 @@ final class RequestPadUITests: XCTestCase {
         try audit(app)
     }
 
-    /// PRD §4 + X03: a locked feature opens the paywall with App Store prices and trial terms; buying unlocks
-    /// the feature immediately.
+    /// Every feature is free: the Assert tab is editable on a fresh install, with nothing to buy.
     @MainActor
-    func testPaywallPurchaseUnlocksPro() throws {
+    func testAssertionsAreAvailableOnAFreshInstall() throws {
         let app = launch()
         loadSampleDataFromOnboarding(app)
         openRequest(app, named: "Echo a GET")
         tapTab(app, "assert")
-        let locked = element(app, "proLocked.assertionsAndRunner")
-        XCTAssertTrue(locked.waitForExistence(timeout: Self.timeout))
-        locked.tap()
-        XCTAssertTrue(element(app, "paywall.feature").waitForExistence(timeout: Self.timeout), "Paywall did not appear")
-        XCTAssertTrue(
-            element(app, "paywall.product.lk.eonix.requestpad.pro.yearly").waitForExistence(timeout: Self.timeout))
-        XCTAssertTrue(element(app, "paywall.offer").exists, "Trial terms missing")
-        XCTAssertTrue(element(app, "paywall.restore").exists, "Restore Purchases missing")
-        assertFitsOnScreen(element(app, "paywall.purchase"), in: app)
-        attachScreenshot(app, named: "07-paywall")
-        // Audit at the end of the content: rows under a sheet's soft bottom edge are faded by the system.
-        #if os(iOS)
-            for _ in 0..<3 { element(app, "paywall.restore").swipeUp() }
-        #endif
+        XCTAssertTrue(element(app, "assert.add").waitForExistence(timeout: Self.timeout), "Assertions are not editable")
+        attachScreenshot(app, named: "07-assertions")
         try audit(app)
-        element(app, "paywall.purchase").tap()
-        let welcome = app.alerts["Welcome to RequestPad Pro"].firstMatch
-        XCTAssertTrue(welcome.waitForExistence(timeout: Self.timeout), "Unlock confirmation did not appear")
-        welcome.buttons["OK"].tap()
-        XCTAssertTrue(element(app, "assert.add").waitForExistence(timeout: Self.timeout), "Assertions did not unlock")
     }
 
     /// Sheets fit the screen on iPhone (a macOS minimum width once pushed content off screen).
@@ -240,9 +222,9 @@ final class RequestPadUITests: XCTestCase {
     // MARK: Helpers
 
     @MainActor
-    private func launch(pro: Bool = false) -> XCUIApplication {
+    private func launch() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = Self.baseArguments + (pro ? ["-UITestPro"] : [])
+        app.launchArguments = Self.baseArguments
         app.launch()
         #if os(macOS)
             // On some hosts SwiftUI restores "no windows" for the bundle despite the flags above (ADR-0037);

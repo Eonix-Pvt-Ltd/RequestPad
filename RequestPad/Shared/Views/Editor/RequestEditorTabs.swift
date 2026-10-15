@@ -1,7 +1,6 @@
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import RPUI
 import SwiftUI
 
@@ -107,17 +106,16 @@ struct RequestEditorTabs: View {
             FieldRow(title: "Query Parameters") {
                 KeyValueEditor(
                     rows: Binding(get: { editor.request.queryParams }, set: { editor.queryParamsDidChange($0) }),
-                    isReadOnly: editor.isReadOnly, identifier: "editor.query")
+                    identifier: "editor.query")
             }
             FieldRow(title: "Path Parameters") {
-                KeyValueEditor(
-                    rows: $editor.request.pathParams, isReadOnly: editor.isReadOnly, identifier: "editor.path")
+                KeyValueEditor(rows: $editor.request.pathParams, identifier: "editor.path")
                 Text("Use :name in the URL path, e.g. /users/:id.")
                     .font(.footnote)
                     .foregroundStyle(Color.textSecondary)
             }
         case .headers:
-            KeyValueEditor(rows: $editor.request.headers, isReadOnly: editor.isReadOnly, identifier: "editor.headers")
+            KeyValueEditor(rows: $editor.request.headers, identifier: "editor.headers")
             Text(
                 "Headers from the folder and collection are added when the request is sent. Request headers take precedence."
             )
@@ -127,40 +125,26 @@ struct RequestEditorTabs: View {
             BodyEditor(editor: editor)
         case .auth:
             AuthEditor(
-                app: editor.app, auth: $editor.request.auth, isReadOnly: editor.isReadOnly,
+                auth: $editor.request.auth,
                 tokenActions: OAuthTokenActions(
                     message: editor.oauthMessage,
                     getNewToken: { Task { await editor.getNewToken() } },
                     clearToken: { Task { await editor.clearToken() } }))
         case .vars:
-            KeyValueEditor(rows: $editor.request.variables, isReadOnly: editor.isReadOnly, identifier: "editor.vars")
+            KeyValueEditor(rows: $editor.request.variables, identifier: "editor.vars")
             Text(
                 "Request variables override folder and collection variables. Environment and runtime values override them."
             )
             .font(.footnote)
             .foregroundStyle(Color.textSecondary)
         case .extract:
-            if editor.app.gate.isPro {
-                ExtractorsEditor(extractors: $editor.request.extractors, isReadOnly: editor.isReadOnly)
-            } else {
-                ProLockedView(
-                    app: editor.app, feature: .extractionRules,
-                    message:
-                        "Save values from responses into variables, for example a login token for the next request.")
-            }
+            ExtractorsEditor(extractors: $editor.request.extractors)
         case .assert:
-            if editor.app.gate.isPro {
-                AssertionsEditor(assertions: $editor.request.assertions, isReadOnly: editor.isReadOnly)
-            } else {
-                ProLockedView(
-                    app: editor.app, feature: .assertionsAndRunner,
-                    message: "Check status codes, headers and JSON values on every send, and run whole collections.")
-            }
+            AssertionsEditor(assertions: $editor.request.assertions)
         case .settings:
             RequestSettingsEditor(settings: $editor.request.settings)
-                .disabled(editor.isReadOnly)
         case .docs:
-            DocsEditor(docs: $editor.request.docs, isReadOnly: editor.isReadOnly)
+            DocsEditor(docs: $editor.request.docs)
         }
     }
 }
@@ -206,7 +190,6 @@ private struct RequestSettingsEditor: View {
 /// Markdown notes with a preview (F01.8).
 struct DocsEditor: View {
     @Binding var docs: String
-    let isReadOnly: Bool
     @State private var isPreviewing = false
 
     var body: some View {
@@ -229,7 +212,7 @@ struct DocsEditor: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityIdentifier("editor.docs.preview")
         } else {
-            CodeEditor(text: $docs, label: "Documentation", identifier: "editor.docs", isReadOnly: isReadOnly)
+            CodeEditor(text: $docs, label: "Documentation", identifier: "editor.docs")
                 .frame(minHeight: 240)
         }
     }

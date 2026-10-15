@@ -1,7 +1,6 @@
 import RPCore
 import RPData
 import RPServices
-import RPStore
 import RPUI
 import SwiftUI
 
@@ -23,29 +22,7 @@ enum Clipboard {
     }
 }
 
-/// Shown in place of a Pro-only editor section for free users; opens the upgrade sheet.
-struct ProLockedView: View {
-    let app: AppModel
-    let feature: ProFeature
-    let message: LocalizedStringKey
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.small) {
-            Label(feature.title, systemImage: "lock.fill")
-                .font(.headline)
-            Text(message)
-                .foregroundStyle(Color.textSecondary)
-            Button("See RequestPad Pro") { app.requestedProFeature = feature }
-                .buttonStyle(.bordered)
-                .accessibilityIdentifier("proLocked.\(feature.rawValue)")
-        }
-        .padding(Spacing.medium)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 10))
-    }
-}
-
-/// A banner with an icon, message and optional actions (conflicts, read-only, notices).
+/// A banner with an icon, message and optional actions (conflicts, notices).
 struct NoticeBanner<Actions: View>: View {
     let systemImage: String
     let message: Text

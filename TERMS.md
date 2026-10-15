@@ -7,18 +7,9 @@ EULA"): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/. The S
 app. The points below explain how it applies to RequestPad; if they conflict with the Standard EULA, the Standard
 EULA prevails.
 
-## RequestPad Pro
+## Price
 
-- RequestPad Pro is available as an auto-renewable subscription (monthly or yearly) or as a one-time lifetime
-  purchase, all through the App Store.
-- Subscriptions may include a free trial for eligible customers. When a trial ends, the subscription renews at the
-  price shown before purchase unless cancelled at least 24 hours before the end of the trial.
-- Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period.
-  Payment is charged to your Apple Account. Manage or cancel in Settings → Apple Account → Subscriptions (iPhone,
-  iPad) or App Store → Account → Subscriptions (Mac).
-- Purchases are available on all your iPhone, iPad and Mac devices signed in to the same Apple Account.
-- Refunds are handled by Apple (https://reportaproblem.apple.com).
-- If a subscription ends, everything you created stays available; features beyond the free tier become read-only.
+RequestPad is free. Every feature is included, with no subscriptions, in-app purchases or ads.
 
 ## Your use of RequestPad
 
