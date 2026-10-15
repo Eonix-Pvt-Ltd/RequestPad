@@ -613,3 +613,22 @@ The 2 iPad and 8 macOS UI-test failures seen during the free-app work also faile
 - **Seen once:** in one iPad run, the unit-test host showed the system "Sign in to Apple Account" prompt (the live
   StoreKit client on an iOS 27 simulator; the scheme's StoreKit configuration applies to Run only). The run hung
   and was stopped; the rerun passed. StoreKit was removed by `free-app` (ADR-0046, now merged), so this cannot recur.
+
+### 2026-10-15 (later) — full macOS UI run: click fix and a History crash (ADR-0048)
+- **Full macOS gate on `main` (f50b2c2), no other macOS UI tests running:** package 345/0; UI tests 2 passed, 7
+  failed ("Last onboarding page did not appear", menu items not found). So the H7 failures were not mainly
+  host contention.
+- **Cause found:** app logging showed the onboarding Continue action never ran for XCUITest's element `tap()`;
+  a coordinate click and the Return key ran it. Tests now use `centerTap()` (coordinate click on macOS).
+- **Crash found and fixed:** with the flows unblocked, `testHistoryListsSentRequests` crashed the app. Reproduced
+  by hand: sample data → open "Echo a GET" → History → `NSInternalInconsistencyException` from NSToolbar (a second
+  `.searchable` search item). History's macOS search is now an inline field; the same steps no longer crash.
+- **macOS UI after both fixes:** 3 passed (onboarding skip, environment switch, launch performance), 6 failed,
+  none crashing. Open findings, all on screens the macOS suite never reached before:
+  - unlabeled sidebar row group at the top of the outline (sample data loaded) — 3 tests;
+  - History: unlabeled `history.search` field, list and section groups; a parent/child mismatch;
+  - Settings: contrast failures on secondary text, "action missing" on the appearance picker;
+  - Import sheet: URL link "label not human-readable"/"action missing", one contrast failure, and the system
+    "emoji & symbols" Touch Bar/input item;
+  - `testCreateCollectionEditAndSaveRequest`: "Editor did not open" after creating a request.
+- **iPhone 17e (iOS 27) app tests** with the shared `centerTap()` helper: 57 unit + 10 UI passed, 0 failed.

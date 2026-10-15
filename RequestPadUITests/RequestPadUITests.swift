@@ -25,7 +25,7 @@ final class RequestPadUITests: XCTestCase {
         XCTAssertTrue(skip.waitForExistence(timeout: Self.timeout), "Onboarding did not appear")
         attachScreenshot(app, named: "01-onboarding")
         try audit(app)
-        skip.tap()
+        skip.centerTap()
         XCTAssertTrue(
             element(app, "sidebar.empty").waitForExistence(timeout: Self.timeout), "Empty sidebar did not appear")
         attachScreenshot(app, named: "02-empty")
@@ -42,7 +42,7 @@ final class RequestPadUITests: XCTestCase {
         XCTAssertTrue(send.waitForExistence(timeout: Self.timeout))
         attachScreenshot(app, named: "03-editor")
         try audit(app)
-        send.tap()
+        send.centerTap()
         let status = element(app, "response.status")
         XCTAssertTrue(status.waitForExistence(timeout: Self.timeout), "No response status")
         XCTAssertTrue(status.label.contains("200"), "Unexpected status: \(status.label)")
@@ -56,35 +56,35 @@ final class RequestPadUITests: XCTestCase {
     func testCreateCollectionEditAndSaveRequest() throws {
         let app = launch()
         skipOnboarding(app)
-        element(app, "sidebar.add").tap()
-        menuItem(app, "New Collection").tap()
+        element(app, "sidebar.add").centerTap()
+        menuItem(app, "New Collection").centerTap()
         let name = firstExisting([
             element(app, "prompt.name"), app.alerts.textFields.firstMatch, app.dialogs.textFields.firstMatch,
             app.sheets.textFields.firstMatch,
         ])
         XCTAssertTrue(name.exists, "Name prompt did not appear")
-        name.tap()
+        name.centerTap()
         name.typeText("My API")
         // Wait for the typed text to reach the field before confirming (the alert can lag on iPad).
         expectation(for: NSPredicate(format: "value == %@", "My API"), evaluatedWith: name)
         waitForExpectations(timeout: Self.timeout)
         firstExisting([
             element(app, "prompt.ok"), app.alerts.buttons["OK"], app.dialogs.buttons["OK"], app.sheets.buttons["OK"],
-        ]).tap()
+        ]).centerTap()
         XCTAssertTrue(
             element(app, "sidebar.collection.My API").waitForExistence(timeout: Self.timeout), "Collection not created")
 
-        element(app, "sidebar.add").tap()
-        menuItem(app, "New Request").tap()
+        element(app, "sidebar.add").centerTap()
+        menuItem(app, "New Request").centerTap()
         let url = element(app, "editor.url")
         XCTAssertTrue(url.waitForExistence(timeout: Self.timeout), "Editor did not open")
-        url.tap()
+        url.centerTap()
         selectAll(in: url, app: app)
         url.typeText("https://api.example.com/users?page=1")
         let save = element(app, "workspace.save")
         XCTAssertTrue(save.waitForExistence(timeout: Self.timeout))
         XCTAssertTrue(save.isEnabled, "Save should be enabled after editing")
-        save.tap()
+        save.centerTap()
         let disabled = NSPredicate(format: "isEnabled == false")
         expectation(for: disabled, evaluatedWith: save)
         waitForExpectations(timeout: Self.timeout)
@@ -102,13 +102,13 @@ final class RequestPadUITests: XCTestCase {
         let environment = element(app, "workspace.environment")
         XCTAssertTrue(environment.waitForExistence(timeout: Self.timeout))
         XCTAssertFalse(element(app, "editor.unresolved").exists, "Sample environment should resolve every variable")
-        environment.tap()
-        menuItem(app, "No Environment").tap()
+        environment.centerTap()
+        menuItem(app, "No Environment").centerTap()
         XCTAssertTrue(
             element(app, "editor.unresolved").waitForExistence(timeout: Self.timeout),
             "Missing-variable warning did not appear")
-        environment.tap()
-        menuItem(app, "Local").tap()
+        environment.centerTap()
+        menuItem(app, "Local").centerTap()
         let gone = NSPredicate(format: "exists == false")
         expectation(for: gone, evaluatedWith: element(app, "editor.unresolved"))
         waitForExpectations(timeout: Self.timeout)
@@ -120,10 +120,10 @@ final class RequestPadUITests: XCTestCase {
         let app = launch()
         loadSampleDataFromOnboarding(app)
         openRequest(app, named: "Echo a GET")
-        element(app, "editor.send").tap()
+        element(app, "editor.send").centerTap()
         XCTAssertTrue(element(app, "response.status").waitForExistence(timeout: Self.timeout))
         goBackToSidebarIfNeeded(app)
-        element(app, "sidebar.history").tap()
+        element(app, "sidebar.history").centerTap()
         XCTAssertTrue(element(app, "history.list").waitForExistence(timeout: Self.timeout), "History is empty")
         attachScreenshot(app, named: "06-history")
         try audit(app)
@@ -146,8 +146,8 @@ final class RequestPadUITests: XCTestCase {
     func testImportSheetFitsOnScreen() throws {
         let app = launch()
         skipOnboarding(app)
-        element(app, "sidebar.add").tap()
-        menuItem(app, "Import…").tap()
+        element(app, "sidebar.add").centerTap()
+        menuItem(app, "Import…").centerTap()
         let text = element(app, "import.text")
         XCTAssertTrue(text.waitForExistence(timeout: Self.timeout), "Import sheet did not open")
         assertFitsOnScreen(text, in: app)
@@ -168,8 +168,8 @@ final class RequestPadUITests: XCTestCase {
         let erase = element(app, "settings.erase")
         scrollUntilExists("settings.erase", in: app)
         XCTAssertTrue(erase.exists, "Erase All Data not found")
-        erase.tap()
-        app.buttons["Erase All Data"].firstMatch.tap()
+        erase.centerTap()
+        app.buttons["Erase All Data"].firstMatch.centerTap()
         XCTAssertTrue(
             element(app, "onboarding.skip").waitForExistence(timeout: Self.timeout),
             "Onboarding did not return after erase")
@@ -194,17 +194,17 @@ final class RequestPadUITests: XCTestCase {
             openRequest(app, named: "Create JSON")
             XCTAssertTrue(element(app, "editor.send").waitForExistence(timeout: Self.timeout))
             attachScreenshot(app, named: "ax5-editor")
-            element(app, "editor.send").tap()
+            element(app, "editor.send").centerTap()
             XCTAssertTrue(element(app, "response.status").waitForExistence(timeout: Self.timeout))
             attachScreenshot(app, named: "ax5-response")
             goBackToSidebarIfNeeded(app)
             scrollUntilExists("sidebar.history", in: app)
-            element(app, "sidebar.history").tap()
+            element(app, "sidebar.history").centerTap()
             XCTAssertTrue(element(app, "history.list").waitForExistence(timeout: Self.timeout))
             attachScreenshot(app, named: "ax5-history")
             goBackToSidebarIfNeeded(app)
             scrollUntilExists("sidebar.settings", in: app)
-            element(app, "sidebar.settings").tap()
+            element(app, "sidebar.settings").centerTap()
             XCTAssertTrue(element(app, "settings.appearance").waitForExistence(timeout: Self.timeout))
             attachScreenshot(app, named: "ax5-settings")
         }
@@ -263,7 +263,7 @@ final class RequestPadUITests: XCTestCase {
             let visible = app.windows.firstMatch.frame
             for _ in 0..<4 where !visible.contains(tab.frame) { element(app, "editor.tabs").swipeLeft() }
         #endif
-        tab.tap()
+        tab.centerTap()
     }
 
     /// Forms load rows lazily; scroll until `target` exists.
@@ -304,7 +304,7 @@ final class RequestPadUITests: XCTestCase {
     private func skipOnboarding(_ app: XCUIApplication) {
         let skip = element(app, "onboarding.skip")
         XCTAssertTrue(skip.waitForExistence(timeout: Self.timeout))
-        skip.tap()
+        skip.centerTap()
     }
 
     @MainActor
@@ -313,11 +313,11 @@ final class RequestPadUITests: XCTestCase {
         let loadSample = element(app, "onboarding.loadSample")
         XCTAssertTrue(next.waitForExistence(timeout: Self.timeout))
         for _ in 0..<6 where !loadSample.exists {
-            if next.waitForExistence(timeout: 2) { next.tap() }
+            if next.waitForExistence(timeout: 2) { next.centerTap() }
             _ = loadSample.waitForExistence(timeout: 2)
         }
         XCTAssertTrue(loadSample.waitForExistence(timeout: Self.timeout), "Last onboarding page did not appear")
-        loadSample.tap()
+        loadSample.centerTap()
         XCTAssertTrue(
             element(app, "sidebar.collection.Sample").waitForExistence(timeout: Self.timeout),
             "Sample collection missing")
@@ -328,11 +328,11 @@ final class RequestPadUITests: XCTestCase {
     private func openRequest(_ app: XCUIApplication, named name: String) {
         let search = app.searchFields.firstMatch
         XCTAssertTrue(search.waitForExistence(timeout: Self.timeout))
-        search.tap()
+        search.centerTap()
         search.typeText(name)
         let row = element(app, "sidebar.request.\(name)")
         XCTAssertTrue(row.waitForExistence(timeout: Self.timeout), "Request \(name) not found")
-        row.tap()
+        row.centerTap()
     }
 
     @MainActor
@@ -341,7 +341,7 @@ final class RequestPadUITests: XCTestCase {
             app.typeKey(",", modifierFlags: .command)
         #else
             goBackToSidebarIfNeeded(app)
-            element(app, "sidebar.settings").tap()
+            element(app, "sidebar.settings").centerTap()
         #endif
     }
 
@@ -351,16 +351,16 @@ final class RequestPadUITests: XCTestCase {
         #if os(iOS)
             if !element(app, "sidebar.history").isHittable {
                 let back = app.navigationBars.buttons.element(boundBy: 0)
-                if back.exists { back.tap() }
+                if back.exists { back.centerTap() }
             }
             // Leave sidebar search so the full list (History, Settings) is shown again.
             // The dismiss button is "Cancel" or, with the floating search field, "close".
             let clear = app.buttons["Clear text"].firstMatch
-            if clear.exists { clear.tap() }
+            if clear.exists { clear.centerTap() }
             for label in ["Cancel", "close"] {
                 let dismiss = app.buttons[label].firstMatch
                 if dismiss.exists {
-                    dismiss.tap()
+                    dismiss.centerTap()
                     break
                 }
             }
@@ -374,7 +374,7 @@ final class RequestPadUITests: XCTestCase {
         #else
             field.press(forDuration: 1.0)
             let selectAll = app.menuItems["Select All"].firstMatch
-            if selectAll.waitForExistence(timeout: 3) { selectAll.tap() }
+            if selectAll.waitForExistence(timeout: 3) { selectAll.centerTap() }
         #endif
     }
 
@@ -406,5 +406,19 @@ final class RequestPadUITests: XCTestCase {
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
+    }
+}
+
+extension XCUIElement {
+    /// Taps the element. On macOS 27, XCUITest's element tap does not reach SwiftUI buttons in a sheet or toolbar
+    /// menus (the onboarding Continue button never fired), while a click at the element's center does, so macOS
+    /// clicks the coordinate (ADR-0048).
+    @MainActor
+    func centerTap() {
+        #if os(macOS)
+            coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).click()
+        #else
+            tap()
+        #endif
     }
 }

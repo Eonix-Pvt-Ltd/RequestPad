@@ -61,7 +61,18 @@ struct HistoryView: View {
             }
         }
         .navigationTitle("History")
-        .searchable(text: $query, prompt: "Search URL or name")
+        #if os(macOS)
+            // The sidebar's search already owns the window toolbar's search item. A second `.searchable` adds a
+            // second one, which NSToolbar rejects with an exception (crash on opening History, ADR-0048).
+            .safeAreaInset(edge: .top, spacing: 0) {
+                TextField("Search URL or name", text: $query)
+                .textFieldStyle(.roundedBorder)
+                .padding(Spacing.small)
+                .accessibilityIdentifier("history.search")
+            }
+        #else
+            .searchable(text: $query, prompt: "Search URL or name")
+        #endif
         .confirmationDialog("Clear all history?", isPresented: $isClearConfirmationPresented, titleVisibility: .visible)
         {
             Button("Clear History", role: .destructive) { Task { await app.clearHistory() } }
