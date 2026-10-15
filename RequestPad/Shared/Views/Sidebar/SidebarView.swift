@@ -39,6 +39,9 @@ struct SidebarView: View {
     @State private var sheet: SidebarSheet?
     @State private var pendingDeletion: PendingDeletion?
     @State private var promptText = ""
+    #if os(iOS)
+        @FocusState private var isSearchFocused: Bool
+    #endif
 
     var body: some View {
         List(selection: $workspace.selection) {
@@ -85,15 +88,20 @@ struct SidebarView: View {
         }
         .accessibilityIdentifier("sidebar.list")
         .searchable(text: $searchText, prompt: Text("Search requests"))
+        #if os(iOS)
+            .searchFocusedIfAvailable($isSearchFocused)
+        #endif
         .onChange(of: workspace.requestedSheet) { _, requested in
             guard let requested else { return }
             sheet = requested
             workspace.requestedSheet = nil
         }
         #if os(iOS)
-            // Choosing a search result hides the keyboard so the request isn't half covered (iPad).
+            // Choosing a search result hides the keyboard so the request isn't half covered (iPad). Resigning the
+            // first responder no longer reaches the search field on iOS 27, so iOS 18+ clears its focus instead.
             .onChange(of: workspace.selection) { _, _ in
                 guard !searchText.isEmpty else { return }
+                isSearchFocused = false
                 UIApplication.shared.sendAction(
                     #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             }
@@ -540,3 +548,16 @@ struct RequestRowLabel: View {
         .accessibilityIdentifier("sidebar.request.\(request.name)")
     }
 }
+
+#if os(iOS)
+    extension View {
+        /// Binds the search field's focus where SwiftUI supports it (iOS 18+); earlier versions keep the default.
+        @ViewBuilder fileprivate func searchFocusedIfAvailable(_ isFocused: FocusState<Bool>.Binding) -> some View {
+            if #available(iOS 18, *) {
+                searchFocused(isFocused)
+            } else {
+                self
+            }
+        }
+    }
+#endif

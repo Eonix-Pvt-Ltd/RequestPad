@@ -2,10 +2,10 @@ import XCTest
 
 /// Runs `performAccessibilityAudit` and fails with the offending element's details.
 ///
-/// Three macOS-only exemptions exist, documented in `docs/DECISIONS.md` (ADR-0019, ADR-0038):
-/// 1. SwiftUI wraps each window's content, and each `NavigationSplitView` column, in an unlabeled `Group` with no
-///    identifier, and AppKit owns the system Touch Bar element. The app cannot attach accessibility attributes to
-///    these. Only those exact elements (containers matched by frame) are exempt, and only from the "sufficient
+/// Three macOS-only exemptions exist, documented in `docs/DECISIONS.md` (ADR-0019, ADR-0038, ADR-0047):
+/// 1. SwiftUI wraps each window's and sheet's content, and each `NavigationSplitView` column, in an unlabeled
+///    `Group` with no identifier, and AppKit owns the system Touch Bar element. The app cannot attach accessibility
+///    attributes to these. Only those exact elements (containers matched by frame) are exempt, and only from the "sufficient
 ///    element description" audit.
 /// 2. The sidebar column uses the system translucent material, so the contrast audit samples whatever windows are
 ///    behind it and gives machine-dependent results. Contrast issues inside the sidebar column are exempt on macOS
@@ -90,7 +90,9 @@ private struct FrameworkLayout {
 
     init(app: XCUIApplication) {
         #if os(macOS)
-            let windowFrames = app.windows.allElementsBoundByIndex.map(\.frame)
+            // Sheets get the same unlabeled hosting group as windows (e.g. the onboarding sheet).
+            let windowFrames =
+                app.windows.allElementsBoundByIndex.map(\.frame) + app.sheets.allElementsBoundByIndex.map(\.frame)
             let columns = app.splitGroups.allElementsBoundByIndex.map { splitGroup in
                 splitGroup.children(matching: .group).allElementsBoundByIndex.map(\.frame)
             }

@@ -426,3 +426,18 @@ collection folder.
   this.
 - **Build numbers:** one `CURRENT_PROJECT_VERSION` for both platforms (Universal Purchase), bumped before every
   upload, including beta fix builds.
+
+### ADR-0047 — UI test fixes for Xcode 27 / iOS 27 / macOS 27 (2026-10-15)
+Numbered after ADR-0046 on the `free-app` branch so both can merge.
+- **iPad search keyboard.** On iOS 27, `UIApplication.sendAction(resignFirstResponder)` no longer dismisses the
+  sidebar's `.searchable` field, so choosing a search result left the keyboard up (ADR-0038 says it hides). The
+  audit then failed on three unlabeled buttons: the empty slots of UIKit's "Typing Predictions" bar
+  (`SystemInputAssistantView`). The sidebar now binds the search field's focus with `.searchFocused` on iOS 18+ and
+  clears it on selection; the old call stays as the iOS 17 fallback. The keyboard is fixed in the app, not exempted.
+- **macOS sheets.** SwiftUI wraps a sheet's content in the same unlabeled hosting `Group` it puts in every window
+  (ADR-0019): the tree is `Sheet › Group (sheet frame, no label) › content`. A label or container on the
+  onboarding view lands one level below that group, so it cannot be fixed in app code. The ADR-0019 exemption
+  (only `sufficientElementDescription`, only an unlabeled group matching the frame exactly) now also covers sheet
+  frames.
+- **Simulator choice.** `scripts/test.sh` picks simulators from the newest iOS runtime; it used to take the first in
+  dictionary order (iOS 18.6), which Xcode 27 refuses to test on.

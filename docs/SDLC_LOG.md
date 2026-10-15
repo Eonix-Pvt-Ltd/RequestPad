@@ -569,3 +569,28 @@ The owner chose to submit 1.0.0 without the TestFlight beta (H12 exit criteria r
   and macOS threads, asking which apps were matched. No new build; nothing resubmitted.
 - **Next:** wait for Apple's answer. Do not resubmit unchanged. If Apple confirms the rejection, the options are an
   App Review Board appeal, merging into DevKit, substantial product changes, or pausing RequestPad.
+
+### 2026-10-15 — UI test fixes for Xcode 27 / iOS 27 / macOS 27 (ADR-0047)
+The 2 iPad and 8 macOS UI-test failures seen during the free-app work also failed on `main` (bef92c7).
+- **iPad (fixed in the app):** choosing a sidebar search result no longer hid the keyboard on iOS 27, because
+  `resignFirstResponder` no longer reaches the `.searchable` field. The audit then flagged three unlabeled buttons at
+  y=969: the empty "Typing Predictions" slots in UIKit's `SystemInputAssistantView`. The sidebar now clears the
+  search focus with `.searchFocused` (iOS 18+). Screenshot checked: the keyboard is hidden and the results stay.
+- **macOS onboarding audit (exemption widened):** the unlabeled group is SwiftUI's hosting group inside the sheet
+  (`Sheet › Group › content`). A label on the onboarding view lands one level below it. The ADR-0019 container
+  exemption now includes sheet frames.
+- **Other macOS UI failures (H7):** the window does appear now. Failure screenshots show another project's macOS UI
+  tests (OwnerNix) running at the same time, with their window in front of RequestPad's. Clicks landed on that app,
+  so "Last onboarding page did not appear" (Continue never reached the sheet) and missing menu items followed. This
+  is host contention and app code cannot fix it. A clean full macOS UI run needs a Mac with no other UI automation
+  running; it was not possible today (OwnerNix runs were active all session).
+- **`scripts/test.sh`:** auto-picked simulators now come from the newest iOS runtime (it picked iOS 18.6, which
+  Xcode 27 refuses).
+- **Results (Xcode 27.0 27A266a):** `scripts/lint.sh` passed. iPhone 17e (iOS 27): package 343 passed / 0 failed
+  (2 skipped), app 77/0. iPad Air 13-inch (M4) (iOS 27): app 77/0. macOS (`--skip-macos-ui`): package 345/0, app
+  75/0; coverage RPCore 96.87 %, RPStore 99.47 %. macOS `testOnboardingCanBeSkipped` passed (audit clean). On
+  `free-app` with these changes, iPad `testAssertionsAreAvailableOnAFreshInstall` and
+  `testSampleRequestSendsToLocalEcho` passed.
+- **Seen once:** in one iPad run, the unit-test host showed the system "Sign in to Apple Account" prompt (the live
+  StoreKit client on an iOS 27 simulator; the scheme's StoreKit configuration applies to Run only). The run hung
+  and was stopped; the rerun passed. `free-app` removes StoreKit, so this goes away when it merges.
