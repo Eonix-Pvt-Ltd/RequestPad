@@ -134,11 +134,12 @@ struct ImportView: View {
         }
     }
 
-    private var placeholder: LocalizedStringKey {
+    /// A plain string: as a `LocalizedStringKey` the example URL was parsed as Markdown and became a live link.
+    private var placeholder: String {
         switch source {
-        case .curl: "curl https://api.example.com -H 'Accept: application/json'"
-        case .openAPI: "Paste an OpenAPI 3 document (JSON or YAML) or choose a file"
-        case .postman: "Paste a Postman v2.1 collection or choose a file"
+        case .curl: String(localized: "curl https://api.example.com -H 'Accept: application/json'")
+        case .openAPI: String(localized: "Paste an OpenAPI 3 document (JSON or YAML) or choose a file")
+        case .postman: String(localized: "Paste a Postman v2.1 collection or choose a file")
         }
     }
 

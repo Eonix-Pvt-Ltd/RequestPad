@@ -472,3 +472,21 @@ collection folder.
   Reproduced by hand (sample data → open "Echo a GET" → History). On macOS, History's search is now a text field
   above the list; iOS keeps `.searchable`. This matches App Review's 2.1(a) description ("loaded sample data,
   clicked on options on side menu, crashed").
+
+### ADR-0049 — macOS accessibility audit: fixes and verified exemptions (2026-10-19)
+The macOS UI suite reached every screen for the first time after ADR-0048. Findings and decisions:
+- **Fixed in the app:** History's search field and list, the JSONPath filter field and the response tree have
+  accessibility labels. The status badge and JSON tree rows have the static-text trait (they were reported as
+  "unknown role"). Settings values ("Last 1,000 requests", the echo address, the version) use `textSecondary`
+  instead of the system secondary color, which measured 3.9:1 on the grouped row background. The cURL placeholder
+  in Import is a plain string: as a `LocalizedStringKey` its example URL was parsed as Markdown into a live link.
+- **Exempt (framework-owned):** the unlabeled group SwiftUI puts around each List section header and footer on
+  macOS (also from the parent/child audit: it sits a few points above its cell), controls inside the system Touch
+  Bar, element-less parent/child findings (AppKit's field editor while a text field has focus), and "action
+  missing" on pop-up buttons, which open with AXShowMenu like the menu buttons already exempt (ADR-0038).
+- **Contrast verified from pixels:** the audit flagged Settings and Import footers (`textSecondary` on white) and
+  the echo "Address" row although they measure 6.45:1 and 14:1 on screen. On macOS a contrast finding is dropped
+  only when the darkest and lightest pixels in the element's frame, from a screenshot taken for the audit, measure
+  at least 4.5:1; otherwise it fails with the measured ratio in the message.
+- **Test mechanics:** menu items are taken from the open menu (the File menu has an off-screen "New Request"), and
+  dialog buttons from the window (macOS mirrors them in the Touch Bar, which coordinate clicks cannot reach).

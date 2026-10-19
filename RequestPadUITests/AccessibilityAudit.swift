@@ -1,18 +1,23 @@
 import XCTest
 
+#if os(macOS)
+    import AppKit
+#endif
+
 /// Runs `performAccessibilityAudit` and fails with the offending element's details.
 ///
-/// Three macOS-only exemptions exist, documented in `docs/DECISIONS.md` (ADR-0019, ADR-0038, ADR-0047):
-/// 1. SwiftUI wraps each window's and sheet's content, and each `NavigationSplitView` column, in an unlabeled
-///    `Group` with no identifier, and AppKit owns the system Touch Bar element. The app cannot attach accessibility
-///    attributes to these. Only those exact elements (containers matched by frame) are exempt, and only from the "sufficient
-///    element description" audit.
+/// Three macOS-only exemptions exist, documented in `docs/DECISIONS.md` (ADR-0019, ADR-0038, ADR-0047, ADR-0049):
+/// 1. SwiftUI wraps each window's and sheet's content, each `NavigationSplitView` column, and each List section
+///    header and footer, in an unlabeled `Group` with no identifier, and AppKit owns the system Touch Bar element.
+///    The app cannot attach accessibility attributes to these. Only those exact elements (containers matched by
+///    frame) are exempt, and only from the "sufficient element description" audit (section hosts also from the
+///    parent/child audit: SwiftUI places them a few points above their cell).
 /// 2. The sidebar column uses the system translucent material, so the contrast audit samples whatever windows are
 ///    behind it and gives machine-dependent results. Contrast issues inside the sidebar column are exempt on macOS
 ///    only; contrast is covered deterministically by the iOS/iPadOS audit and by the manual macOS Accessibility
 ///    Inspector pass in `docs/HUMAN_HANDOFF.md`.
-/// 3. Toolbar menu buttons are opened with AXShowMenu rather than AXPress; the "action missing" audit is exempt
-///    for menu buttons only.
+/// 3. Toolbar menu buttons and pop-up buttons (menu-style pickers) are opened with AXShowMenu rather than AXPress;
+///    the "action missing" audit is exempt for those two element types only.
 /// On iOS, Dynamic Type and text-clipping findings are attached for review and verified visually by
 /// `testLargestDynamicTypeSizes` (ADR-0038).
 /// Individual tests may also pass `verified` exemptions: an audit type plus an element identifier that was checked
@@ -61,6 +66,7 @@ enum AccessibilityAudit {
             findings.append(
                 "[\(issue.auditType.rawValue)] \(issue.compactDescription) — element: "
                     + (issue.element.map { "\($0.elementType) '\($0.identifier)' '\($0.label)' \($0.frame)" } ?? "none")
+                    + layout.renderedContrastNote(for: issue)
             )
             return true
         }
@@ -83,6 +89,9 @@ enum AccessibilityAudit {
 @MainActor
 private struct FrameworkLayout {
     let containerFrames: [CGRect]
+    let sectionHostFrames: [CGRect]
+    let touchBarFrames: [CGRect]
+    let screenshot: XCUIScreenshot?
     let sidebarFrames: [CGRect]
     let screenFrame: CGRect
     let navigationBarFrames: [CGRect]
@@ -96,19 +105,41 @@ private struct FrameworkLayout {
             let columns = app.splitGroups.allElementsBoundByIndex.map { splitGroup in
                 splitGroup.children(matching: .group).allElementsBoundByIndex.map(\.frame)
             }
-            containerFrames = windowFrames + columns.flatMap { $0 }
+            // SwiftUI hosts each List section header and footer in an unlabeled group inside the outline cell.
+            let sectionHostFrames = app.outlines.cells.children(matching: .group).allElementsBoundByIndex.map(\.frame)
+            containerFrames = windowFrames + columns.flatMap { $0 } + sectionHostFrames
+            self.sectionHostFrames = sectionHostFrames
+            screenshot = XCUIScreen.main.screenshot()
+            touchBarFrames =
+                app.touchBars.allElementsBoundByIndex.map(\.frame)
+                + app.touchBars.descendants(matching: .any).allElementsBoundByIndex.map(\.frame)
             sidebarFrames = columns.compactMap(\.first)
             screenFrame = .infinite
             navigationBarFrames = []
             scrollViewFrames = []
         #else
             containerFrames = []
+            sectionHostFrames = []
+            touchBarFrames = []
+            screenshot = nil
             // iPad: the sidebar column, shown beside the detail in regular width.
             let sidebar = app.collectionViews.containing(.any, identifier: "sidebar.history").firstMatch
             sidebarFrames = app.windows.firstMatch.frame.width > 700 && sidebar.exists ? [sidebar.frame] : []
             screenFrame = app.windows.firstMatch.frame
             navigationBarFrames = app.navigationBars.allElementsBoundByIndex.map(\.frame)
             scrollViewFrames = app.scrollViews.allElementsBoundByIndex.map(\.frame)
+        #endif
+    }
+
+    /// For a macOS contrast finding, the ratio measured from the screen, so a failure shows the real value.
+    func renderedContrastNote(for issue: XCUIAccessibilityAuditIssue) -> String {
+        #if os(macOS)
+            guard issue.auditType == .contrast, let element = issue.element, let screenshot,
+                let ratio = RenderedContrast.ratio(in: element.frame, of: screenshot)
+            else { return "" }
+            return String(format: " — rendered %.2f:1", ratio)
+        #else
+            return ""
         #endif
     }
 
@@ -130,22 +161,82 @@ private struct FrameworkLayout {
                 || !element.isHittable
                 || scrollViewFrames.contains { $0.intersects(element.frame) && !$0.contains(element.frame) }
         #else
-            guard let element = issue.element else { return false }
+            // Without an element, a parent/child mismatch comes from AppKit's field editor while a text field has
+            // focus; there is nothing in the app to fix (ADR-0049).
+            guard let element = issue.element else { return issue.auditType == .parentChild }
+            // The system Touch Bar (present on some MacBook Pro models) and its controls are owned by AppKit.
+            if element.elementType == .touchBar || touchBarFrames.contains(element.frame) {
+                return true
+            }
             switch issue.auditType {
             case .sufficientElementDescription:
-                // The system Touch Bar (present on some MacBook Pro models) is owned by AppKit.
-                if element.elementType == .touchBar { return true }
                 return element.elementType == .group && element.identifier.isEmpty && element.label.isEmpty
                     && containerFrames.contains(element.frame)
             case .contrast:
+                // The macOS 27 audit reports small Form footers and row labels that measure ≥ 6:1 on screen. A
+                // finding is dropped only when the rendered pixels in the element's frame pass (ADR-0049).
                 return sidebarFrames.contains { $0.contains(element.frame) }
+                    || RenderedContrast.passes(element.frame, in: screenshot)
+            case .parentChild:
+                // A section host group is laid out a few points above its cell by SwiftUI.
+                return element.elementType == .group && element.identifier.isEmpty && element.label.isEmpty
+                    && sectionHostFrames.contains(element.frame)
             case .action:
                 // SwiftUI toolbar menus are AppKit menu buttons: they open with AXShowMenu (VoiceOver VO-Space),
                 // not AXPress, which the audit looks for.
-                return element.elementType == .menuButton
+                return element.elementType == .menuButton || element.elementType == .popUpButton
             default:
                 return false
             }
         #endif
     }
 }
+
+#if os(macOS)
+    /// WCAG contrast measured from the screen: the darkest and lightest pixels inside a text element's frame.
+    enum RenderedContrast {
+        /// WCAG AA for normal text.
+        static let minimumRatio = 4.5
+
+        static func passes(_ frame: CGRect, in screenshot: XCUIScreenshot?) -> Bool {
+            guard let screenshot, let ratio = ratio(in: frame, of: screenshot) else { return false }
+            return ratio >= minimumRatio
+        }
+
+        static func ratio(in frame: CGRect, of screenshot: XCUIScreenshot) -> Double? {
+            guard
+                let bitmap = screenshot.image.representations.first as? NSBitmapImageRep
+                    ?? screenshot.image.cgImage(forProposedRect: nil, context: nil, hints: nil).map(
+                        NSBitmapImageRep.init)
+            else { return nil }
+            // Element frames are in points on the primary display; the screenshot is in its pixels.
+            guard let screenWidth = NSScreen.screens.first?.frame.width, screenWidth > 0 else { return nil }
+            let scale = Double(bitmap.pixelsWide) / screenWidth
+            let pixels = CGRect(
+                x: frame.minX * scale, y: frame.minY * scale, width: frame.width * scale, height: frame.height * scale
+            ).integral.intersection(CGRect(x: 0, y: 0, width: bitmap.pixelsWide, height: bitmap.pixelsHigh))
+            guard !pixels.isEmpty else { return nil }
+            var darkest = Double.infinity
+            var lightest = -Double.infinity
+            for x in Int(pixels.minX)..<Int(pixels.maxX) {
+                for y in Int(pixels.minY)..<Int(pixels.maxY) {
+                    guard let color = bitmap.colorAt(x: x, y: y)?.usingColorSpace(.sRGB) else { continue }
+                    let luminance = relativeLuminance(color)
+                    darkest = min(darkest, luminance)
+                    lightest = max(lightest, luminance)
+                }
+            }
+            guard darkest.isFinite else { return nil }
+            return (lightest + 0.05) / (darkest + 0.05)
+        }
+
+        private static func relativeLuminance(_ color: NSColor) -> Double {
+            func channel(_ value: CGFloat) -> Double {
+                let value = Double(value)
+                return value <= 0.039_28 ? value / 12.92 : pow((value + 0.055) / 1.055, 2.4)
+            }
+            return 0.212_6 * channel(color.redComponent) + 0.715_2 * channel(color.greenComponent)
+                + 0.072_2 * channel(color.blueComponent)
+        }
+    }
+#endif

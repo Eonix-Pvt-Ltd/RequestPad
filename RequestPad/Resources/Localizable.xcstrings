@@ -661,6 +661,9 @@
     "JSON Body" : {
 
     },
+    "JSONPath Filter" : {
+
+    },
     "JSONPath, e.g. $.data.token" : {
 
     },
@@ -1034,6 +1037,9 @@
     "Response" : {
 
     },
+    "Response Body" : {
+
+    },
     "Response image" : {
 
     },
@@ -1098,6 +1104,9 @@
 
     },
     "Scope" : {
+
+    },
+    "Search History" : {
 
     },
     "Search requests" : {

@@ -81,6 +81,7 @@ struct JSONNodeRow: View {
                 .textSelection(.enabled)
         }
         .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isStaticText)
     }
 
     static func tint(for value: JSONValue) -> Color {

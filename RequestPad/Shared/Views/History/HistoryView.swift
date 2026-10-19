@@ -44,6 +44,7 @@ struct HistoryView: View {
                         } header: {
                             Text(group.day.formatted(date: .complete, time: .omitted))
                                 .foregroundStyle(Color.textSecondary)
+                                .accessibilityAddTraits(.isHeader)
                         }
                     }
                     Section {
@@ -57,6 +58,7 @@ struct HistoryView: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
+                .accessibilityLabel(Text("History"))
                 .accessibilityIdentifier("history.list")
             }
         }
@@ -68,6 +70,7 @@ struct HistoryView: View {
                 TextField("Search URL or name", text: $query)
                 .textFieldStyle(.roundedBorder)
                 .padding(Spacing.small)
+                .accessibilityLabel(Text("Search History"))
                 .accessibilityIdentifier("history.search")
             }
         #else
