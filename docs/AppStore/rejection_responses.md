@@ -49,6 +49,17 @@ collection list when a row inside an expanded collection is dragged. Fixed in th
 > attached fixes this; such moves are now ignored safely, and an automated test covers this case. To check it: load
 > the sample data (Settings… → Try It Out → Load Sample Data), then click and drag rows in the sidebar.
 
+**Apple's follow-up (macOS thread, 2026-10-09, on 1.0.0 (6)):** "the app still crashed during review" — steps:
+launched the app, loaded sample data, clicked an item in the side menu, crash. Crash logs attached in App Store
+Connect. These steps match the second macOS crash found and fixed on 2026-10-15 (ADR-0048): sample data → a sidebar
+item (History) → `NSInternalInconsistencyException` from NSToolbar. Build 6 predates that fix; Xcode Cloud build 10
+(commit 3fa63cc) contains it, and `testHistoryListsSentRequests` covers the path. Reply when resubmitting:
+
+> Thank you for the crash logs and the steps. We reproduced the crash: after loading the sample data, opening History
+> from the sidebar raised an exception in the window toolbar (a second search field). The attached build fixes this
+> (History no longer installs a toolbar search item on macOS), and an automated UI test now covers exactly these
+> steps: load sample data, open a request, open History. The earlier sidebar drag crash is also fixed in this build.
+
 ## 4.3(a) — Spam: "similar binary, metadata, and/or concept" (1.0.0 (6), iOS + macOS, 2026-10-06)
 
 Rejection came with an Extended Review warning. Do not resubmit unchanged. First reply (no new build) asking which
@@ -79,6 +90,35 @@ QueryPad, Shellbay, JSON Scope, HookCatcher or UptimeScout.
 >
 > If a specific part of the binary or metadata looks too close to another app, please point us to it and we will
 > change it. Thank you for your time.
+
+**Apple's answer (iOS thread, 2026-10-12):** the rejection stands. Apple does not name the apps it matched ("we do not
+share the details of apps submitted under other Apple Developer Program accounts") and repeats that the app
+"duplicates the content and functionality of other apps submitted to the App Store", closing with "we encourage you
+to create a unique app before resubmitting for review." No further question was asked. The remaining paths are the
+ones listed in `docs/SDLC_LOG.md` (2026-10-07): an App Review Board appeal, merging into DevKit, substantial product
+changes, or pausing RequestPad. Resubmitting the same concept after this answer is the owner's decision; the account
+carries an Extended Review warning.
+
+**Sent 2026-10-19 (macOS thread, with the resubmission of 1.0.0 (10)); the same statement heads the App Review notes
+on both versions:**
+
+> Hello, and thank you for the crash logs and the steps.
+>
+> We reproduced the crash: after loading the sample data, opening History from the sidebar raised an exception in
+> the window toolbar (a second search field). Build 1.0.0 (10), now attached to this submission, fixes it: History no
+> longer installs a toolbar search item on macOS, and an automated UI test covers exactly these steps (load sample
+> data, open a request, open History). The earlier sidebar drag crash is also fixed in this build.
+>
+> Two other changes since the last review: RequestPad is now completely free (the subscriptions and lifetime purchase
+> were removed from the app and are not part of any submission), and the review notes are updated.
+>
+> On 4.3(a): RequestPad is entirely our own work. Eonix (Pvt) Ltd designed and wrote it from scratch for this
+> purpose; it is not built from a template or purchased code, and no source is shared with any other app. Its
+> complete source code is public at github.com/Eonix-Pvt-Ltd/RequestPad, and we are releasing it as open source so
+> other developers can learn from and build on it. If any part of the binary or metadata appears similar to another
+> app, please tell us which part and we will change it.
+>
+> Thank you for your time.
 
 ## 2.5.2 / 2.5.4 — The app runs a server (Local Echo) or might execute code
 
