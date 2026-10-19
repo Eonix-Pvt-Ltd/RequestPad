@@ -490,3 +490,25 @@ The macOS UI suite reached every screen for the first time after ADR-0048. Findi
   at least 4.5:1; otherwise it fails with the measured ratio in the message.
 - **Test mechanics:** menu items are taken from the open menu (the File menu has an off-screen "New Request"), and
   dialog buttons from the window (macOS mirrors them in the Touch Bar, which coordinate clicks cannot reach).
+
+### ADR-0050 — Source released under the Apache License 2.0 (2026-10-19)
+- **Context:** the 1.0.0 (10) resubmission (2026-10-19) told App Review that RequestPad is entirely Eonix's own
+  work and that its complete source code is public at https://github.com/Eonix-Pvt-Ltd/RequestPad and released as
+  open source. `origin` is that public repository (the former `yasasalwis/RequestPad` was transferred to the
+  organization), so every push to `main` is public, yet `LICENSE` still read "proprietary and confidential. All
+  rights reserved", contradicting the review notes. A grep for "proprietary", "confidential" and "All rights
+  reserved" matched only `LICENSE`; `SECURITY.md` and `TERMS.md` never claimed the source was confidential.
+- **Decision (owner's choice, 2026-10-19):** the Apache License, Version 2.0, chosen over MIT and MPL-2.0, with the
+  copyright line "Copyright © 2026 Eonix (Pvt) Ltd". `LICENSE` holds the full license text (checked against
+  https://www.apache.org/licenses/LICENSE-2.0.txt) with the appendix notice filled in. A new `NOTICE` file carries
+  the attribution notices that Section 4(d) asks redistributors to keep: Apple's Standard EULA for the App Store
+  build, the Bruno trademark note and the MIT-licensed Bruno `.bru` fixtures (both moved from the old `LICENSE`).
+- **Why Apache-2.0:** permissive like MIT, so it does not limit what Eonix ships, but it adds an express patent
+  grant with a retaliation clause and the NOTICE mechanism: anyone shipping a fork, including a rebranded App
+  Store build, must keep Eonix's attribution and cannot sue over patents in the code. MPL-2.0's file-level copyleft
+  was judged unnecessary for a free app with zero third-party dependencies.
+- **Consequences:** the binary installed from the App Store is still governed by Apple's Standard EULA
+  (`TERMS.md`, unchanged). No per-file license headers are added; Apache-2.0 does not require them and the
+  appendix notice in `LICENSE` covers the work. README gains a License section and an open-source note. Once this
+  branch is merged to `main` and pushed, the public `LICENSE` matches what App Review was told; until then the
+  public repository still shows the proprietary text.

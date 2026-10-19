@@ -2,7 +2,8 @@
 
 An unbloated, native API client for iPhone, iPad and Mac. It sends HTTP and GraphQL requests with environments,
 variables and auth helpers, and stores collections as git-friendly Bruno `.bru` files in a folder you own. No
-account, no cloud, no telemetry.
+account, no cloud, no telemetry. The complete source code is public and licensed under the Apache License 2.0
+(see [License](#license)).
 
 - Product requirements: [`docs/PRD.md`](docs/PRD.md)
 - Architecture and threat model: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
@@ -89,3 +90,10 @@ Bump `CURRENT_PROJECT_VERSION` in `Config/Base.xcconfig` before every upload.
 - **Signing errors when running on a Mac** — make sure Xcode is signed in to an account on team `835LNLUPAJ`, or
   run tests the way CI does: `CI=true scripts/test.sh --platform macos` (ad hoc signing).
 - **Package changes not picked up** — `rm -rf ~/Library/Developer/Xcode/DerivedData/RequestPad-*` and rebuild.
+
+## License
+
+RequestPad's source code is licensed under the [Apache License, Version 2.0](LICENSE). Copyright © 2026 Eonix (Pvt)
+Ltd. Attribution notices that redistributors must keep (Apple's Standard EULA for the App Store build, the Bruno
+trademark note and the MIT-licensed Bruno test fixtures) are in [`NOTICE`](NOTICE). The app as installed from the App
+Store is licensed to end users under Apple's Standard EULA, as [`TERMS.md`](TERMS.md) explains (ADR-0050).

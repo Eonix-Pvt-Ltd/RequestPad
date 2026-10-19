@@ -643,3 +643,14 @@ The 2 iPad and 8 macOS UI-test failures seen during the free-app work also faile
 - **Full gate** `scripts/test.sh --platform all` (iPhone 17e and iPad Air 13-inch (M4) on iOS 27, macOS 27): lint
   passed; package macOS 312/0, iPhone 310/0 (2 skipped); app macOS 74/0 (all 9 UI tests), iPhone 67/0, iPad 67/0;
   RPCore coverage 96.85 %.
+
+### 2026-10-19 (later) — open-source license: Apache-2.0 (ADR-0050, branch `claude/zen-swartz-4da749`)
+- Grep for "proprietary", "confidential" and "All rights reserved" (Markdown, Swift, plist, LICENSE): only
+  `LICENSE` matched. `SECURITY.md` and `TERMS.md` need no change.
+- The owner was asked to choose between MIT, Apache-2.0 and MPL-2.0 (with what differs for an App Store app) and
+  chose Apache-2.0.
+- `LICENSE` replaced with the Apache License 2.0; the body is byte-identical to
+  https://www.apache.org/licenses/LICENSE-2.0.txt and the appendix notice reads "Copyright © 2026 Eonix (Pvt)
+  Ltd". `NOTICE` added (EULA, Bruno trademark and fixture notices). README: open-source note and a License section.
+- `scripts/lint.sh`: passed (swift-format, placeholders, markers, forbidden APIs, metadata OK). Nothing pushed or
+  merged; after the owner merges to `main` and pushes, the public `LICENSE` is updated at once.

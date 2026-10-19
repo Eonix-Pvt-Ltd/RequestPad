@@ -1,0 +1,12 @@
+RequestPad
+Copyright © 2026 Eonix (Pvt) Ltd
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+The RequestPad app distributed through the Apple App Store is licensed to end users under Apple's Licensed
+Application End User License Agreement: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+
+"Bruno" is a trademark of its respective owner. RequestPad reads and writes the Bruno `.bru` file format for
+interoperability and is not affiliated with or endorsed by the Bruno project. The `.bru` test fixtures under
+`Tests/RPCoreTests/Fixtures/bru/bruno/` are copied from the Bruno project under the MIT License; see
+`Tests/RPCoreTests/Fixtures/bru/bruno/LICENSE-bruno.md`.
