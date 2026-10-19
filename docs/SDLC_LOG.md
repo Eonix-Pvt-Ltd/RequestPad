@@ -683,7 +683,7 @@ The 2 iPad and 8 macOS UI-test failures seen during the free-app work also faile
 - Still open: web pages H1 (terms/support/home still describe Pro); the public repo's license; the attached review
   crash logs were not downloaded (fix verified by reproduction and `testHistoryListsSentRequests` instead).
 
-### 2026-10-19 (later) — open-source license: Apache-2.0 (ADR-0050, branch `claude/zen-swartz-4da749`)
+### 2026-10-19 (after submission) — open-source license: Apache-2.0 (ADR-0050, branch `claude/zen-swartz-4da749`)
 - Grep for "proprietary", "confidential" and "All rights reserved" (Markdown, Swift, plist, LICENSE): only
   `LICENSE` matched. `SECURITY.md` and `TERMS.md` need no change.
 - The owner was asked to choose between MIT, Apache-2.0 and MPL-2.0 (with what differs for an App Store app) and
@@ -691,5 +691,5 @@ The 2 iPad and 8 macOS UI-test failures seen during the free-app work also faile
 - `LICENSE` replaced with the Apache License 2.0; the body is byte-identical to
   https://www.apache.org/licenses/LICENSE-2.0.txt and the appendix notice reads "Copyright © 2026 Eonix (Pvt)
   Ltd". `NOTICE` added (EULA, Bruno trademark and fixture notices). README: open-source note and a License section.
-- `scripts/lint.sh`: passed (swift-format, placeholders, markers, forbidden APIs, metadata OK). Nothing pushed or
-  merged; after the owner merges to `main` and pushes, the public `LICENSE` is updated at once.
+- `scripts/lint.sh`: passed on the branch and again after merging `main` (9c8d70f). The owner approved the merge
+  to `main` and the push the same day; every push to `main` is public, so the public `LICENSE` now matches.
