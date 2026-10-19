@@ -5,6 +5,13 @@ macOS). Sign-in required: **No**.
 
 ---
 
+ABOUT THIS SUBMISSION
+RequestPad is entirely our own work: Eonix (Pvt) Ltd designed and wrote it from scratch for this purpose. It is not built from a template or purchased code, and no source is shared with any other app. Its complete source code is public at github.com/Eonix-Pvt-Ltd/RequestPad, and we are releasing it as open source so other developers can learn from and build on it. If any part of the binary or metadata appears similar to another app, please tell us which part and we will change it.
+
+CHANGES SINCE THE LAST REVIEW
+- The app is now completely free: the Pro subscriptions and lifetime purchase were removed from the app and are not part of this submission.
+- macOS: the crash reported on 9 October (load sample data, then click History in the sidebar) is fixed and covered by an automated UI test; the earlier sidebar drag crash is also fixed.
+
 RequestPad is a native API client (HTTP and GraphQL) for developers. It is free, with every feature included: there are no in-app purchases, subscriptions or ads, and no account or login.
 
 TRY EVERYTHING WITHOUT A SERVER

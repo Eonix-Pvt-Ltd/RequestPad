@@ -643,3 +643,42 @@ The 2 iPad and 8 macOS UI-test failures seen during the free-app work also faile
 - **Full gate** `scripts/test.sh --platform all` (iPhone 17e and iPad Air 13-inch (M4) on iOS 27, macOS 27): lint
   passed; package macOS 312/0, iPhone 310/0 (2 skipped); app macOS 74/0 (all 9 UI tests), iPhone 67/0, iPad 67/0;
   RPCore coverage 96.85 %.
+
+### 2026-10-19 (evening) — full gate on `main` 3fa63cc, Apple's answers, App Store Connect prepared
+- **Gate (Xcode 27.0 27A266a, macOS 27; OwnerNix iOS tests running on the same Mac):** `scripts/lint.sh` passed.
+  macOS: package 312/0, app 74/0 (all 9 UI tests, including `testHistoryListsSentRequests`). iPhone 17e (iOS 27):
+  package 310/0 (2 skipped), app 67/0. iPad Air 13-inch (M4) (iOS 27): app 67/0. RPCore coverage 96.85 %.
+- **Manual smoke, iPhone 17e simulator (Debug build from the gate):** Settings → Load Sample Data starts Local
+  Echo on 127.0.0.1 and adds the Sample collection; Basics → "Echo a GET" → Send returns 200 OK in 19 ms with the
+  JSON tree; History lists the request. Settings shows no Pro items; History says "Last 1,000 requests".
+- **Apple's replies, read in App Store Connect (not previously recorded):** macOS thread 2026-10-09 — build 6
+  "still crashed" after Load Sample Data + a sidebar click (the ADR-0048 History crash; fixed in build 10). iOS
+  thread 2026-10-12 — 4.3(a) upheld, matched apps not named, "create a unique app before resubmitting". Both
+  recorded in `docs/AppStore/rejection_responses.md` and HUMAN_HANDOFF H13.
+- **Xcode Cloud:** build 10 = commit 3fa63cc (this merge), succeeded, "Ready to Submit" on iOS and macOS.
+- **App Store Connect prepared by the agent (saved, nothing submitted):** iOS 1.0.0 and macOS 1.0.0 now carry build
+  10, the free-app promotional text, description and App Review notes from `docs/AppStore/`; keywords unchanged;
+  manual release selected; both versions read "Prepare for Submission". The old iOS submission still holds the 4
+  Pro items (Lifetime, group, Yearly, Monthly) with status "Ready for Review"; removing an item shows a "Remove Last
+  Item With Issues" dialog whose target is ambiguous, so nothing was removed. Cleanest path: Cancel Submission,
+  then Add for Review from the version page with the app version only (H8).
+- **Web pages (H1) still not republished:** `/terms`, `/support` and the home page describe Pro, prices and
+  subscriptions; `/privacy` matches the repo. The store description now says "no subscriptions, in-app purchases or
+  ads" and links to `/terms`.
+- **Decision for the owner:** whether to resubmit at all after Apple's 2026-10-12 answer (account has an Extended
+  Review warning). Alternatives in the 2026-10-07 entry.
+
+### 2026-10-19 (night) — 1.0.0 (10) submitted on both platforms (owner's decision)
+- The owner read Apple's 2026-10-12 answer and chose to resubmit, asking that Apple be told the app is entirely
+  Eonix's own work and is being made public and open source. The public repository is
+  https://github.com/Eonix-Pvt-Ltd/RequestPad (main at 3fa63cc = build 10); its `LICENSE` still reads
+  "proprietary and confidential", so the open-source claim needs a real license file to back it.
+- `docs/AppStore/review_notes.md` gained an "ABOUT THIS SUBMISSION" and "CHANGES SINCE THE LAST REVIEW" header
+  (notes 3,942 characters); `scripts/check-metadata.py` passes. Pasted into both versions' App Review notes.
+- **iOS:** the old submission (Oct 2) became "Removed" with all five items detached after the version page was saved
+  with build 10; the Lifetime product now shows "Developer Rejected" and nothing is attached. Add for Review created
+  a draft containing only iOS App 1.0.0 (10); submitted — "Waiting for Review" (iOS version page: manual release).
+- **macOS:** replied in the existing thread (crash reproduced and fixed in build 10, app now free, originality and
+  public source statement), then "Resubmit to App Review" — "Waiting for Review", 7 messages in the thread.
+- Still open: web pages H1 (terms/support/home still describe Pro); the public repo's license; the attached review
+  crash logs were not downloaded (fix verified by reproduction and `testHistoryListsSentRequests` instead).

@@ -169,6 +169,23 @@ Phase 9). The TestFlight text and plan are in `docs/AppStore/testflight.md`.
   step 4 (sandbox purchase tests) and the H12 beta were not run.
 - Next: step 6 (forward any App Review message), then step 7.
 
+**Update 2026-10-19 (night) — resubmitted by the agent at the owner's request:** iOS 1.0.0 (new submission, only
+the app version) and macOS 1.0.0 (resubmitted in the existing thread, with a reply) are both "Waiting for Review"
+with Xcode Cloud build 1.0.0 (10) = commit `3fa63cc`. Tag that commit at release (step 7). The review notes on both
+versions state that RequestPad is Eonix's own work and that its source is public at
+https://github.com/Eonix-Pvt-Ltd/RequestPad as open source — **replace that repository's proprietary `LICENSE` with an
+open-source license** so the statement is true, and republish the web pages (H1).
+
+**Update 2026-10-19 — Apple answered both threads (read in App Store Connect by the agent):**
+- macOS, 2026-10-09: build 6 "still crashed" (launch → Load Sample Data → click a sidebar item). This is the History
+  crash fixed by ADR-0048 (2026-10-15); Xcode Cloud build 10 (commit 3fa63cc) has the fix. Crash logs are attached
+  in the thread (not downloaded).
+- iOS, 2026-10-12: 4.3(a) upheld; Apple will not name the matched apps and says to "create a unique app before
+  resubmitting". The owner decides between an App Review Board appeal, merging into DevKit, substantial product
+  changes, pausing RequestPad, or resubmitting build 10 as is. Build 10 is "Ready to Submit" on both platforms.
+- The web pages were not republished yet: `/terms`, `/support` and the home page still describe Pro, prices and
+  subscriptions (checked 2026-10-19); `/privacy` matches the repo.
+
 **Update 2026-10-14 — RequestPad is free (ADR-0046):** the Pro subscriptions and lifetime purchase are removed from
 the app (branch `free-app`). The next submission is a changed binary and changed metadata, so it is not an
 "unchanged resubmission" after the 4.3(a) rejection. Before submitting: wait for Apple's answer to the 2026-10-07
