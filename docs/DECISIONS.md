@@ -459,3 +459,16 @@ collection folder.
   frames.
 - **Simulator choice.** `scripts/test.sh` picks simulators from the newest iOS runtime; it used to take the first in
   dictionary order (iOS 18.6), which Xcode 27 refuses to test on.
+
+### ADR-0048 — macOS UI tests click by coordinate; History search is inline on macOS (2026-10-15)
+- **Clicks.** On macOS 27 with Xcode 27, XCUITest's element `tap()` is dropped by SwiftUI buttons in sheets and by
+  toolbar menu buttons: the onboarding Continue button never fired, while `coordinate(...).click()` at the
+  element's center and the Return key did (checked with app logging, 2026-10-15). Hovering first did not help. UI
+  tests call `centerTap()`, which clicks the center coordinate on macOS and taps on iOS. This, not other apps
+  holding the foreground, is why most macOS UI tests failed (corrects the ADR-0047 note in HUMAN_HANDOFF H7).
+- **History crash (macOS).** Opening History after a request was selected crashed with
+  `NSInternalInconsistencyException` in `-[NSToolbar _insertNewItemWithItemIdentifier:…]`: the sidebar's
+  `.searchable` already owns the window toolbar's search item, and History's own `.searchable` added a second one.
+  Reproduced by hand (sample data → open "Echo a GET" → History). On macOS, History's search is now a text field
+  above the list; iOS keeps `.searchable`. This matches App Review's 2.1(a) description ("loaded sample data,
+  clicked on options on side menu, crashed").
