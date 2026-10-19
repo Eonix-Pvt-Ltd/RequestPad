@@ -45,7 +45,7 @@ struct SettingsView: View {
                 Toggle("Follow Redirects for New Requests", isOn: $followRedirects)
                     .onChange(of: followRedirects) { _, newValue in app.preferences.followRedirects = newValue }
                     .accessibilityIdentifier("settings.followRedirects")
-                LabeledContent("History", value: String(localized: "Last 1,000 requests"))
+                LabeledContent("History") { Text("Last 1,000 requests").foregroundStyle(Color.textSecondary) }
             } header: {
                 Group {
                     Text("Requests")
@@ -70,7 +70,7 @@ struct SettingsView: View {
                 SectionHeader("Legal")
             }
             Section {
-                LabeledContent("Version", value: Self.versionString)
+                LabeledContent("Version") { Text(Self.versionString).foregroundStyle(Color.textSecondary) }
             }
         }
         .formStyle(.grouped)
@@ -157,7 +157,10 @@ struct SettingsView: View {
             Toggle("Local Echo Server", isOn: Binding(get: { isEchoRunning }, set: { toggleEcho($0) }))
                 .accessibilityIdentifier("settings.echo")
             if let port = app.echoPort {
-                LabeledContent("Address") { Text(verbatim: "http://127.0.0.1:\(port)").textSelection(.enabled) }
+                LabeledContent("Address") {
+                    Text(verbatim: "http://127.0.0.1:\(port)").textSelection(.enabled).foregroundStyle(
+                        Color.textSecondary)
+                }
             }
             Button("Load Sample Data") {
                 Task {

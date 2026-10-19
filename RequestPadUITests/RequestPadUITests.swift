@@ -45,7 +45,9 @@ final class RequestPadUITests: XCTestCase {
         send.centerTap()
         let status = element(app, "response.status")
         XCTAssertTrue(status.waitForExistence(timeout: Self.timeout), "No response status")
-        XCTAssertTrue(status.label.contains("200"), "Unexpected status: \(status.label)")
+        // The badge is static text: its description is the label on iOS and the value on macOS.
+        let statusText = "\(status.label) \(status.value as? String ?? "")"
+        XCTAssertTrue(statusText.contains("200"), "Unexpected status: \(statusText)")
         XCTAssertTrue(element(app, "response.body.tree").waitForExistence(timeout: Self.timeout), "JSON tree missing")
         attachScreenshot(app, named: "04-response")
         try audit(app)
@@ -169,7 +171,12 @@ final class RequestPadUITests: XCTestCase {
         scrollUntilExists("settings.erase", in: app)
         XCTAssertTrue(erase.exists, "Erase All Data not found")
         erase.centerTap()
-        app.buttons["Erase All Data"].firstMatch.centerTap()
+        // On macOS the dialog's buttons are mirrored in the Touch Bar, which a coordinate click cannot reach.
+        #if os(macOS)
+            app.windows.buttons["Erase All Data"].firstMatch.centerTap()
+        #else
+            app.buttons["Erase All Data"].firstMatch.centerTap()
+        #endif
         XCTAssertTrue(
             element(app, "onboarding.skip").waitForExistence(timeout: Self.timeout),
             "Onboarding did not return after erase")
@@ -294,7 +301,11 @@ final class RequestPadUITests: XCTestCase {
     @MainActor
     private func menuItem(_ app: XCUIApplication, _ title: String) -> XCUIElement {
         #if os(macOS)
-            app.menuItems[title].firstMatch
+            // The menu bar can hold an item with the same title (File › New Request) that is not on screen; a
+            // coordinate click needs the one in the menu that is open.
+            let items = app.menuItems.matching(NSPredicate(format: "title == %@", title))
+            _ = items.firstMatch.waitForExistence(timeout: Self.timeout)
+            return items.allElementsBoundByIndex.first(where: \.isHittable) ?? items.firstMatch
         #else
             app.buttons[title].firstMatch
         #endif

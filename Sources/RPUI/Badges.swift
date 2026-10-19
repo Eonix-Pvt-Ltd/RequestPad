@@ -58,5 +58,6 @@ public struct StatusBadge: View {
         .foregroundStyle(style.tint)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("Status \(code), \(text), \(statusClass.localizedName)"))
+        .accessibilityAddTraits(.isStaticText)
     }
 }

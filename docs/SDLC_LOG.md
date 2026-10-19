@@ -632,3 +632,14 @@ The 2 iPad and 8 macOS UI-test failures seen during the free-app work also faile
     "emoji & symbols" Touch Bar/input item;
   - `testCreateCollectionEditAndSaveRequest`: "Editor did not open" after creating a request.
 - **iPhone 17e (iOS 27) app tests** with the shared `centerTap()` helper: 57 unit + 10 UI passed, 0 failed.
+
+### 2026-10-19 — macOS UI suite green (ADR-0049)
+- Merged `fix/macos-ui-test-hover` to `main` (c46b950, owner approved). This branch: `fix/macos-accessibility-audits`.
+- "Editor did not open" was the test clicking File › New Request (an off-screen menu-bar item with the same title)
+  instead of the open Add menu's item. Fixed in the test helper.
+- macOS accessibility findings fixed or exempted as recorded in ADR-0049. Contrast findings that measure ≥ 4.5:1 on
+  screen are dropped by a pixel check; "Last 1,000 requests" measured 3.9:1 and was fixed in the app.
+- **macOS UI tests (Xcode 27, macOS 27, no other UI automation running): 9 passed, 0 failed.**
+- **Full gate** `scripts/test.sh --platform all` (iPhone 17e and iPad Air 13-inch (M4) on iOS 27, macOS 27): lint
+  passed; package macOS 312/0, iPhone 310/0 (2 skipped); app macOS 74/0 (all 9 UI tests), iPhone 67/0, iPad 67/0;
+  RPCore coverage 96.85 %.

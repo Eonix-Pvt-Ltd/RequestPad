@@ -215,10 +215,12 @@ private struct JSONFilterView: View {
                 .monospacedField()
                 .padding(.horizontal, Spacing.medium)
                 .padding(.bottom, Spacing.xSmall)
+                .accessibilityLabel(Text("JSONPath Filter"))
                 .accessibilityIdentifier("response.body.filter")
             switch filtered {
             case .success(let value):
                 JSONTreeView(root: value)
+                    .accessibilityLabel(Text("Response Body"))
                     .accessibilityIdentifier("response.body.tree")
             case .failure(let error):
                 Text(error.errorDescription ?? "")
