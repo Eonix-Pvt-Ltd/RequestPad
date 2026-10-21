@@ -693,3 +693,27 @@ The 2 iPad and 8 macOS UI-test failures seen during the free-app work also faile
   Ltd". `NOTICE` added (EULA, Bruno trademark and fixture notices). README: open-source note and a License section.
 - `scripts/lint.sh`: passed on the branch and again after merging `main` (9c8d70f). The owner approved the merge
   to `main` and the push the same day; every push to `main` is public, so the public `LICENSE` now matches.
+
+### 2026-10-21 — 1.0.0 (10) rejected again (4.3(a)/(b), 4.2.6); TestFlight beta set up (H12)
+- **Report (2026-10-20, iOS and macOS):** Guidelines 4.3 Spam and 4.2.6 App Generation Services. Apple asks either
+  for significant changes or for a reply answering nine questions, including the beta testing done and the beta
+  feedback applied. Nothing resubmitted.
+- **Checked:** no Swift file or image in RequestPad is identical to one in the nine local repositories of the apps on
+  the account; 3–39 of ~7,070 distinct non-trivial Swift lines overlap per app, all standard idioms. No third-party
+  packages. Competitors HTTPBot, Curly (imports Bruno collections) and Apico (no account) exist, so the reply leads
+  with reading and writing .bru folders in place.
+- **Draft reply** (not sent) in `docs/AppStore/rejection_responses.md`. Owner's decision: run a real external
+  TestFlight beta first and answer question 4 with actual feedback.
+- **TestFlight (agent, in the owner's Chrome):** Test Information saved (beta description, feedback email, marketing
+  and privacy URLs). Beta App Review notes (the review notes without the App Store-only header, 3,074 characters)
+  and contact email are typed but **not saved**: the contact first name, last name and phone are required and are the
+  owner's to enter. Groups "Eonix Internal" (internal, both build 1.0.0 (10)s added) and "Public Beta" (external,
+  empty) created. "What to Test" saved on iOS and macOS build 10, with a new step 8 (open a .bru folder from git) and
+  a question about current tools; `docs/AppStore/testflight.md` updated to match. Builds 11 and 12 differ from 10
+  only in docs and LICENSE.
+- **Owner:** entered and saved the Beta App Review contact (verified after a fresh page load: contact, notes 3,074
+  characters, sign-in not required).
+- **Submitted 2026-10-21 (owner's explicit go):** iOS and macOS build 1.0.0 (10) added to "Public Beta" and submitted
+  for Beta App Review; both "Waiting for Review". "Automatically notify testers" is on; the group has no testers yet.
+- **Next (owner):** invite internal testers; once Beta App Review approves, invite 10–50 external developers or
+  enable a public link; collect feedback for answer 4 of the Apple reply.

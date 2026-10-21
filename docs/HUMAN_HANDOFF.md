@@ -159,6 +159,12 @@ Phase 9). The TestFlight text and plan are in `docs/AppStore/testflight.md`.
    - there are no open P1 or P2 issues.
    Record this in `docs/SDLC_LOG.md` under "Phase 9 — Beta".
 
+**Status 2026-10-21 — set up by the agent; the beta is a prerequisite for answering Apple's 2026-10-20 questions:**
+Test Information and the Beta App Review contact are saved. Groups "Eonix Internal" (iOS and macOS build 1.0.0 (10))
+and "Public Beta" exist. Both build 10s have "What to Test" and were submitted from "Public Beta" for Beta App Review
+on 2026-10-21 ("Waiting for Review"). Next: invite internal testers now and external testers after approval (steps 4–5),
+then collect feedback (step 6) for answer 4 in `docs/AppStore/rejection_responses.md`.
+
 ### H13 — App Store submission and release (Phase 10)
 **Status 2026-09-27 — submitted by the agent at the owner's request (beta skipped by the owner's choice):**
 - iOS 1.0.0 and macOS 1.0.0 are "Waiting for Review", both with Xcode Cloud build 1.0.0 (3), built from commit

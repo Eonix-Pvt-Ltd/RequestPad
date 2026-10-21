@@ -120,6 +120,102 @@ on both versions:**
 >
 > Thank you for your time.
 
+## 4.3(a), 4.3(b), 4.2.6 — the nine questions (1.0.0 (10), iOS + macOS, 2026-10-20)
+
+Apple rejected 1.0.0 (10) on both platforms (message dated 2026-10-20, 4:35 AM) and asked for a reply answering nine
+questions instead of a resubmission. Facts checked 2026-10-21:
+- Apps on the account in App Store Connect: RequestPad, QueryPad, Shellbay, JSON Scope, DevKit, UptimeScout, AmpQuote,
+  Routine Anchor, Sotto, Casefold and Letmark (the last two not yet submitted).
+- No Swift file or image in RequestPad is identical to a file in any of the nine local repositories. Of ~7,070
+  distinct non-trivial Swift lines, 3–39 also appear in each other app, all standard Swift/SwiftUI idioms.
+- No third-party packages (Package.swift has none). The .bru, Postman, OpenAPI and cURL parsers are RequestPad's own.
+- Folder collections write .bru files in place (atomic, coordinated) and refuse to overwrite a file changed outside
+  the app (`DataError.fileConflict`, `FolderWatcher`).
+- Competitors found 2026-10-21: HTTPBot, Curly (imports Postman and Bruno collections), Apico (no account, no cloud),
+  REST API Client. Bruno itself is desktop only. "No account" and "imports Bruno" are therefore not unique; reading
+  and writing a .bru folder in place is the claim to make.
+- No external TestFlight beta was run (owner's choice, 2026-09-27). Do not invent beta feedback.
+
+DRAFT — not sent. The bracketed part of answer 4 needs the owner's facts.
+
+> Hello, and thank you for the questions. Our answers follow.
+>
+> 1. What the app does
+> RequestPad is an API client: a developer writes an HTTP or GraphQL request (method, URL, query, headers, body,
+> authentication), sends it and reads the response (status, timing, headers, a JSON tree with a JSONPath filter, raw
+> text, images, large bodies saved to disk). Requests are saved in collections with environments and variables;
+> secret values are kept in the Keychain. The main problem it solves: many teams keep their API requests as plain
+> text files in Bruno's .bru format inside their git repository. RequestPad opens that folder (from Files) on iPhone,
+> iPad or Mac and edits and sends the same requests, writing every change back to the same .bru files, so the
+> collection stays in git with one source of truth. If a file was changed elsewhere, RequestPad does not overwrite
+> it. It also runs a folder of requests with assertions, extracts values from responses into variables for the next
+> request, imports OpenAPI 3, Postman v2.1 and cURL, supports OAuth 2.0 and cookies, offers a Shortcuts "Send
+> Request" action, and on Mac a menu bar Quick Send. A test server built into the app (Local Echo, 127.0.0.1 only)
+> lets every feature be tried offline.
+>
+> 2. Intended user
+> Backend, mobile and API developers who already work with Bruno or Postman on a computer, keep their API
+> definitions in git, and need to call or check those APIs from an iPad or iPhone away from the desk, for example
+> while on call. Also iOS developers who test their own staging or local-network servers from the device they build
+> for, and developers whose employers do not allow API keys to be stored in a cloud account: RequestPad has no
+> account and sends nothing except the requests the user sends.
+>
+> 3. The gap
+> API clients on the App Store keep requests in their own database, or import a collection once as a copy that then
+> drifts from the team's files. Bruno itself is available only for Mac, Windows and Linux. RequestPad works on the
+> team's .bru files directly, on iPhone and iPad as well as Mac, so an edit made on an iPad lands in the same file the
+> desktop and git use. Together with that it has a collection runner with assertions, an offline test server, a
+> Shortcuts action that runs without opening the app, and one universal app across iPhone, iPad and Mac. It is free
+> with no purchases, and its source is public under the Apache 2.0 licence, so a company can check what a tool that
+> handles its API keys does.
+>
+> 4. Beta testing
+> We did not run an external TestFlight beta before submitting, and we accept that this was a gap. Before each
+> build, automated tests ran on iPhone, iPad and Mac (for build 10: 74 macOS app tests including 9 UI tests and an
+> accessibility audit of every screen, 67 on iPhone, 67 on iPad, and 96.85 % line coverage of the core library).
+> [OWNER: who tested it by hand, on which devices, and what they reported, if anything.] The feedback that changed
+> the production build came from App Review: two macOS crashes (dragging rows in the sidebar, and opening History
+> after loading sample data) were fixed and are now covered by tests, and the macOS accessibility audit led to
+> labelling fixes on every screen. We also removed all in-app purchases.
+>
+> 5. Standalone or suite
+> RequestPad is a standalone product. The other apps on our account do different jobs:
+> - QueryPad: a database client (connects to PostgreSQL, MySQL, MongoDB, Redis and other databases, browses schemas,
+>   runs queries). It has no way to write or send general HTTP requests.
+> - Shellbay: runs guided server-administration workflows on Linux servers over SSH.
+> - JSON Scope: opens and queries very large JSON files from disk. It does not send requests.
+> - DevKit: offline converters and decoders (JWT, certificates, cron, CIDR and more). It makes no network requests.
+> - UptimeScout: checks on a schedule that the user's websites, servers and SSL certificates are up, and alerts when
+>   one fails. It has no request editor, collections, environments, variables or response viewer.
+> - AmpQuote: quotes and invoices for tradespeople.
+> - Routine Anchor: daily routines and focus sessions.
+> - Sotto: a chat app for on-device AI models.
+> - Casefold (legal document vault) and Letmark (rental property management) are not yet submitted.
+>
+> 6. Could it be part of another app?
+> No. The nearest apps are DevKit and UptimeScout. DevKit's promise is that it works offline and sends nothing;
+> RequestPad's whole purpose is sending the user's requests, and it needs file-folder access, Local Network access
+> and a loopback server. UptimeScout watches a list of sites on a schedule; it has no request editor,
+> collections, environments or files. Adding a git-backed API client to either would change what those apps are and
+> confuse their users.
+>
+> 7. Code shared with our other apps
+> No. RequestPad has its own repository and its own Swift packages, and no source file, framework, image or other
+> asset is shared with any other app on our account. We compared the code: no file is identical, and the only
+> overlap is a few dozen single lines of standard Swift idioms.
+>
+> 8. Code shared with third-party apps
+> No. RequestPad uses only Apple frameworks; there are no third-party SDKs or libraries. It reads and writes the
+> open .bru text format and imports the Postman v2.1, OpenAPI 3 and cURL formats with parsers we wrote for
+> RequestPad; no code from Bruno, Postman or any other project is included.
+>
+> 9. Client, partner or template
+> No. Eonix (Pvt) Ltd, which holds this developer account, conceived, designed and built RequestPad and owns its
+> name and branding. It was not made for a client and not from a template or app generation service. The source is
+> public at github.com/Eonix-Pvt-Ltd/RequestPad.
+>
+> Thank you for your time. We are glad to answer anything else.
+
 ## 2.5.2 / 2.5.4 — The app runs a server (Local Echo) or might execute code
 
 > RequestPad includes "Local Echo", a small built-in HTTP test server so that every feature can be tried without an
