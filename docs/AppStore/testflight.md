@@ -39,6 +39,9 @@ Thank you for testing RequestPad!
 5. iPhone and iPad: rotation, Split View, a hardware keyboard (⌘↩ sends), Dynamic Type, VoiceOver, dark mode.
 6. Mac: menus and shortcuts, Settings → Mac (Menu Bar Quick Send, Open at Login), Services → "Send URL with RequestPad".
 7. Shortcuts: add the "Send Request" action and run it with the app closed.
+8. If your team keeps API requests in git (Bruno .bru files): open that folder (sidebar + → Open Collection Folder…), edit and send a request, then check the change in git or desktop Bruno.
+
+Please also tell us: what tool do you use today, what would make you switch to RequestPad or stop you, and what is missing or confusing.
 
 Report problems with a screenshot (TestFlight → Send Beta Feedback) or email support@eonix.lk. For crashes, iOS asks to share the report; please accept.
 ```
