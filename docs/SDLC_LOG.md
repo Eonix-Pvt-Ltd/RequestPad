@@ -717,3 +717,14 @@ The 2 iPad and 8 macOS UI-test failures seen during the free-app work also faile
   for Beta App Review; both "Waiting for Review". "Automatically notify testers" is on; the group has no testers yet.
 - **Next (owner):** invite internal testers; once Beta App Review approves, invite 10–50 external developers or
   enable a public link; collect feedback for answer 4 of the Apple reply.
+
+### 2026-10-30 — Reply to Apple held; Public Beta public link opened
+- **TestFlight checked (agent, in the owner's Chrome):** iOS build 1.0.0 (10) Approved for external testing, in
+  "Eonix Internal" and "Public Beta"; 0 testers, 0 installs, 0 feedback. Builds 11–13 are not submitted for beta.
+- **Owner's decision:** do not send the nine-question reply yet; run the external beta first. Answer 4 of the draft
+  now states that the developer tested each build by hand (the owner was the only manual tester and nothing changed
+  from it) and is to be rewritten with the beta's feedback and fixes.
+- **Public link (owner's explicit go):** created on "Public Beta", open to anyone, no tester limit:
+  https://testflight.apple.com/join/aP8sKVyd. Recorded in `docs/AppStore/testflight.md`.
+- **Next (owner):** share the link with API developers, collect feedback for 1–2 weeks, then fix, rewrite answer 4
+  and reply to Apple.
