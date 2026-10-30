@@ -53,6 +53,8 @@ Report problems with a screenshot (TestFlight → Send Beta Feedback) or email s
 | Eonix Internal | Internal (no review) | Team members with App Store Connect access, up to 100 | Every processed build, automatically |
 | Public Beta | External (Beta App Review) | 10–50 invited developers: iPhone, iPad and Mac users; include one on iOS 17 or macOS 14 | Builds that pass internal smoke tests |
 
+Public Beta public link (created 2026-10-30, open to anyone, no tester limit): https://testflight.apple.com/join/aP8sKVyd
+
 ## Feedback triage
 
 | Severity | Examples | Response |

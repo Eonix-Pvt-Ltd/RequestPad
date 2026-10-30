@@ -136,7 +136,9 @@ questions instead of a resubmission. Facts checked 2026-10-21:
   and writing a .bru folder in place is the claim to make.
 - No external TestFlight beta was run (owner's choice, 2026-09-27). Do not invent beta feedback.
 
-DRAFT — not sent. The bracketed part of answer 4 needs the owner's facts.
+DRAFT — not sent. 2026-10-30: TestFlight shows build 10 approved for external testing but 0 testers, 0 installs
+and 0 feedback; the owner tested by hand alone, with no changes from it. The owner chose to run the external beta
+before replying, so answer 4 must be rewritten with the real feedback and fixes once the beta has run.
 
 > Hello, and thank you for the questions. Our answers follow.
 >
@@ -173,7 +175,7 @@ DRAFT — not sent. The bracketed part of answer 4 needs the owner's facts.
 > We did not run an external TestFlight beta before submitting, and we accept that this was a gap. Before each
 > build, automated tests ran on iPhone, iPad and Mac (for build 10: 74 macOS app tests including 9 UI tests and an
 > accessibility audit of every screen, 67 on iPhone, 67 on iPad, and 96.85 % line coverage of the core library).
-> [OWNER: who tested it by hand, on which devices, and what they reported, if anything.] The feedback that changed
+> Our developer also tested each build by hand on their own devices. The feedback that changed
 > the production build came from App Review: two macOS crashes (dragging rows in the sidebar, and opening History
 > after loading sample data) were fixed and are now covered by tests, and the macOS accessibility audit led to
 > labelling fixes on every screen. We also removed all in-app purchases.
